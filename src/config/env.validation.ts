@@ -5,7 +5,6 @@ export const envValidationSchema = Joi.object({
     .valid('development', 'production', 'test')
     .default('development'),
   PORT: Joi.number().default(3000),
-  JWT_SECRET: Joi.string().required(),
 
   MS_USER_URL: Joi.string().default('0.0.0.0:5001'),
   MS_POST_URL: Joi.string().default('0.0.0.0:5002'),

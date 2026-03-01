@@ -9,10 +9,6 @@ export class AppConfigService {
     return this.configService.getOrThrow<number>('PORT');
   }
 
-  get jwtSecret(): string {
-    return this.configService.getOrThrow<string>('JWT_SECRET');
-  }
-
   get msUserUrl(): string {
     return this.configService.getOrThrow<string>('MS_USER_URL');
   }

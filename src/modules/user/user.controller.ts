@@ -1,23 +1,27 @@
-import { Controller, Get, Inject, OnModuleInit, Param } from '@nestjs/common';
+import {
+  Controller,
+  Delete,
+  Inject,
+  OnModuleInit,
+  Param,
+} from '@nestjs/common';
 import type { ClientGrpc } from '@nestjs/microservices';
-import { Observable } from 'rxjs';
-
-interface UserServiceClient {
-  findOne(data: { id: string }): Observable<any>;
-}
+import { USER_SERVICE_NAME, UserServiceClient } from '@volontariapp/contracts';
+import { USER_PACKAGE } from '../../grpc/grpc-packages.js';
 
 @Controller('users')
 export class UserController implements OnModuleInit {
-  private userService: UserServiceClient;
+  private userService!: UserServiceClient;
 
-  constructor(@Inject('USER_PACKAGE') private client: ClientGrpc) {}
+  constructor(@Inject(USER_PACKAGE) private client: ClientGrpc) {}
 
   onModuleInit() {
-    this.userService = this.client.getService<UserServiceClient>('UserService');
+    this.userService =
+      this.client.getService<UserServiceClient>(USER_SERVICE_NAME);
   }
 
-  @Get(':id')
-  getUser(@Param('id') id: string) {
-    return this.userService.findOne({ id });
+  @Delete(':id')
+  deleteUser(@Param('id') id: string) {
+    return this.userService.deleteUser({ id });
   }
 }
