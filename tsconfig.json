@@ -1,32 +1,23 @@
 {
   "compilerOptions": {
-    /* Base */
     "target": "ESNext",
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "lib": ["ESNext"],
     "types": ["node"],
-
-    /* NestJS & Decorators */
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-
-    /* Strictness */
     "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-
-    /* Interop & Modernity */
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-
-    /* Build & Performance */
     "outDir": "./dist",
     "baseUrl": "./",
     "sourceMap": true,
