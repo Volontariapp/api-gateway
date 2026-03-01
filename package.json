@@ -31,6 +31,7 @@
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/swagger": "^11.2.6",
     "@volontariapp/contracts": "link:/Users/victoragahi/Developer/meta/npm-packages/packages/contracts",
+    "@volontariapp/monitoring": "link:/Users/victoragahi/Developer/meta/npm-packages/packages/monitoring",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
     "joi": "^18.0.2",

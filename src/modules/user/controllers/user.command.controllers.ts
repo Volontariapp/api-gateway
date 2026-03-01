@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Delete,
-  Get,
   Inject,
   OnModuleInit,
   Param,
@@ -16,11 +15,11 @@ import type {
   CreateUserRequest,
   UpdateUserRequest,
 } from '@volontariapp/contracts';
-import { USER_PACKAGE } from '../../grpc/grpc-packages.js';
+import { USER_PACKAGE } from '../../../grpc/grpc-packages.js';
 
 @ApiTags('Users')
 @Controller('users')
-export class UserController implements OnModuleInit {
+export class UserCommandController implements OnModuleInit {
   private userService!: UserServiceClient;
 
   constructor(@Inject(USER_PACKAGE) private client: ClientGrpc) {}
@@ -46,19 +45,6 @@ export class UserController implements OnModuleInit {
   @Post()
   createUser(@Body() request: CreateUserRequest) {
     return this.userService.createUser(request);
-  }
-
-  @ApiOperation({ summary: 'List all users' })
-  @Get()
-  listUsers() {
-    return this.userService.listUsers({ pagination: undefined });
-  }
-
-  @ApiOperation({ summary: 'Get a user by ID' })
-  @ApiParam({ name: 'id', description: 'User ID' })
-  @Get(':id')
-  getUser(@Param('id') id: string) {
-    return this.userService.getUser({ id });
   }
 
   @ApiOperation({ summary: 'Update a user by ID' })
