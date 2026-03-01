@@ -2347,6 +2347,12 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@volontariapp/contracts@link:/Users/victoragahi/Developer/meta/npm-packages/packages/contracts::locator=api-gateway%40workspace%3A.":
+  version: 0.0.0-use.local
+  resolution: "@volontariapp/contracts@link:/Users/victoragahi/Developer/meta/npm-packages/packages/contracts::locator=api-gateway%40workspace%3A."
+  languageName: node
+  linkType: soft
+
 "@webassemblyjs/ast@npm:1.14.1, @webassemblyjs/ast@npm:^1.14.1":
   version: 1.14.1
   resolution: "@webassemblyjs/ast@npm:1.14.1"
@@ -2746,6 +2752,7 @@ __metadata:
     "@types/jest": "npm:^30.0.0"
     "@types/node": "npm:^22.10.7"
     "@types/supertest": "npm:^6.0.2"
+    "@volontariapp/contracts": "link:/Users/victoragahi/Developer/meta/npm-packages/packages/contracts"
     class-transformer: "npm:^0.5.1"
     class-validator: "npm:^0.15.1"
     eslint: "npm:^9.18.0"

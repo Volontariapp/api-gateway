@@ -1,6 +1,7 @@
 {
   "name": "api-gateway",
   "version": "0.0.1",
+  "type": "module",
   "description": "",
   "author": "",
   "private": true,
@@ -28,6 +29,7 @@
     "@nestjs/core": "^11.0.1",
     "@nestjs/microservices": "^11.1.14",
     "@nestjs/platform-express": "^11.0.1",
+    "@volontariapp/contracts": "link:/Users/victoragahi/Developer/meta/npm-packages/packages/contracts",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
     "joi": "^18.0.2",
