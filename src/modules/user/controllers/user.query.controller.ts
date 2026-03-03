@@ -1,7 +1,15 @@
-import { Controller, Get, Inject, OnModuleInit, Param } from '@nestjs/common';
-import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Inject,
+  OnModuleInit,
+  Param,
+  Query,
+} from '@nestjs/common';
+import { ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import type { ClientGrpc } from '@nestjs/microservices';
 import { USER_SERVICE_NAME, UserServiceClient } from '@volontariapp/contracts';
+import type { UserQuery, ListUsersQuery } from '@volontariapp/contracts';
 import { USER_PACKAGE } from '../../../grpc/grpc-packages.js';
 
 @ApiTags('Users')
@@ -17,15 +25,22 @@ export class UserQueryController implements OnModuleInit {
   }
 
   @ApiOperation({ summary: 'List all users' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
   @Get()
-  listUsers() {
-    return this.userService.listUsers({ pagination: undefined });
+  listUsers(@Query() query: { page?: number; limit?: number }) {
+    return this.userService.listUsers({
+      pagination: {
+        page: query.page ?? 1,
+        limit: query.limit ?? 10,
+      },
+    } as ListUsersQuery);
   }
 
   @ApiOperation({ summary: 'Get a user by ID' })
   @ApiParam({ name: 'id', description: 'User ID' })
   @Get(':id')
   getUser(@Param('id') id: string) {
-    return this.userService.getUser({ id });
+    return this.userService.getUser({ id } as UserQuery);
   }
 }

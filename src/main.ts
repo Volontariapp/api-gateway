@@ -5,6 +5,7 @@ import { AppModule } from './app.module.js';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { GrpcToHttpExceptionFilter } from './common/filters/grpc-to-http-exception.filter.js';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter.js';
+import { Logger } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -21,7 +22,14 @@ async function bootstrap() {
     new HttpExceptionFilter(),
     new GrpcToHttpExceptionFilter(),
   );
-
-  await app.listen(process.env.PORT ?? 3000);
+  const port = process.env.PORT ?? 3000;
+  await app.listen(port);
+  Logger.log(
+    '=================================== API Gateway ===================================',
+  );
+  Logger.log(`SWAGGER: http://localhost:${port}/api`);
+  Logger.log(
+    '=================================== API Gateway ===================================',
+  );
 }
 void bootstrap();

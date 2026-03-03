@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Delete,
-  Get,
   Inject,
   OnModuleInit,
   Param,
@@ -13,14 +12,14 @@ import { ApiBody, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import type { ClientGrpc } from '@nestjs/microservices';
 import { POST_SERVICE_NAME, PostServiceClient } from '@volontariapp/contracts';
 import type {
-  CreatePostRequest,
-  UpdatePostRequest,
+  CreatePostCommand,
+  UpdatePostCommand,
 } from '@volontariapp/contracts';
-import { POST_PACKAGE } from '../../grpc/grpc-packages.js';
+import { POST_PACKAGE } from '../../../grpc/grpc-packages.js';
 
 @ApiTags('Posts')
 @Controller('posts')
-export class PostController implements OnModuleInit {
+export class PostCommandController implements OnModuleInit {
   private postService!: PostServiceClient;
 
   constructor(@Inject(POST_PACKAGE) private client: ClientGrpc) {}
@@ -48,21 +47,8 @@ export class PostController implements OnModuleInit {
     },
   })
   @Post()
-  createPost(@Body() request: CreatePostRequest) {
-    return this.postService.createPost(request);
-  }
-
-  @ApiOperation({ summary: 'List all posts' })
-  @Get()
-  listPosts() {
-    return this.postService.listPosts({ pagination: undefined });
-  }
-
-  @ApiOperation({ summary: 'Get a post by ID' })
-  @ApiParam({ name: 'id', description: 'Post ID' })
-  @Get(':id')
-  getPost(@Param('id') id: string) {
-    return this.postService.getPost({ id });
+  createPost(@Body() command: CreatePostCommand) {
+    return this.postService.createPost(command);
   }
 
   @ApiOperation({ summary: 'Update a post by ID' })
@@ -77,11 +63,14 @@ export class PostController implements OnModuleInit {
     },
   })
   @Patch(':id')
-  updatePost(@Param('id') id: string, @Body() request: UpdatePostRequest) {
+  updatePost(
+    @Param('id') id: string,
+    @Body() command: Partial<UpdatePostCommand>,
+  ) {
     return this.postService.updatePost({
+      ...command,
       id,
-      ...(request as Omit<UpdatePostRequest, 'id'>),
-    });
+    } as UpdatePostCommand);
   }
 
   @ApiOperation({ summary: 'Delete a post by ID' })

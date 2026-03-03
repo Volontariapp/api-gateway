@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Delete,
-  Get,
   Inject,
   OnModuleInit,
   Param,
@@ -16,14 +15,14 @@ import {
   EventServiceClient,
 } from '@volontariapp/contracts';
 import type {
-  CreateEventRequest,
-  UpdateEventRequest,
+  CreateEventCommand,
+  UpdateEventCommand,
 } from '@volontariapp/contracts';
-import { EVENT_PACKAGE } from '../../grpc/grpc-packages.js';
+import { EVENT_PACKAGE } from '../../../grpc/grpc-packages.js';
 
 @ApiTags('Events')
 @Controller('events')
-export class EventController implements OnModuleInit {
+export class EventCommandController implements OnModuleInit {
   private eventService!: EventServiceClient;
 
   constructor(@Inject(EVENT_PACKAGE) private client: ClientGrpc) {}
@@ -62,21 +61,12 @@ export class EventController implements OnModuleInit {
     },
   })
   @Post()
-  createEvent(@Body() request: CreateEventRequest) {
-    return this.eventService.createEvent(request);
-  }
-
-  @ApiOperation({ summary: 'List all events' })
-  @Get()
-  listEvents() {
-    return this.eventService.listEvents({ pagination: undefined });
-  }
-
-  @ApiOperation({ summary: 'Get an event by ID' })
-  @ApiParam({ name: 'id', description: 'Event ID' })
-  @Get(':id')
-  getEvent(@Param('id') id: string) {
-    return this.eventService.getEvent({ id, test: '' });
+  createEvent(@Body() command: CreateEventCommand) {
+    return this.eventService.createEvent({
+      ...command,
+      startDate: command.startDate ? new Date(command.startDate) : undefined,
+      endDate: command.endDate ? new Date(command.endDate) : undefined,
+    } as CreateEventCommand);
   }
 
   @ApiOperation({ summary: 'Update an event by ID' })
@@ -102,11 +92,16 @@ export class EventController implements OnModuleInit {
     },
   })
   @Patch(':id')
-  updateEvent(@Param('id') id: string, @Body() request: UpdateEventRequest) {
+  updateEvent(
+    @Param('id') id: string,
+    @Body() command: Partial<UpdateEventCommand>,
+  ) {
     return this.eventService.updateEvent({
+      ...command,
       id,
-      ...(request as Omit<UpdateEventRequest, 'id'>),
-    });
+      startDate: command.startDate ? new Date(command.startDate) : undefined,
+      endDate: command.endDate ? new Date(command.endDate) : undefined,
+    } as UpdateEventCommand);
   }
 
   @ApiOperation({ summary: 'Delete an event by ID' })

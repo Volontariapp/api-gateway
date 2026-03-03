@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
-import { EventController } from './event.controller.js';
+import { EventCommandController } from './controllers/event.command.controller.js';
+import { EventQueryController } from './controllers/event.query.controller.js';
 
 @Module({
-  controllers: [EventController],
+  controllers: [EventCommandController, EventQueryController],
 })
 export class EventModule {}

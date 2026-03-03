@@ -12,8 +12,8 @@ import { ApiBody, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import type { ClientGrpc } from '@nestjs/microservices';
 import { USER_SERVICE_NAME, UserServiceClient } from '@volontariapp/contracts';
 import type {
-  CreateUserRequest,
-  UpdateUserRequest,
+  CreateUserCommand,
+  UpdateUserCommand,
 } from '@volontariapp/contracts';
 import { USER_PACKAGE } from '../../../grpc/grpc-packages.js';
 
@@ -43,8 +43,8 @@ export class UserCommandController implements OnModuleInit {
     },
   })
   @Post()
-  createUser(@Body() request: CreateUserRequest) {
-    return this.userService.createUser(request);
+  createUser(@Body() command: CreateUserCommand) {
+    return this.userService.createUser(command);
   }
 
   @ApiOperation({ summary: 'Update a user by ID' })
@@ -61,11 +61,14 @@ export class UserCommandController implements OnModuleInit {
     },
   })
   @Patch(':id')
-  updateUser(@Param('id') id: string, @Body() request: unknown) {
+  updateUser(
+    @Param('id') id: string,
+    @Body() command: Partial<UpdateUserCommand>,
+  ) {
     return this.userService.updateUser({
+      ...command,
       id,
-      ...(request as Omit<UpdateUserRequest, 'id'>),
-    });
+    } as UpdateUserCommand);
   }
 
   @ApiOperation({ summary: 'Delete a user by ID' })
