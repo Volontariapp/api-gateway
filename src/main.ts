@@ -1,14 +1,14 @@
 import './tracing.js';
 import 'reflect-metadata';
+import { GlobalExceptionFilter } from '@volontariapp/errors-nest';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module.js';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { GrpcToHttpExceptionFilter } from './common/filters/grpc-to-http-exception.filter.js';
-import { HttpExceptionFilter } from './common/filters/http-exception.filter.js';
 import { Logger } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.setGlobalPrefix('api/v1');
 
   const config = new DocumentBuilder()
     .setTitle('VolontariApp API Gateway')
@@ -18,10 +18,7 @@ async function bootstrap() {
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, documentFactory);
 
-  app.useGlobalFilters(
-    new HttpExceptionFilter(),
-    new GrpcToHttpExceptionFilter(),
-  );
+  app.useGlobalFilters(new GlobalExceptionFilter());
   const port = process.env.PORT ?? 3000;
   await app.listen(port);
   Logger.log(

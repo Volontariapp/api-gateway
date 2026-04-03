@@ -16,8 +16,21 @@ import type {
   UpdateUserCommand,
 } from '@volontariapp/contracts';
 import { USER_PACKAGE } from '../../../grpc/grpc-packages.js';
+import {
+  ApiBadRequestResponse,
+  ApiConflictResponse,
+  ApiForbiddenResponse,
+  ApiInternalServerErrorResponse,
+  ApiNotFoundResponse,
+  ApiTooManyRequestsResponse,
+  ApiUnauthorizedResponse,
+} from '@volontariapp/errors-nest';
 
 @ApiTags('Users')
+@ApiUnauthorizedResponse()
+@ApiForbiddenResponse()
+@ApiInternalServerErrorResponse()
+@ApiTooManyRequestsResponse()
 @Controller('users')
 export class UserCommandController implements OnModuleInit {
   private userService!: UserServiceClient;
@@ -42,6 +55,24 @@ export class UserCommandController implements OnModuleInit {
       },
     },
   })
+  @ApiBadRequestResponse({
+    description: 'Invalid input data',
+    example: {
+      code: 'VALIDATION_ERROR',
+      message: 'The provided email is invalid',
+      details: { field: 'email', issue: 'invalid format' },
+      path: '/api/v1/users',
+    },
+  })
+  @ApiConflictResponse({
+    description: 'User already exists',
+    example: {
+      code: 'USER_ALREADY_EXISTS',
+      message: 'A user with this email already exists',
+      details: { field: 'email', value: 'john.doe@example.com' },
+      path: '/api/v1/users',
+    },
+  })
   @Post()
   createUser(@Body() command: CreateUserCommand) {
     return this.userService.createUser(command);
@@ -60,6 +91,15 @@ export class UserCommandController implements OnModuleInit {
       },
     },
   })
+  @ApiNotFoundResponse({
+    description: 'User not found',
+    example: {
+      code: 'USER_NOT_FOUND',
+      message: 'User with ID 123-456 not found',
+      details: { id: '123-456' },
+      path: '/api/v1/users/123-456',
+    },
+  })
   @Patch(':id')
   updateUser(
     @Param('id') id: string,
@@ -73,6 +113,15 @@ export class UserCommandController implements OnModuleInit {
 
   @ApiOperation({ summary: 'Delete a user by ID' })
   @ApiParam({ name: 'id', description: 'User ID' })
+  @ApiNotFoundResponse({
+    description: 'User not found',
+    example: {
+      code: 'USER_NOT_FOUND',
+      message: 'User with ID 123-456 not found',
+      details: { id: '123-456' },
+      path: '/api/v1/users/123-456',
+    },
+  })
   @Delete(':id')
   deleteUser(@Param('id') id: string) {
     return this.userService.deleteUser({ id });

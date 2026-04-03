@@ -3937,6 +3937,29 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@volontariapp/errors-nest@npm:0.2.0":
+  version: 0.2.0
+  resolution: "@volontariapp/errors-nest@npm:0.2.0"
+  dependencies:
+    "@volontariapp/errors": "npm:0.2.0"
+    reflect-metadata: "npm:^0.2.2"
+    rxjs: "npm:^7.8.1"
+  peerDependencies:
+    "@nestjs/common": ^10.0.0 || ^11.0.0
+    "@nestjs/core": ^10.0.0 || ^11.0.0
+    "@nestjs/microservices": ^10.0.0 || ^11.0.0
+    "@nestjs/swagger": ^8.0.0 || ^11.0.0
+  checksum: 10c0/7e71f0c1b43403f4f9d77b311032d8327aeeadb32a5fab1bce0cea9ca3f9ea66b37943c7a6312310944aec476a7f751caeec2fa1c4d115709df5b849a1923733
+  languageName: node
+  linkType: hard
+
+"@volontariapp/errors@npm:0.2.0":
+  version: 0.2.0
+  resolution: "@volontariapp/errors@npm:0.2.0"
+  checksum: 10c0/fadb289187aace1820bccfab9fe1fd1f0a66404376a6fc08763a8b9362aaedef028d43ffacb66b191c193759bd6c312a338de054767c9f4770e9c3cc7f6cb7ac
+  languageName: node
+  linkType: hard
+
 "@volontariapp/eslint-config@npm:2.0.0":
   version: 2.0.0
   resolution: "@volontariapp/eslint-config@npm:2.0.0"
@@ -4377,6 +4400,8 @@ __metadata:
     "@types/node": "npm:^22.10.7"
     "@types/supertest": "npm:^6.0.2"
     "@volontariapp/contracts": "npm:2.1.1"
+    "@volontariapp/errors": "npm:0.2.0"
+    "@volontariapp/errors-nest": "npm:0.2.0"
     "@volontariapp/eslint-config": "npm:2.0.0"
     "@volontariapp/monitoring": "npm:2.0.1"
     class-transformer: "npm:^0.5.1"
