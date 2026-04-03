@@ -92,5 +92,9 @@
     "extensionsToTreatAsEsm": [
       ".ts"
     ]
+  },
+  "resolutions": {
+    "glob": "^11.0.1",
+    "inflight": "0.4.1"
   }
 }
