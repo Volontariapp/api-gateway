@@ -11,3 +11,4 @@ jobs:
     uses: Volontariapp/ci-tools/.github/workflows/ci-service.yml@main
     with:
       service-name: api-gateway
+    secrets: inherit
