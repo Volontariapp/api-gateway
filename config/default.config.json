@@ -1,0 +1,16 @@
+{
+  "db": {
+    "host": "localhost",
+    "port": 5432
+  },
+  "redis": {
+    "host": "localhost",
+    "port": 6379
+  },
+  "microServices": {
+    "msUserUrl": "localhost:5001",
+    "msPostUrl": "localhost:5002",
+    "msEventUrl": "localhost:5003"
+  },
+  "port": 3000
+}
