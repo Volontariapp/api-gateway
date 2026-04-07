@@ -3921,6 +3921,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@volontariapp/config@npm:0.2.0-next.20260407140528":
+  version: 0.2.0-next.20260407140528
+  resolution: "@volontariapp/config@npm:0.2.0-next.20260407140528"
+  dependencies:
+    class-transformer: "npm:^0.5.1"
+    class-validator: "npm:^0.15.1"
+    reflect-metadata: "npm:^0.2.2"
+  checksum: 10c0/b2323f19237d6b9024725442a0669db88fa8b432a3b6eeed08d8978e64332b4f344058f2ea56f7d2d2ff6ba8d8c28829a015302aba72b2257e8fb6489e82f668
+  languageName: node
+  linkType: hard
+
 "@volontariapp/contracts@npm:2.1.1":
   version: 2.1.1
   resolution: "@volontariapp/contracts@npm:2.1.1"
@@ -4385,6 +4396,7 @@ __metadata:
     "@types/node": "npm:^22.10.7"
     "@types/supertest": "npm:^6.0.2"
     "@volontariapp/auth": "npm:2.0.0"
+    "@volontariapp/config": "npm:0.2.0-next.20260407140528"
     "@volontariapp/contracts": "npm:2.1.1"
     "@volontariapp/errors": "npm:0.2.0"
     "@volontariapp/errors-nest": "npm:0.3.0"

@@ -8,18 +8,27 @@ export const grpcClientOptions: ClientsModuleAsyncOptions = [
     name: USER_PACKAGE,
     inject: [AppConfigService],
     useFactory: (configService: AppConfigService) =>
-      getGrpcOptions(GRPC_SERVICES.USER, configService.msUserUrl),
+      getGrpcOptions(
+        GRPC_SERVICES.USER,
+        configService.config.microServices.msUserUrl,
+      ),
   },
   {
     name: POST_PACKAGE,
     inject: [AppConfigService],
     useFactory: (configService: AppConfigService) =>
-      getGrpcOptions(GRPC_SERVICES.POST, configService.msPostUrl),
+      getGrpcOptions(
+        GRPC_SERVICES.POST,
+        configService.config.microServices.msPostUrl,
+      ),
   },
   {
     name: EVENT_PACKAGE,
     inject: [AppConfigService],
     useFactory: (configService: AppConfigService) =>
-      getGrpcOptions(GRPC_SERVICES.EVENT, configService.msEventUrl),
+      getGrpcOptions(
+        GRPC_SERVICES.EVENT,
+        configService.config.microServices.msEventUrl,
+      ),
   },
 ];

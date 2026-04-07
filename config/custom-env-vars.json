@@ -1,0 +1,16 @@
+{
+  "db": {
+    "host": "DATABASE_HOST",
+    "port": "DATABASE_PORT"
+  },
+  "redis": {
+    "host": "REDIS_HOST",
+    "port": "REDIS_PORT"
+  },
+  "microServices": {
+    "msUserUrl": "MS_USER_URL",
+    "msPostUrl": "MS_POST_URL",
+    "msEventUrl": "MS_EVENT_URL"
+  },
+  "port": "PORT"
+}
