@@ -34,7 +34,7 @@
     "@opentelemetry/api": "^1.9.0",
     "@opentelemetry/core": "^2.6.1",
     "@volontariapp/auth": "2.0.0",
-    "@volontariapp/config": "0.2.0-next.20260407140528",
+    "@volontariapp/config": "0.2.0",
     "@volontariapp/contracts": "2.1.1",
     "@volontariapp/errors": "0.2.0",
     "@volontariapp/errors-nest": "0.3.0",
