@@ -8,8 +8,8 @@ import { NestFactory } from '@nestjs/core';
 import { BaseConfig, loadConfig } from '@volontariapp/config';
 import { AppModule } from './app.module.js';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { Logger } from '@nestjs/common';
 import { AppConfigService } from './config/app-config.service.js';
+import { Logger } from '@volontariapp/logger';
 
 function resolveConfigDirectory(): string {
   const currentFileDir = dirname(fileURLToPath(import.meta.url));
@@ -24,7 +24,11 @@ function resolveConfigDirectory(): string {
 
 async function bootstrap() {
   const appConfig = loadConfig(resolveConfigDirectory(), BaseConfig);
-  const app = await NestFactory.create(AppModule.register(appConfig));
+  const logger = new Logger({ context: 'API-GATEWAY', format: 'json' });
+  const app = await NestFactory.create(AppModule.register(appConfig), {
+    logger,
+  });
+  app.useLogger(logger);
   const configService = app.get(AppConfigService);
   app.setGlobalPrefix('api/v1');
 
@@ -39,11 +43,11 @@ async function bootstrap() {
   app.useGlobalFilters(new GlobalExceptionFilter());
   const port = configService.config.port;
   await app.listen(port);
-  Logger.log(
+  logger.log(
     '=================================== API Gateway ===================================',
   );
-  Logger.log(`SWAGGER: http://localhost:${port.toString()}/api`);
-  Logger.log(
+  logger.log(`SWAGGER: http://localhost:${port.toString()}/api`);
+  logger.log(
     '=================================== API Gateway ===================================',
   );
 }
