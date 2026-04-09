@@ -4030,15 +4030,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@volontariapp/config@npm:1.0.0-next.20260409090318":
-  version: 1.0.0-next.20260409090318
-  resolution: "@volontariapp/config@npm:1.0.0-next.20260409090318"
+"@volontariapp/config@npm:1.0.0-next.20260409091954":
+  version: 1.0.0-next.20260409091954
+  resolution: "@volontariapp/config@npm:1.0.0-next.20260409091954"
   dependencies:
     "@volontariapp/logger": "npm:0.2.0"
     class-transformer: "npm:^0.5.1"
     class-validator: "npm:^0.15.1"
     reflect-metadata: "npm:^0.2.2"
-  checksum: 10c0/551c23d681e36c2852c6204168d63d61e280451ff3899cd8d0547a3b3394aa55d3ebe56b44db6103c6009b9a3ff214fa778c98b3e60742d06068a6e28068942e
+  checksum: 10c0/171fd7ea93d6595d5366301d697ea476d7a0771749593494adbe7c2f02a6a989b9bad0089865b612b33ac22102b8ba13c9d8726ceacfd1479ca12dc8481c0151
   languageName: node
   linkType: hard
 
@@ -4519,7 +4519,7 @@ __metadata:
     "@types/supertest": "npm:^6.0.2"
     "@volontariapp/auth": "npm:2.1.0"
     "@volontariapp/bridge-nest": "npm:0.2.0"
-    "@volontariapp/config": "npm:1.0.0-next.20260409090318"
+    "@volontariapp/config": "npm:1.0.0-next.20260409091954"
     "@volontariapp/contracts": "npm:2.2.0"
     "@volontariapp/errors": "npm:0.3.0"
     "@volontariapp/errors-nest": "npm:0.4.0"

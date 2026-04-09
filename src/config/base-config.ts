@@ -1,29 +1,24 @@
 import {
-  BackendConfig,
+  BaseConfig,
   GatewayAuthConfig,
-  PostgresConfig,
   MSURLsConfig,
 } from '@volontariapp/config';
 import { Type } from 'class-transformer';
-import { IsDefined, ValidateNested } from 'class-validator';
+import { IsDefined, ValidateNested, IsNumber } from 'class-validator';
 
-export class CustomConfig extends BackendConfig {
+export class CustomConfig extends BaseConfig {
   @IsDefined()
   @Type(() => Number)
+  @IsNumber()
   declare port: number;
 
   @IsDefined()
   @ValidateNested()
   @Type(() => MSURLsConfig)
-  declare microServices: MSURLsConfig;
+  microServices!: MSURLsConfig;
 
   @IsDefined()
   @ValidateNested()
   @Type(() => GatewayAuthConfig)
-  declare auth: GatewayAuthConfig;
-
-  @IsDefined()
-  @ValidateNested()
-  @Type(() => PostgresConfig)
-  db!: PostgresConfig;
+  auth!: GatewayAuthConfig;
 }
