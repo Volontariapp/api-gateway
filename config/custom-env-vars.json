@@ -1,11 +1,18 @@
 {
+  "port": "PORT",
   "logger": {
-    "level": "LOGGER_LEVEL"
+    "level": "LOGGER_LEVEL",
+    "format": "LOGGER_FORMAT"
+  },
+  "auth": {
+    "accessTokenPublicKeyPath": "AUTH_ACCESS_TOKEN_PUBLIC_KEY_PATH",
+    "refreshTokenPublicKeyPath": "AUTH_REFRESH_TOKEN_PUBLIC_KEY_PATH",
+    "internalPrivateKeyPath": "AUTH_INTERNAL_PRIVATE_KEY_PATH",
+    "internalExpiresIn": "AUTH_INTERNAL_EXPIRES_IN"
   },
   "microServices": {
     "msUserUrl": "MS_USER_URL",
     "msPostUrl": "MS_POST_URL",
     "msEventUrl": "MS_EVENT_URL"
-  },
-  "port": "PORT"
+  }
 }
