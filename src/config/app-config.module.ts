@@ -1,7 +1,7 @@
 import { DynamicModule, Global, Module } from '@nestjs/common';
-import type { BaseConfig } from '@volontariapp/config';
 import { APP_CONFIG } from './app-config.constants.js';
 import { AppConfigService } from './app-config.service.js';
+import type { CustomConfig } from './base-config.js';
 
 @Global()
 @Module({
@@ -9,7 +9,7 @@ import { AppConfigService } from './app-config.service.js';
   exports: [],
 })
 export class AppConfigModule {
-  static forRoot(config: BaseConfig): DynamicModule {
+  static forRoot(config: CustomConfig): DynamicModule {
     return {
       module: AppConfigModule,
       providers: [
@@ -19,7 +19,7 @@ export class AppConfigModule {
         },
         {
           provide: AppConfigService,
-          useFactory: (appConfig: BaseConfig) =>
+          useFactory: (appConfig: CustomConfig) =>
             new AppConfigService(appConfig),
           inject: [APP_CONFIG],
         },

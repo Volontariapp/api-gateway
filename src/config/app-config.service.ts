@@ -1,5 +1,5 @@
-import type { BaseConfig } from '@volontariapp/config';
+import type { CustomConfig } from './base-config.js';
 
 export class AppConfigService {
-  constructor(public readonly config: BaseConfig) {}
+  constructor(public readonly config: CustomConfig) {}
 }

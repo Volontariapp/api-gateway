@@ -5,11 +5,12 @@ import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import { GlobalExceptionFilter } from '@volontariapp/errors-nest';
 import { NestFactory } from '@nestjs/core';
-import { BaseConfig, loadConfig } from '@volontariapp/config';
+import { loadConfig } from '@volontariapp/config';
 import { AppModule } from './app.module.js';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppConfigService } from './config/app-config.service.js';
 import { Logger } from '@volontariapp/logger';
+import { CustomConfig } from './config/base-config.js';
 
 function resolveConfigDirectory(): string {
   const currentFileDir = dirname(fileURLToPath(import.meta.url));
@@ -23,7 +24,7 @@ function resolveConfigDirectory(): string {
 }
 
 async function bootstrap() {
-  const appConfig = loadConfig(resolveConfigDirectory(), BaseConfig);
+  const appConfig = loadConfig(resolveConfigDirectory(), CustomConfig);
   const logger = new Logger({ context: 'API-GATEWAY', format: 'json' });
   const app = await NestFactory.create(AppModule.register(appConfig), {
     logger,
