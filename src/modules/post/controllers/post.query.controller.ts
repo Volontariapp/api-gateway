@@ -8,8 +8,11 @@ import {
 } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import type { ClientGrpc } from '@nestjs/microservices';
-import { POST_SERVICE_NAME, PostServiceClient } from '@volontariapp/contracts';
-import type { PostQuery, ListPostsQuery } from '@volontariapp/contracts';
+import {
+  POST_SERVICE_NAME,
+  PostServiceClient,
+} from '@volontariapp/contracts-nest';
+import type { PostQuery, ListPostsQuery } from '@volontariapp/contracts-nest';
 import { POST_PACKAGE } from '../../../grpc/grpc-packages.js';
 
 @ApiTags('Posts')

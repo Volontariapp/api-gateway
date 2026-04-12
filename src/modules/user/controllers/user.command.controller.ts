@@ -10,11 +10,14 @@ import {
 } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import type { ClientGrpc } from '@nestjs/microservices';
-import { USER_SERVICE_NAME, UserServiceClient } from '@volontariapp/contracts';
+import {
+  USER_SERVICE_NAME,
+  UserServiceClient,
+} from '@volontariapp/contracts-nest';
 import type {
   CreateUserCommand,
   UpdateUserCommand,
-} from '@volontariapp/contracts';
+} from '@volontariapp/contracts-nest';
 import { USER_PACKAGE } from '../../../grpc/grpc-packages.js';
 import {
   ApiBadRequestResponse,

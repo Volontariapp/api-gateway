@@ -8,106 +8,84 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
-import { ApiBody, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiTags, ApiResponse } from '@nestjs/swagger';
 import type { ClientGrpc } from '@nestjs/microservices';
 import {
-  EVENT_SERVICE_NAME,
-  EventServiceClient,
-} from '@volontariapp/contracts';
-import type {
-  CreateEventCommand,
-  UpdateEventCommand,
-} from '@volontariapp/contracts';
+  EVENT_COMMAND_SERVICE_NAME,
+  EventCommandServiceClient,
+} from '@volontariapp/contracts-nest';
 import { EVENT_PACKAGE } from '../../../grpc/grpc-packages.js';
+import { CreateEventCommandDTO } from '../dto/request/command/create-event.command.dto.js';
+import { UpdateEventCommandDTO } from '../dto/request/command/update-event.command.dto.js';
+import { ChangeEventStateCommandDTO } from '../dto/request/command/change-event-state.command.dto.js';
+import { ManageRequirementCommandDTO } from '../dto/request/command/manage-requirement.command.dto.js';
+import { DeleteEventCommandDTO } from '../dto/request/command/delete-event.command.dto.js';
+import {
+  CreateEventResponseDTO,
+  UpdateEventResponseDTO,
+  ChangeEventStateResponseDTO,
+  ManageRequirementsResponseDTO,
+  DeleteEventResponseDTO,
+} from '../dto/response/event-responses.dto.js';
 
 @ApiTags('Events')
 @Controller('events')
 export class EventCommandController implements OnModuleInit {
-  private eventService!: EventServiceClient;
+  private eventService!: EventCommandServiceClient;
 
   constructor(@Inject(EVENT_PACKAGE) private client: ClientGrpc) {}
 
   onModuleInit() {
-    this.eventService =
-      this.client.getService<EventServiceClient>(EVENT_SERVICE_NAME);
+    this.eventService = this.client.getService<EventCommandServiceClient>(
+      EVENT_COMMAND_SERVICE_NAME,
+    );
   }
 
   @ApiOperation({ summary: 'Create a new event' })
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        title: { type: 'string', example: 'Tech Conference 2026' },
-        description: {
-          type: 'string',
-          example: 'A conference about the latest tech trends.',
-        },
-        startDate: {
-          type: 'string',
-          format: 'date-time',
-          example: '2026-06-15T09:00:00Z',
-        },
-        endDate: {
-          type: 'string',
-          format: 'date-time',
-          example: '2026-06-17T18:00:00Z',
-        },
-        location: { type: 'string', example: 'Paris, France' },
-        organizerId: {
-          type: 'string',
-          example: '123e4567-e89b-12d3-a456-426614174000',
-        },
-      },
-    },
-  })
+  @ApiResponse({ status: 201, type: CreateEventResponseDTO })
   @Post()
-  createEvent(@Body() command: CreateEventCommand) {
-    return this.eventService.createEvent({
-      ...command,
-      startDate: command.startDate ? new Date(command.startDate) : undefined,
-      endDate: command.endDate ? new Date(command.endDate) : undefined,
-    } as CreateEventCommand);
+  createEvent(@Body() command: CreateEventCommandDTO) {
+    return this.eventService.createEvent(command.toCommand());
   }
 
   @ApiOperation({ summary: 'Update an event by ID' })
   @ApiParam({ name: 'id', description: 'Event ID' })
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        title: { type: 'string', example: 'Tech Conference 2026 (Updated)' },
-        description: { type: 'string', example: 'Updated description here.' },
-        startDate: {
-          type: 'string',
-          format: 'date-time',
-          example: '2026-06-15T10:00:00Z',
-        },
-        endDate: {
-          type: 'string',
-          format: 'date-time',
-          example: '2026-06-18T18:00:00Z',
-        },
-        location: { type: 'string', example: 'Berlin, Germany' },
-      },
-    },
-  })
+  @ApiResponse({ status: 200, type: UpdateEventResponseDTO })
   @Patch(':id')
   updateEvent(
-    @Param('id') id: string,
-    @Body() command: Partial<UpdateEventCommand>,
+    @Param('id') _id: string,
+    @Body() command: UpdateEventCommandDTO,
   ) {
-    return this.eventService.updateEvent({
-      ...command,
-      id,
-      startDate: command.startDate ? new Date(command.startDate) : undefined,
-      endDate: command.endDate ? new Date(command.endDate) : undefined,
-    } as UpdateEventCommand);
+    return this.eventService.updateEvent(command.toCommand());
+  }
+
+  @ApiOperation({ summary: 'Change event state' })
+  @ApiResponse({ status: 200, type: ChangeEventStateResponseDTO })
+  @Patch(':id/state')
+  changeEventState(
+    @Param('id') _id: string,
+    @Body() command: ChangeEventStateCommandDTO,
+  ) {
+    return this.eventService.changeEventState(command.toCommand());
+  }
+
+  @ApiOperation({ summary: 'Manage event requirements' })
+  @ApiResponse({ status: 200, type: ManageRequirementsResponseDTO })
+  @Post(':id/requirements')
+  manageRequirements(
+    @Param('id') _id: string,
+    @Body() command: ManageRequirementCommandDTO,
+  ) {
+    return this.eventService.manageRequirements(command.toCommand());
   }
 
   @ApiOperation({ summary: 'Delete an event by ID' })
   @ApiParam({ name: 'id', description: 'Event ID' })
+  @ApiResponse({ status: 200, type: DeleteEventResponseDTO })
   @Delete(':id')
   deleteEvent(@Param('id') id: string) {
-    return this.eventService.deleteEvent({ id });
+    const cmd = new DeleteEventCommandDTO();
+    cmd.id = id;
+    return this.eventService.deleteEvent(cmd.toCommand());
   }
 }

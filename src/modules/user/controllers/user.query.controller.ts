@@ -8,8 +8,11 @@ import {
 } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import type { ClientGrpc } from '@nestjs/microservices';
-import { USER_SERVICE_NAME, UserServiceClient } from '@volontariapp/contracts';
-import type { UserQuery, ListUsersQuery } from '@volontariapp/contracts';
+import {
+  USER_SERVICE_NAME,
+  UserServiceClient,
+} from '@volontariapp/contracts-nest';
+import type { UserQuery, ListUsersQuery } from '@volontariapp/contracts-nest';
 import { USER_PACKAGE } from '../../../grpc/grpc-packages.js';
 import {
   ApiBadRequestResponse,

@@ -4042,16 +4042,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@volontariapp/contracts@npm:2.2.0":
-  version: 2.2.0
-  resolution: "@volontariapp/contracts@npm:2.2.0"
+"@volontariapp/contracts-nest@npm:2.1.0":
+  version: 2.1.0
+  resolution: "@volontariapp/contracts-nest@npm:2.1.0"
   dependencies:
     "@volontariapp/logger": "npm:0.2.0"
     protobufjs: "npm:7.5.3"
   peerDependencies:
+    "@nestjs/common": ^11.0.0
+    "@nestjs/core": ^11.0.0
     "@nestjs/microservices": ^11.0.0
     rxjs: ^7.0.0
-  checksum: 10c0/05e588c1e9e3ce56d23c19f4dff2fe81d5dc603975dd04ec80f3ef03cb1f823734eb8149043547d3cc163ff6366e8e1984309749b3b719d123fb94e58b803e03
+  checksum: 10c0/7af0e99ddf32ca749f64d5f49d7e497721af1c4e35841680e560187d36d2c7c0b627c35bb578ec1b508cb44dd82c765de6a59ddaac1db724fc70e003b82dbf4a
   languageName: node
   linkType: hard
 
@@ -4520,7 +4522,7 @@ __metadata:
     "@volontariapp/auth": "npm:2.1.0"
     "@volontariapp/bridge-nest": "npm:0.2.0"
     "@volontariapp/config": "npm:1.0.0"
-    "@volontariapp/contracts": "npm:2.2.0"
+    "@volontariapp/contracts-nest": "npm:2.1.0"
     "@volontariapp/errors": "npm:0.3.0"
     "@volontariapp/errors-nest": "npm:0.4.0"
     "@volontariapp/eslint-config": "npm:2.0.0"
