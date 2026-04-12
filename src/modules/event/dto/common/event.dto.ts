@@ -1,9 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { 
-  Event, 
-  EventType, 
-  EventState 
-} from '@volontariapp/contracts-nest';
+import { Event, EventType, EventState } from '@volontariapp/contracts-nest';
 import { PointDTO } from './point.dto.js';
 import { TagDTO, RequirementDTO } from './common.dto.js';
 
@@ -29,10 +25,10 @@ export class EventDTO implements Event {
   @ApiProperty({ example: 'Paris, France' })
   localisationName!: string;
 
-  @ApiProperty({ enum: EventType, example: EventType.ASSOCIATION })
+  @ApiProperty({ enum: EventType, example: EventType.EVENT_TYPE_ECOLOGY })
   type!: EventType;
 
-  @ApiProperty({ enum: EventState, example: EventState.PUBLISHED })
+  @ApiProperty({ enum: EventState, example: EventState.EVENT_STATE_DRAFT })
   state!: EventState;
 
   @ApiProperty({ example: 100 })
