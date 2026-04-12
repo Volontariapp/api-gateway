@@ -1,11 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { GetTagsQuery } from '@volontariapp/contracts-nest';
+import type { GetTagsQuery } from '@volontariapp/contracts-nest';
+import type { GetTagsRequest } from '@volontariapp/contracts';
 
-export class GetTagsRequestDTO {
+export class GetTagsRequestDTO implements GetTagsRequest {
   @ApiProperty({ example: 'tech', required: false })
-  slugs?: string[];
+  slugs!: string[];
 
   toQuery(): GetTagsQuery {
-    return { slugs: this.slugs ?? [] };
+    return { slugs: this.slugs };
   }
 }

@@ -1,11 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { SearchEventsQuery, EventType } from '@volontariapp/contracts-nest';
 import { SearchEventsRequest } from '@volontariapp/contracts';
-import { GeoCircleRequestDTO } from './geo-circle.request.dto.js';
+import { GeoCircleDTO } from '../../../../common/dto/common/geo-circle.dto.js';
 
 export class SearchEventsRequestDTO implements SearchEventsRequest {
-  @ApiProperty({ type: GeoCircleRequestDTO, required: false })
-  area: GeoCircleRequestDTO | undefined;
+  @ApiProperty({ type: GeoCircleDTO, required: false })
+  area: GeoCircleDTO | undefined;
 
   @ApiProperty({ enum: EventType, isArray: true, required: false })
   types!: EventType[];

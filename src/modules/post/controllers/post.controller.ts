@@ -37,12 +37,12 @@ import {
   CreatePostRequestDTO,
   UpdatePostRequestDTO,
   ListPostsRequestDTO,
-} from '../dto/request/post.request.dto.js';
+} from '../dto/request/index.js';
 import {
   PostResponseDTO,
   ListPostsResponseDTO,
-} from '../dto/response/post.response.dto.js';
-import { ActionSuccessResponseDTO } from '../../event/dto/response/action-success.response.dto.js';
+} from '../dto/response/index.js';
+import { ActionSuccessResponseDTO } from '../../event/dto/response/index.js';
 
 @ApiTags('Posts')
 @ApiExtraModels(PostResponseDTO, ListPostsResponseDTO, ActionSuccessResponseDTO)
@@ -72,7 +72,7 @@ export class PostController implements OnModuleInit {
   @ApiOperation({ summary: 'Get a post by ID' })
   @ApiParam({ name: 'id', example: 'uuid-123' })
   @ApiResponse({ status: 200, type: PostResponseDTO })
-  @ApiNotFoundResponse('Post not found')
+  @ApiNotFoundResponse('PostDTO not found')
   @Get(':id')
   getPost(@Param('id') id: string) {
     this.logger.log(`Fetching post: ${id}`);
@@ -91,7 +91,7 @@ export class PostController implements OnModuleInit {
   @ApiOperation({ summary: 'Update a post by ID' })
   @ApiParam({ name: 'id', example: 'uuid-123' })
   @ApiResponse({ status: 200, type: PostResponseDTO })
-  @ApiNotFoundResponse('Post not found')
+  @ApiNotFoundResponse('PostDTO not found')
   @Patch(':id')
   updatePost(@Param('id') id: string, @Body() request: UpdatePostRequestDTO) {
     this.logger.log(`Updating post: ${id}`);
@@ -102,7 +102,7 @@ export class PostController implements OnModuleInit {
   @ApiOperation({ summary: 'Delete a post by ID' })
   @ApiParam({ name: 'id', example: 'uuid-123' })
   @ApiResponse({ status: 200, type: ActionSuccessResponseDTO })
-  @ApiNotFoundResponse('Post not found')
+  @ApiNotFoundResponse('PostDTO not found')
   @Delete(':id')
   deletePost(@Param('id') id: string) {
     this.logger.log(`Deleting post: ${id}`);

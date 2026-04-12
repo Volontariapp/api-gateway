@@ -21,7 +21,8 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage --passWithNoTests",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "check-arch": "tsx scripts/check-dto-architecture.ts"
   },
   "dependencies": {
     "@grpc/grpc-js": "^1.14.3",
@@ -38,7 +39,7 @@
     "@volontariapp/auth": "2.1.0",
     "@volontariapp/bridge-nest": "0.2.0",
     "@volontariapp/config": "1.0.0",
-    "@volontariapp/contracts": "3.1.0",
+    "@volontariapp/contracts": "3.1.4",
     "@volontariapp/contracts-nest": "2.1.2",
     "@volontariapp/errors": "0.3.0",
     "@volontariapp/errors-nest": "0.6.6",

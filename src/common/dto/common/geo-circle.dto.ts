@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { GeoCircle } from '@volontariapp/contracts-nest';
-import { PointDTO } from '../common/point.dto.js';
+import type { GeoCircle } from '@volontariapp/contracts-nest';
+import { PointDTO } from './point.dto.js';
 
-export class GeoCircleRequestDTO implements GeoCircle {
+export class GeoCircleDTO implements GeoCircle {
   @ApiProperty({ type: PointDTO })
   center!: PointDTO;
 
