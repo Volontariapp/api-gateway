@@ -115,10 +115,7 @@ export class TagController implements OnModuleInit {
 
   @ApiOperation({ summary: 'Delete a tag by ID' })
   @ApiParam({ name: 'id', example: 'uuid-123' })
-  @ApiResponse({
-    status: 200,
-    type: ActionSuccessResponseDTO,
-  })
+  @ApiResponse({ status: 200, type: ActionSuccessResponseDTO })
   @Delete(':id')
   deleteTag(@Param('id') id: string) {
     this.logger.log(`Deleting tag with id: ${id}`);

@@ -45,8 +45,8 @@ import {
   GetEventResponseDTO,
   SearchEventsResponseDTO,
   ActionSuccessResponseDTO,
+  ListRequirementsResponseDTO,
 } from '../dto/response/index.js';
-import { ListRequirementsResponseDTO } from '../dto/response/list-requirements.response.dto.js';
 
 @ApiTags('Events')
 @ApiExtraModels(

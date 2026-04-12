@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { CreateEventCommand, EventType } from '@volontariapp/contracts-nest';
 import { CreateEventRequest } from '@volontariapp/contracts';
-import { PointDTO } from '../common/point.dto.js';
+import { PointDTO } from '../../../../common/dto/common/point.dto.js';
 
 export class CreateEventRequestDTO implements CreateEventRequest {
   @ApiProperty({ example: 'Tech Conference 2026' })

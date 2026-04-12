@@ -39,12 +39,12 @@ import {
   CreateUserRequestDTO,
   UpdateUserRequestDTO,
   ListUsersRequestDTO,
-} from '../dto/request/user.request.dto.js';
+} from '../dto/request/index.js';
 import {
   UserResponseDTO,
   ListUsersResponseDTO,
-} from '../dto/response/user.response.dto.js';
-import { ActionSuccessResponseDTO } from '../../event/dto/response/action-success.response.dto.js';
+} from '../dto/response/index.js';
+import { ActionSuccessResponseDTO } from '../../event/dto/response/index.js';
 
 @ApiTags('Users')
 @ApiExtraModels(UserResponseDTO, ListUsersResponseDTO, ActionSuccessResponseDTO)
@@ -75,7 +75,7 @@ export class UserController implements OnModuleInit {
   @ApiOperation({ summary: 'Get a user by ID' })
   @ApiParam({ name: 'id', example: 'uuid-123' })
   @ApiResponse({ status: 200, type: UserResponseDTO })
-  @ApiNotFoundResponse('User not found')
+  @ApiNotFoundResponse('UserDTO not found')
   @Get(':id')
   getUser(@Param('id') id: string) {
     this.logger.log(`Fetching user profile: ${id}`);
@@ -85,7 +85,7 @@ export class UserController implements OnModuleInit {
 
   @ApiOperation({ summary: 'Create a new user' })
   @ApiResponse({ status: 201, type: UserResponseDTO })
-  @ApiConflictResponse('User already exists')
+  @ApiConflictResponse('UserDTO already exists')
   @Post()
   createUser(@Body() request: CreateUserRequestDTO) {
     this.logger.log(`Registering new user: ${request.email}`);
@@ -95,7 +95,7 @@ export class UserController implements OnModuleInit {
   @ApiOperation({ summary: 'Update a user by ID' })
   @ApiParam({ name: 'id', example: 'uuid-123' })
   @ApiResponse({ status: 200, type: UserResponseDTO })
-  @ApiNotFoundResponse('User not found')
+  @ApiNotFoundResponse('UserDTO not found')
   @Patch(':id')
   updateUser(@Param('id') id: string, @Body() request: UpdateUserRequestDTO) {
     this.logger.log(`Updating user profile: ${id}`);
@@ -106,7 +106,7 @@ export class UserController implements OnModuleInit {
   @ApiOperation({ summary: 'Delete a user by ID' })
   @ApiParam({ name: 'id', example: 'uuid-123' })
   @ApiResponse({ status: 200, type: ActionSuccessResponseDTO })
-  @ApiNotFoundResponse('User not found')
+  @ApiNotFoundResponse('UserDTO not found')
   @Delete(':id')
   deleteUser(@Param('id') id: string) {
     this.logger.log(`Deleting user account: ${id}`);

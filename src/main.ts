@@ -49,13 +49,13 @@ async function bootstrap() {
     `DOCUMENTATION (Global): http://localhost:${port.toString()}/docs`,
   );
   logger.log(
-    `DOCUMENTATION (Event):  http://localhost:${port.toString()}/docs/event`,
+    `DOCUMENTATION (Events): http://localhost:${port.toString()}/docs/event`,
   );
   logger.log(
-    `DOCUMENTATION (Post):   http://localhost:${port.toString()}/docs/post`,
+    `DOCUMENTATION (Posts):  http://localhost:${port.toString()}/docs/post`,
   );
   logger.log(
-    `DOCUMENTATION (User):   http://localhost:${port.toString()}/docs/user`,
+    `DOCUMENTATION (Users):  http://localhost:${port.toString()}/docs/user`,
   );
   logger.log(
     '=================================== API Gateway ===================================',

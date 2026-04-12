@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { PaginationRequest } from '@volontariapp/contracts';
 
-export class PaginationDTO implements PaginationRequest {
+export class PaginationRequestDTO implements PaginationRequest {
   @ApiProperty({ example: 10, required: false })
   limit!: number;
 

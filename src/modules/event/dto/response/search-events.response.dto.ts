@@ -1,7 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { SearchEventsResponse } from '@volontariapp/contracts-nest';
 import { ListEventsWebResponse } from '@volontariapp/contracts';
-import { EventDTO } from '../common/event.dto.js';
+import { EventDTO } from '../common/index.js';
+import { PaginationResponseDTO } from '../../../../common/dto/response/index.js';
 
 export class SearchEventsResponseDTO
   implements SearchEventsResponse, ListEventsWebResponse
@@ -11,4 +12,7 @@ export class SearchEventsResponseDTO
 
   @ApiProperty({ example: 100 })
   totalCount!: number;
+
+  @ApiProperty({ type: PaginationResponseDTO })
+  pagination!: PaginationResponseDTO;
 }

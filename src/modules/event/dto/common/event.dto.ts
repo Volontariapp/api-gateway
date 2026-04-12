@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Event, EventType, EventState } from '@volontariapp/contracts-nest';
-import { PointDTO } from './point.dto.js';
+import { PointDTO } from '../../../../common/dto/common/point.dto.js';
 import { TagDTO, RequirementDTO } from './common.dto.js';
 
 export class EventDTO implements Event {
