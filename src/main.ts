@@ -4,10 +4,11 @@ import { existsSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import { GlobalExceptionFilter } from '@volontariapp/errors-nest';
+import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { loadConfig } from '@volontariapp/config';
 import { AppModule } from './app.module.js';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { setupSwagger } from './common/swagger-setup.js';
 import { AppConfigService } from './config/app-config.service.js';
 import { Logger } from '@volontariapp/logger';
 import { CustomConfig } from './config/base-config.js';
@@ -35,21 +36,27 @@ async function bootstrap() {
   const configService = app.get(AppConfigService);
   app.setGlobalPrefix('api/v1');
 
-  const config = new DocumentBuilder()
-    .setTitle('VolontariApp API Gateway')
-    .setDescription('The main entry point for the VolontariApp microservices')
-    .setVersion('1.0')
-    .build();
-  const documentFactory = () => SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, documentFactory);
+  setupSwagger(app);
 
+  app.useGlobalPipes(new ValidationPipe({ transform: true }));
   app.useGlobalFilters(new GlobalExceptionFilter());
   const port = configService.config.port;
   await app.listen(port);
   logger.log(
     '=================================== API Gateway ===================================',
   );
-  logger.log(`SWAGGER: http://localhost:${port.toString()}/api`);
+  logger.log(
+    `DOCUMENTATION (Global): http://localhost:${port.toString()}/docs`,
+  );
+  logger.log(
+    `DOCUMENTATION (Event):  http://localhost:${port.toString()}/docs/event`,
+  );
+  logger.log(
+    `DOCUMENTATION (Post):   http://localhost:${port.toString()}/docs/post`,
+  );
+  logger.log(
+    `DOCUMENTATION (User):   http://localhost:${port.toString()}/docs/user`,
+  );
   logger.log(
     '=================================== API Gateway ===================================',
   );
