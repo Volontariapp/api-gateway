@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { SearchEventsResponse } from '@volontariapp/contracts-nest';
 import { ListEventsWebResponse } from '@volontariapp/contracts';
-import { EventDTO } from '../common/index.js';
 import { PaginationResponseDTO } from '../../../../common/dto/response/index.js';
+import { EventDTO } from '../common/index.js';
 
 export class SearchEventsResponseDTO
   implements SearchEventsResponse, ListEventsWebResponse
