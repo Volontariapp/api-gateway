@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { ChangeEventStateCommand } from '@volontariapp/contracts-nest';
-import { EventState } from '@volontariapp/contracts';
+import { ChangeEventStateRequest, EventState } from '@volontariapp/contracts';
 
-export class ChangeEventStateRequestDTO {
+export class ChangeEventStateRequestDTO implements ChangeEventStateRequest {
   id!: string;
 
   @ApiProperty({ enum: EventState, example: EventState.EVENT_STATE_PUBLISHED })
