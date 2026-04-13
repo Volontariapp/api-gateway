@@ -15,6 +15,9 @@ export class AppConfigService {
   get msEventUrl(): string {
     return this.config.microServices.msEventUrl;
   }
+  get msSocialUrl(): string {
+    return this.config.microServices.msSocialUrl ?? 'localhost:5004';
+  }
 
   get loggerFormat(): LoggerFormat {
     return this.config.logger.format;

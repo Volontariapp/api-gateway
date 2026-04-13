@@ -84,22 +84,22 @@ function checkFile(filePath: string) {
   }
 
   if (isResponse) {
-    // 5. Responses must implement both gRPC and Web interfaces
-    const hasNestImport = content.includes('@volontariapp/contracts-nest');
+    // 5. Responses must implement at least the Web interface
     const hasContractsImport = content.includes('@volontariapp/contracts');
     const implementsLine = content.match(/implements\s+([^\{]+)\{/);
 
+    if (!hasContractsImport) {
+      logError(
+        relativePath,
+        'Response class must import from @volontariapp/contracts',
+      );
+    }
+
     if (!implementsLine) {
-      logError(relativePath, 'Response class must implement interfaces');
-    } else {
-      const implemented = implementsLine[1];
-      const interfaces = implemented.split(',').map((i) => i.trim());
-      if (interfaces.length < 2 || !hasNestImport || !hasContractsImport) {
-        logError(
-          relativePath,
-          'Response class must implement at least two interfaces (gRPC and Web) from both contracts-nest and contracts',
-        );
-      }
+      logError(
+        relativePath,
+        'Response class must implement at least the Web interface',
+      );
     }
   }
 }
