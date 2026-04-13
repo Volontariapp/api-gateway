@@ -34,6 +34,7 @@ export class UpdateEventRequestDTO
       }
       event.endAt = ts;
     }
+    console.log(updateMask);
 
     return {
       id,

@@ -103,7 +103,7 @@ export class EventController implements OnModuleInit {
     summary: 'Get an event by ID',
     description: 'Retrieves full details of a specific event.',
   })
-  @ApiParam({ name: 'id', example: 'uuid-123' })
+  @ApiParam({ name: 'id', example: '' })
   @ApiResponse({
     status: 200,
     description: 'Event details successfully retrieved',

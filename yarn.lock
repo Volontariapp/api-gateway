@@ -4131,11 +4131,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@volontariapp/errors-nest@npm:0.7.3-next.20260413104624":
-  version: 0.7.3-next.20260413104624
-  resolution: "@volontariapp/errors-nest@npm:0.7.3-next.20260413104624"
+"@volontariapp/errors-nest@npm:0.7.3-next.20260413123502":
+  version: 0.7.3-next.20260413123502
+  resolution: "@volontariapp/errors-nest@npm:0.7.3-next.20260413123502"
   dependencies:
-    "@volontariapp/errors": "npm:0.4.3-next.20260413104624"
+    "@volontariapp/errors": "npm:0.4.3-next.20260413123502"
     "@volontariapp/logger": "npm:0.2.2"
     reflect-metadata: "npm:^0.2.2"
     rxjs: "npm:^7.8.1"
@@ -4144,7 +4144,16 @@ __metadata:
     "@nestjs/core": ^10.0.0 || ^11.0.0
     "@nestjs/microservices": ^10.0.0 || ^11.0.0
     "@nestjs/swagger": ^8.0.0 || ^11.0.0
-  checksum: 10c0/ef5771ed2c0441c3935879bd32f748e0cb7c6a8ea82c6245ed4bef5d4ada49d17d0b6d4b60255c42a0a4f9f0153898b9ef51c3fc7ecaa70394f6483070033b9d
+  peerDependenciesMeta:
+    "@nestjs/common":
+      optional: true
+    "@nestjs/core":
+      optional: true
+    "@nestjs/microservices":
+      optional: true
+    "@nestjs/swagger":
+      optional: true
+  checksum: 10c0/7caf5321506647be432547d3697be99f51d36f8a1647be8f6dcb57207aa0f611f0b895386dd01c3c6a00b6e2ca61493f0918232b7a6402b7f86c66cc456675c6
   languageName: node
   linkType: hard
 
@@ -4166,12 +4175,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@volontariapp/errors@npm:0.4.3-next.20260413104624":
-  version: 0.4.3-next.20260413104624
-  resolution: "@volontariapp/errors@npm:0.4.3-next.20260413104624"
+"@volontariapp/errors@npm:0.4.3-next.20260413123502":
+  version: 0.4.3-next.20260413123502
+  resolution: "@volontariapp/errors@npm:0.4.3-next.20260413123502"
   dependencies:
     "@volontariapp/logger": "npm:0.2.2"
-  checksum: 10c0/f04f6c7c17fbf5893f8231e35f2de148303753564d3f9e480409cadffadc6d1e6d6ad872b27d006121d8ce4d934c8de34258e6b6b73d93ac5f1084d11d8a15c0
+  checksum: 10c0/487ab9e560f5752d274bc57ad2baceb99fa3637b68484398ba2294eaec09ecedfe0edd5f8d29408d520d215c8364e2f093c85336611e0ec0b567d49056ada127
   languageName: node
   linkType: hard
 
@@ -4625,7 +4634,7 @@ __metadata:
     "@volontariapp/contracts": "npm:3.3.0"
     "@volontariapp/contracts-nest": "npm:2.2.2-next.20260413094841"
     "@volontariapp/errors": "npm:0.4.3-next.20260413103418"
-    "@volontariapp/errors-nest": "npm:0.7.3-next.20260413104624"
+    "@volontariapp/errors-nest": "npm:0.7.3-next.20260413123502"
     "@volontariapp/eslint-config": "npm:2.0.0"
     "@volontariapp/logger": "npm:0.2.2"
     "@volontariapp/monitoring": "npm:2.1.2"

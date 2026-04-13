@@ -42,7 +42,7 @@
     "@volontariapp/contracts": "3.3.0",
     "@volontariapp/contracts-nest": "2.2.2-next.20260413094841",
     "@volontariapp/errors": "0.4.3-next.20260413103418",
-    "@volontariapp/errors-nest": "0.7.3-next.20260413104624",
+    "@volontariapp/errors-nest": "0.7.3-next.20260413123502",
     "@volontariapp/logger": "0.2.2",
     "@volontariapp/monitoring": "2.1.2",
     "class-transformer": "^0.5.1",
