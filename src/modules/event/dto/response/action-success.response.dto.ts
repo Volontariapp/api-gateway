@@ -1,10 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { ManageRequirementsResponse } from '@volontariapp/contracts-nest';
 import { ActionSuccessWebResponse } from '@volontariapp/contracts';
 
-export class ActionSuccessResponseDTO
-  implements ActionSuccessWebResponse, ManageRequirementsResponse
-{
+export class ActionSuccessResponseDTO implements ActionSuccessWebResponse {
   @ApiProperty({ example: true })
   success!: boolean;
 

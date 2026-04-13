@@ -1,9 +1,24 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Event, EventType, EventState } from '@volontariapp/contracts-nest';
+import {
+  Event,
+  EventType,
+  EventState,
+  GrpcDateMapper,
+} from '@volontariapp/contracts-nest';
+import { EventDTO as IEventDTO } from '@volontariapp/contracts';
 import { PointDTO } from '../../../../common/dto/common/point.dto.js';
 import { TagDTO, RequirementDTO } from './common.dto.js';
 
-export class EventDTO implements Event {
+export class EventDTO implements IEventDTO {
+  static fromResponse(event: Event): EventDTO {
+    const dto = new EventDTO();
+    Object.assign(dto, {
+      ...event,
+      startAt: GrpcDateMapper.toDate(event.startAt),
+      endAt: GrpcDateMapper.toDate(event.endAt),
+    });
+    return dto;
+  }
   @ApiProperty({ example: '76c5b964-b5a1-43e3-85e2-040683457e56' })
   id!: string;
 

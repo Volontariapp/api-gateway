@@ -10,6 +10,7 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
+import { map } from 'rxjs';
 import { Logger } from '@volontariapp/logger';
 import {
   ApiOperation,
@@ -24,6 +25,7 @@ import {
   ApiInternalServerErrorResponse,
   ApiNotFoundResponse,
   CustomApiError,
+  INVALID_DATE_PARAMETERS,
   MISSING_ACCESS_TOKEN,
 } from '@volontariapp/errors-nest';
 import type { ClientGrpc } from '@nestjs/microservices';
@@ -92,7 +94,9 @@ export class EventController implements OnModuleInit {
     this.logger.log(
       `Searching events with filters: ${JSON.stringify(request)}`,
     );
-    return this.queryService.searchEvents(request.toQuery());
+    return this.queryService
+      .searchEvents(request.toQuery())
+      .pipe(map((res) => SearchEventsResponseDTO.fromResponse(res)));
   }
 
   @ApiOperation({
@@ -111,7 +115,9 @@ export class EventController implements OnModuleInit {
     this.logger.log(`Fetching event with id: ${id}`);
     const request = new GetEventRequestDTO();
     request.id = id;
-    return this.queryService.getEvent(request.toQuery());
+    return this.queryService
+      .getEvent(request.toQuery())
+      .pipe(map((res) => GetEventResponseDTO.fromResponse(res)));
   }
 
   @ApiOperation({
@@ -124,10 +130,13 @@ export class EventController implements OnModuleInit {
     type: GetEventResponseDTO,
   })
   @ApiBadRequestResponse('Invalid event data provided')
+  @CustomApiError(() => INVALID_DATE_PARAMETERS('startAt or endAt is invalid'))
   @Post()
   createEvent(@Body() request: CreateEventRequestDTO) {
     this.logger.log(`Creating event with title: ${request.title}`);
-    return this.commandService.createEvent(request.toCommand());
+    return this.commandService
+      .createEvent(request.toCommand())
+      .pipe(map((res) => GetEventResponseDTO.fromResponse(res)));
   }
 
   @ApiOperation({
@@ -141,11 +150,14 @@ export class EventController implements OnModuleInit {
     type: GetEventResponseDTO,
   })
   @ApiNotFoundResponse('The event with the specified ID was not found')
+  @CustomApiError(() => INVALID_DATE_PARAMETERS('startAt or endAt is invalid'))
   @Patch(':id')
   updateEvent(@Param('id') id: string, @Body() request: UpdateEventRequestDTO) {
     this.logger.log(`Updating event with id: ${id}`);
     request.id = id;
-    return this.commandService.updateEvent(request.toCommand());
+    return this.commandService
+      .updateEvent(request.toCommand())
+      .pipe(map((res) => GetEventResponseDTO.fromResponse(res)));
   }
 
   @ApiOperation({
