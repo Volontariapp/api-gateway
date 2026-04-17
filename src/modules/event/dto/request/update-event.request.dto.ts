@@ -14,13 +14,15 @@ export class UpdateEventRequestDTO
   toCommand(): UpdateEventCommand {
     const { id, startAt, endAt, tagIds, ...rest } = this;
 
-    const event: any = { ...rest };
-    const updateMask: string[] = Object.keys(rest).filter(
-      (k) => this[k as keyof typeof rest] !== undefined,
-    );
+    const event: Partial<Event> = { ...(rest as unknown as Partial<Event>) };
+    const updateMask = (Object.keys(rest) as (keyof typeof rest)[]).filter(
+      (k) => this[k] !== undefined,
+    ) as string[];
 
     if (startAt !== undefined) {
       const ts = GrpcDateMapper.toTimestamp(startAt);
+      console.log(startAt, endAt);
+
       if (!ts) {
         throw INVALID_DATE_PARAMETERS('startAt is invalid');
       }
@@ -38,9 +40,12 @@ export class UpdateEventRequestDTO
     }
 
     if (tagIds !== undefined) {
-      event.tags = tagIds.map((tagId) => ({ id: tagId }));
+      event.tags = tagIds.map(
+        (tagId) => ({ id: tagId }) as unknown as Event['tags'][number],
+      );
       updateMask.push('tags');
     }
+    console.log(event);
 
     return {
       id,

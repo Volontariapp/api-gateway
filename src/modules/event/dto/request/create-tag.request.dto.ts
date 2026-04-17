@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { CreateTagCommand } from '@volontariapp/contracts-nest';
 import { CreateTagRequest } from '@volontariapp/contracts';
+import { TagsNames } from '@volontariapp/shared';
 
 export class CreateTagRequestDTO implements CreateTagRequest {
   @ApiProperty({ example: 'tech' })
@@ -9,14 +10,14 @@ export class CreateTagRequestDTO implements CreateTagRequest {
   @ApiProperty({ example: 'Technology' })
   name!: string;
 
-  @ApiProperty({ example: '#FF0000' })
-  color!: string;
+  @ApiProperty({ example: TagsNames.ECOLOGIE })
+  balise!: string;
 
   toCommand(): CreateTagCommand {
     return {
       slug: this.slug,
       name: this.name,
-      color: this.color,
+      balise: this.balise,
     };
   }
 }

@@ -11,8 +11,8 @@ export class TagDTO implements Tag {
   @ApiProperty({ example: 'Technology' })
   name!: string;
 
-  @ApiProperty({ example: '#FF0000' })
-  color!: string;
+  @ApiProperty({ example: 'marker-primary' })
+  balise!: string;
 }
 
 export class RequirementDTO implements Requirement {

@@ -5,58 +5,34 @@ import {
   GrpcDateMapper,
 } from '@volontariapp/contracts-nest';
 import { CreateEventRequest } from '@volontariapp/contracts';
-import { PointDTO } from '../../../../common/dto/common/point.dto.js';
-import {
-  IsString,
-  IsDate,
-  ValidateNested,
-  IsEnum,
-  IsNumber,
-  IsArray,
-  IsOptional,
-} from 'class-validator';
 import { Type } from 'class-transformer';
 import { INVALID_DATE_PARAMETERS } from '@volontariapp/errors-nest';
 
 export class CreateEventRequestDTO implements CreateEventRequest {
   @ApiProperty({ example: 'Tech Conference 2026' })
-  @IsString()
   title!: string;
 
   @ApiProperty({ example: 'A conference about the latest tech trends.' })
-  @IsString()
   description!: string;
 
   @ApiProperty({ example: '2026-06-15T09:00:00Z', type: Date })
-  @IsDate()
   @Type(() => Date)
   startAt!: Date;
 
   @ApiProperty({ example: '2026-06-17T18:00:00Z', type: Date })
-  @IsDate()
   @Type(() => Date)
   endAt!: Date;
 
-  @ApiProperty({ type: PointDTO })
-  @ValidateNested()
-  @Type(() => PointDTO)
-  location!: PointDTO;
-
-  @ApiProperty({ example: 'Paris, France' })
-  @IsString()
-  @IsOptional()
+  @ApiProperty({ example: '123 Rue de la Paix, 75001 Paris, France' })
   localisationName!: string;
 
   @ApiProperty({ enum: EventType, example: EventType.EVENT_TYPE_SOCIAL })
-  @IsEnum(EventType)
   type!: EventType;
 
   @ApiProperty({ example: 100 })
-  @IsNumber()
   awardedImpactScore!: number;
 
   @ApiProperty({ example: 50 })
-  @IsNumber()
   maxParticipants!: number;
 
   @ApiProperty({
@@ -64,9 +40,6 @@ export class CreateEventRequestDTO implements CreateEventRequest {
     isArray: true,
     required: false,
   })
-  @IsArray()
-  @IsString({ each: true })
-  @IsOptional()
   tagIds!: string[];
 
   toCommand(): CreateEventCommand {
@@ -87,7 +60,6 @@ export class CreateEventRequestDTO implements CreateEventRequest {
         nanos: endAt.nanos,
         seconds: endAt.seconds,
       },
-      location: this.location,
       localisationName: this.localisationName,
       type: this.type,
       awardedImpactScore: this.awardedImpactScore,
