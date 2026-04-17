@@ -1,3 +1,5 @@
+export * from './add-requirement.request.dto.js';
+export * from './remove-requirement.request.dto.js';
 export * from './change-event-state.request.dto.js';
 export * from './create-event.request.dto.js';
 export * from './create-tag.request.dto.js';

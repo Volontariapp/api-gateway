@@ -6,19 +6,10 @@ import {
   GrpcDateMapper,
 } from '@volontariapp/contracts-nest';
 import { EventDTO as IEventDTO } from '@volontariapp/contracts';
-import { PointDTO } from '../../../../common/dto/common/point.dto.js';
 import { TagDTO, RequirementDTO } from './common.dto.js';
+import { PointDTO } from '../../../../common/dto/common/point.dto.js';
 
-export class EventDTO implements IEventDTO {
-  static fromResponse(event: Event): EventDTO {
-    const dto = new EventDTO();
-    Object.assign(dto, {
-      ...event,
-      startAt: GrpcDateMapper.toDate(event.startAt),
-      endAt: GrpcDateMapper.toDate(event.endAt),
-    });
-    return dto;
-  }
+export abstract class EventBaseDTO {
   @ApiProperty({ example: '76c5b964-b5a1-43e3-85e2-040683457e56' })
   id!: string;
 
@@ -34,10 +25,7 @@ export class EventDTO implements IEventDTO {
   @ApiProperty({ example: '2026-06-17T18:00:00Z', type: Date })
   endAt!: Date | undefined;
 
-  @ApiProperty({ type: PointDTO })
-  location: PointDTO | undefined;
-
-  @ApiProperty({ example: 'Paris, France' })
+  @ApiProperty({ example: '123 Rue de la Paix, 75001 Paris, France' })
   localisationName!: string;
 
   @ApiProperty({ enum: EventType, example: EventType.EVENT_TYPE_ECOLOGY })
@@ -57,6 +45,21 @@ export class EventDTO implements IEventDTO {
 
   @ApiProperty({ example: '76c5b964-b5a1-43e3-85e2-040683457e56' })
   organizerId!: string;
+}
+
+export class EventResponseDTO extends EventBaseDTO implements IEventDTO {
+  static fromResponse(event: Event): EventResponseDTO {
+    const dto = new EventResponseDTO();
+    Object.assign(dto, {
+      ...event,
+      startAt: GrpcDateMapper.toDate(event.startAt),
+      endAt: GrpcDateMapper.toDate(event.endAt),
+    });
+    return dto;
+  }
+
+  @ApiProperty({ type: PointDTO })
+  location: PointDTO | undefined;
 
   @ApiProperty({ type: [TagDTO] })
   tags!: TagDTO[];
@@ -64,3 +67,13 @@ export class EventDTO implements IEventDTO {
   @ApiProperty({ type: [RequirementDTO] })
   requirements!: RequirementDTO[];
 }
+
+export class EventRequestDTO extends EventBaseDTO {
+  @ApiProperty({
+    example: ['76c5b964-b5a1-43e3-85e2-040683457e56'],
+    isArray: true,
+  })
+  tagIds!: string[];
+}
+
+export { EventResponseDTO as EventDTO };

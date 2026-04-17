@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { UpdateTagCommand } from '@volontariapp/contracts-nest';
 import { UpdateTagRequest } from '@volontariapp/contracts';
+import { TagsNames } from '@volontariapp/shared';
 
 export class UpdateTagRequestDTO implements UpdateTagRequest {
   id!: string;
@@ -8,14 +9,14 @@ export class UpdateTagRequestDTO implements UpdateTagRequest {
   @ApiProperty({ example: 'Tech' })
   name!: string;
 
-  @ApiProperty({ example: '#00FF00' })
-  color!: string;
+  @ApiProperty({ example: TagsNames.ECOLOGIE })
+  balise!: string;
 
   toCommand(): UpdateTagCommand {
     return {
       id: this.id,
       name: this.name,
-      color: this.color,
+      balise: this.balise,
     };
   }
 }

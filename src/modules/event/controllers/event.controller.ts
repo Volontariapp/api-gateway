@@ -42,6 +42,9 @@ import {
   UpdateEventRequestDTO,
   SearchEventsRequestDTO,
   GetEventRequestDTO,
+  ChangeEventStateRequestDTO,
+  AddRequirementRequestDTO,
+  RemoveRequirementRequestDTO,
 } from '../dto/request/index.js';
 import {
   GetEventResponseDTO,
@@ -49,6 +52,7 @@ import {
   ActionSuccessResponseDTO,
   ListRequirementsResponseDTO,
 } from '../dto/response/index.js';
+import type { UUID } from 'crypto';
 
 @ApiTags('Events')
 @ApiExtraModels(
@@ -158,6 +162,66 @@ export class EventController implements OnModuleInit {
     return this.commandService
       .updateEvent(request.toCommand())
       .pipe(map((res) => GetEventResponseDTO.fromResponse(res)));
+  }
+
+  @ApiOperation({
+    summary: 'Change event state',
+    description: 'Updates the state of an event (Draft, Published, etc.).',
+  })
+  @ApiParam({ name: 'id', example: 'uuid-123' })
+  @ApiResponse({
+    status: 200,
+    type: GetEventResponseDTO,
+  })
+  @Patch(':id/state')
+  changeEventState(
+    @Param('id') id: string,
+    @Body() request: ChangeEventStateRequestDTO,
+  ) {
+    this.logger.log(`Changing state for event with id: ${id}`);
+    request.id = id;
+    return this.commandService
+      .changeEventState(request.toCommand())
+      .pipe(map((res) => GetEventResponseDTO.fromResponse(res)));
+  }
+
+  @ApiOperation({
+    summary: 'Add a requirement to an event',
+  })
+  @ApiParam({ name: 'id', example: 'uuid-123' })
+  @ApiResponse({
+    status: 201,
+    type: ActionSuccessResponseDTO,
+  })
+  @Post(':id/requirements')
+  addRequirement(
+    @Param('id') id: UUID,
+    @Body() request: AddRequirementRequestDTO,
+  ) {
+    this.logger.log(`Adding requirement to event with id: ${id}`);
+    request.eventId = id;
+    return this.commandService.manageRequirements(request.toCommand());
+  }
+
+  @ApiOperation({
+    summary: 'Remove a requirement from an event',
+  })
+  @ApiParam({ name: 'id', example: 'uuid-123' })
+  @ApiParam({ name: 'requirementId', example: 'uuid-456' })
+  @ApiResponse({
+    status: 200,
+    type: ActionSuccessResponseDTO,
+  })
+  @Delete(':id/requirements/:requirementId')
+  removeRequirement(
+    @Param('id') id: UUID,
+    @Param('requirementId') requirementId: UUID,
+  ) {
+    this.logger.log(`Removing requirement ${requirementId} from event ${id}`);
+    const request = new RemoveRequirementRequestDTO();
+    request.eventId = id;
+    request.requirementId = requirementId;
+    return this.commandService.manageRequirements(request.toCommand());
   }
 
   @ApiOperation({
