@@ -8,6 +8,7 @@ import {
   OnModuleInit,
   Query,
 } from '@nestjs/common';
+import { map } from 'rxjs';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import type { ClientGrpc } from '@nestjs/microservices';
 import { SOCIAL_PACKAGE } from '../../../grpc/grpc-packages.js';
@@ -50,7 +51,9 @@ export class PublicationController implements OnModuleInit {
   @ApiParam({ name: 'postId', example: 'uuid-post-123' })
   @ApiResponse({ status: 201, type: ActionSuccessResponseDTO })
   createPostNode(@Param('postId') postId: string) {
-    return this.commandService.createPostNode({ postId });
+    return this.commandService
+      .createPostNode({ postId })
+      .pipe(map(() => ({ success: true, message: 'Post node created' })));
   }
 
   @Get('posts/:postId')
@@ -66,7 +69,9 @@ export class PublicationController implements OnModuleInit {
   @ApiParam({ name: 'postId', example: 'uuid-post-123' })
   @ApiResponse({ status: 200, type: ActionSuccessResponseDTO })
   deletePostNode(@Param('postId') postId: string) {
-    return this.commandService.deletePostNode({ postId });
+    return this.commandService
+      .deletePostNode({ postId })
+      .pipe(map(() => ({ success: true, message: 'Post node deleted' })));
   }
 
   @Post('users/:userId/posts/:postId/own')
@@ -75,7 +80,9 @@ export class PublicationController implements OnModuleInit {
   @ApiParam({ name: 'postId', example: 'uuid-post-123' })
   @ApiResponse({ status: 201, type: ActionSuccessResponseDTO })
   ownPost(@Param('userId') userId: string, @Param('postId') postId: string) {
-    return this.commandService.postUserOwn({ userId, postId });
+    return this.commandService
+      .postUserOwn({ userId, postId })
+      .pipe(map(() => ({ success: true, message: 'Ownership linked' })));
   }
 
   @Delete('users/:userId/posts/:postId/own')
@@ -84,7 +91,9 @@ export class PublicationController implements OnModuleInit {
   @ApiParam({ name: 'postId', example: 'uuid-post-123' })
   @ApiResponse({ status: 200, type: ActionSuccessResponseDTO })
   disownPost(@Param('userId') userId: string, @Param('postId') postId: string) {
-    return this.commandService.deleteUserOwn({ userId, postId });
+    return this.commandService
+      .deleteUserOwn({ userId, postId })
+      .pipe(map(() => ({ success: true, message: 'Ownership unlinked' })));
   }
 
   @Get('users/:userId/posts')

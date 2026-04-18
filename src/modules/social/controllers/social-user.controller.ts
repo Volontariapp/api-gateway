@@ -7,6 +7,7 @@ import {
   Inject,
   OnModuleInit,
 } from '@nestjs/common';
+import { map } from 'rxjs';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import type { ClientGrpc } from '@nestjs/microservices';
 import { SOCIAL_PACKAGE } from '../../../grpc/grpc-packages.js';
@@ -45,7 +46,9 @@ export class SocialUserController implements OnModuleInit {
   @ApiParam({ name: 'userId', example: 'uuid-user-123' })
   @ApiResponse({ status: 201, type: ActionSuccessResponseDTO })
   createUserNode(@Param('userId') userId: string) {
-    return this.commandService.createUserNode({ userId });
+    return this.commandService
+      .createUserNode({ userId })
+      .pipe(map(() => ({ success: true, message: 'User node created' })));
   }
 
   @Get(':userId')
@@ -61,6 +64,8 @@ export class SocialUserController implements OnModuleInit {
   @ApiParam({ name: 'userId', example: 'uuid-user-123' })
   @ApiResponse({ status: 200, type: ActionSuccessResponseDTO })
   deleteUserNode(@Param('userId') userId: string) {
-    return this.commandService.deleteUserNode({ userId });
+    return this.commandService
+      .deleteUserNode({ userId })
+      .pipe(map(() => ({ success: true, message: 'User node deleted' })));
   }
 }

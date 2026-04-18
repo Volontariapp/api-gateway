@@ -8,6 +8,7 @@ import {
   OnModuleInit,
   Query,
 } from '@nestjs/common';
+import { map } from 'rxjs';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import type { ClientGrpc } from '@nestjs/microservices';
 import { SOCIAL_PACKAGE } from '../../../grpc/grpc-packages.js';
@@ -50,7 +51,9 @@ export class InteractionController implements OnModuleInit {
   @ApiParam({ name: 'postId', example: 'uuid-post-123' })
   @ApiResponse({ status: 201, type: ActionSuccessResponseDTO })
   likePost(@Param('userId') userId: string, @Param('postId') postId: string) {
-    return this.commandService.postLikePost({ userId, postId });
+    return this.commandService
+      .postLikePost({ userId, postId })
+      .pipe(map(() => ({ success: true, message: 'Post liked' })));
   }
 
   @Delete('users/:userId/likes/:postId')
@@ -59,7 +62,9 @@ export class InteractionController implements OnModuleInit {
   @ApiParam({ name: 'postId', example: 'uuid-post-123' })
   @ApiResponse({ status: 200, type: ActionSuccessResponseDTO })
   unlikePost(@Param('userId') userId: string, @Param('postId') postId: string) {
-    return this.commandService.deleteLikePost({ userId, postId });
+    return this.commandService
+      .deleteLikePost({ userId, postId })
+      .pipe(map(() => ({ success: true, message: 'Post unliked' })));
   }
 
   @Get('users/:userId/likes')

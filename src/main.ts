@@ -58,6 +58,9 @@ async function bootstrap() {
     `DOCUMENTATION (Users):  http://localhost:${port.toString()}/docs/user`,
   );
   logger.log(
+    `DOCUMENTATION (Social): http://localhost:${port.toString()}/docs/social`,
+  );
+  logger.log(
     '=================================== API Gateway ===================================',
   );
 }

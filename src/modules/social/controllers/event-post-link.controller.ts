@@ -8,6 +8,7 @@ import {
   OnModuleInit,
   Query,
 } from '@nestjs/common';
+import { map } from 'rxjs';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import type { ClientGrpc } from '@nestjs/microservices';
 import { SOCIAL_PACKAGE } from '../../../grpc/grpc-packages.js';
@@ -51,7 +52,9 @@ export class EventPostLinkController implements OnModuleInit {
     @Param('eventId') eventId: string,
     @Param('postId') postId: string,
   ) {
-    return this.commandService.linkPostToEvent({ eventId, postId });
+    return this.commandService
+      .linkPostToEvent({ eventId, postId })
+      .pipe(map(() => ({ success: true, message: 'Post linked to event' })));
   }
 
   @Delete('events/:eventId/posts/:postId')
@@ -63,7 +66,11 @@ export class EventPostLinkController implements OnModuleInit {
     @Param('eventId') eventId: string,
     @Param('postId') postId: string,
   ) {
-    return this.commandService.unlinkPostFromEvent({ eventId, postId });
+    return this.commandService
+      .unlinkPostFromEvent({ eventId, postId })
+      .pipe(
+        map(() => ({ success: true, message: 'Post unlinked from event' })),
+      );
   }
 
   @Get('posts/:postId/related-event')

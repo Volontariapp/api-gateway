@@ -8,6 +8,7 @@ import {
   OnModuleInit,
   Query,
 } from '@nestjs/common';
+import { map } from 'rxjs';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import type { ClientGrpc } from '@nestjs/microservices';
 import { SOCIAL_PACKAGE } from '../../../grpc/grpc-packages.js';
@@ -55,10 +56,12 @@ export class RelationshipController implements OnModuleInit {
     @Param('userId') userId: string,
     @Param('followedId') followedId: string,
   ) {
-    return this.commandService.postFollowUser({
-      followerId: userId,
-      followedId,
-    });
+    return this.commandService
+      .postFollowUser({
+        followerId: userId,
+        followedId,
+      })
+      .pipe(map(() => ({ success: true, message: 'Followed successfully' })));
   }
 
   @Delete('follow/:followedId')
@@ -70,10 +73,12 @@ export class RelationshipController implements OnModuleInit {
     @Param('userId') userId: string,
     @Param('followedId') followedId: string,
   ) {
-    return this.commandService.deleteFollowUser({
-      followerId: userId,
-      followedId,
-    });
+    return this.commandService
+      .deleteFollowUser({
+        followerId: userId,
+        followedId,
+      })
+      .pipe(map(() => ({ success: true, message: 'Unfollowed successfully' })));
   }
 
   @Post('block/:blockedId')
@@ -85,7 +90,9 @@ export class RelationshipController implements OnModuleInit {
     @Param('userId') userId: string,
     @Param('blockedId') blockedId: string,
   ) {
-    return this.commandService.postBlockUser({ blockerId: userId, blockedId });
+    return this.commandService
+      .postBlockUser({ blockerId: userId, blockedId })
+      .pipe(map(() => ({ success: true, message: 'Blocked successfully' })));
   }
 
   @Delete('block/:blockedId')
@@ -97,10 +104,12 @@ export class RelationshipController implements OnModuleInit {
     @Param('userId') userId: string,
     @Param('blockedId') blockedId: string,
   ) {
-    return this.commandService.deleteBlockUser({
-      blockerId: userId,
-      blockedId,
-    });
+    return this.commandService
+      .deleteBlockUser({
+        blockerId: userId,
+        blockedId,
+      })
+      .pipe(map(() => ({ success: true, message: 'Unblocked successfully' })));
   }
 
   @Get('follows')

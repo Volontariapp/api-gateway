@@ -8,6 +8,7 @@ import {
   OnModuleInit,
   Query,
 } from '@nestjs/common';
+import { map } from 'rxjs';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import type { ClientGrpc } from '@nestjs/microservices';
 import { SOCIAL_PACKAGE } from '../../../grpc/grpc-packages.js';
@@ -51,7 +52,9 @@ export class ParticipationController implements OnModuleInit {
   @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
   @ApiResponse({ status: 201, type: ActionSuccessResponseDTO })
   createEventNode(@Param('eventId') eventId: string) {
-    return this.commandService.createEventNode({ eventId });
+    return this.commandService
+      .createEventNode({ eventId })
+      .pipe(map(() => ({ success: true, message: 'Event node created' })));
   }
 
   @Get('events/:eventId')
@@ -67,7 +70,9 @@ export class ParticipationController implements OnModuleInit {
   @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
   @ApiResponse({ status: 200, type: ActionSuccessResponseDTO })
   deleteEventNode(@Param('eventId') eventId: string) {
-    return this.commandService.deleteEventNode({ eventId });
+    return this.commandService
+      .deleteEventNode({ eventId })
+      .pipe(map(() => ({ success: true, message: 'Event node deleted' })));
   }
 
   @Post('users/:userId/events/:eventId/own')
@@ -76,7 +81,9 @@ export class ParticipationController implements OnModuleInit {
   @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
   @ApiResponse({ status: 201, type: ActionSuccessResponseDTO })
   ownEvent(@Param('userId') userId: string, @Param('eventId') eventId: string) {
-    return this.commandService.postUserEvent({ userId, eventId });
+    return this.commandService
+      .postUserEvent({ userId, eventId })
+      .pipe(map(() => ({ success: true, message: 'Event ownership linked' })));
   }
 
   @Delete('users/:userId/events/:eventId/own')
@@ -88,7 +95,11 @@ export class ParticipationController implements OnModuleInit {
     @Param('userId') userId: string,
     @Param('eventId') eventId: string,
   ) {
-    return this.commandService.deleteUserEvent({ userId, eventId });
+    return this.commandService
+      .deleteUserEvent({ userId, eventId })
+      .pipe(
+        map(() => ({ success: true, message: 'Event ownership unlinked' })),
+      );
   }
 
   @Post('users/:userId/events/:eventId/participate')
@@ -100,7 +111,9 @@ export class ParticipationController implements OnModuleInit {
     @Param('userId') userId: string,
     @Param('eventId') eventId: string,
   ) {
-    return this.commandService.postUserParticipateEvent({ userId, eventId });
+    return this.commandService
+      .postUserParticipateEvent({ userId, eventId })
+      .pipe(map(() => ({ success: true, message: 'Participation linked' })));
   }
 
   @Delete('users/:userId/events/:eventId/participate')
@@ -112,7 +125,9 @@ export class ParticipationController implements OnModuleInit {
     @Param('userId') userId: string,
     @Param('eventId') eventId: string,
   ) {
-    return this.commandService.deleteUserParticipateEvent({ userId, eventId });
+    return this.commandService
+      .deleteUserParticipateEvent({ userId, eventId })
+      .pipe(map(() => ({ success: true, message: 'Participation unlinked' })));
   }
 
   @Get('users/:userId/events/created')
