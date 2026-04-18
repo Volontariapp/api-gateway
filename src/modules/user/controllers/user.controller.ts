@@ -32,7 +32,9 @@ import {
   USER_SERVICE_NAME,
   UserServiceClient,
   DeleteUserCommand,
-  UserQuery,
+  GetUserQuery,
+  SignUpCommand,
+  UpdateUserCommand,
 } from '@volontariapp/contracts-nest';
 import { USER_PACKAGE } from '../../../grpc/grpc-packages.js';
 import {
@@ -79,7 +81,7 @@ export class UserController implements OnModuleInit {
   @Get(':id')
   getUser(@Param('id') id: string) {
     this.logger.log(`Fetching user profile: ${id}`);
-    const query: UserQuery = { id };
+    const query: GetUserQuery = { userId: id };
     return this.userService.getUser(query);
   }
 
@@ -89,7 +91,13 @@ export class UserController implements OnModuleInit {
   @Post()
   createUser(@Body() request: CreateUserRequestDTO) {
     this.logger.log(`Registering new user: ${request.email}`);
-    return this.userService.createUser(request.toCommand());
+    const cmd = request.toCommand() as unknown as Record<string, string>;
+    const command: SignUpCommand = {
+      email: cmd.email,
+      password: cmd.password,
+      pseudo: `${cmd.firstName} ${cmd.lastName}`,
+    };
+    return this.userService.signUp(command);
   }
 
   @ApiOperation({ summary: 'Update a user by ID' })
@@ -100,7 +108,13 @@ export class UserController implements OnModuleInit {
   updateUser(@Param('id') id: string, @Body() request: UpdateUserRequestDTO) {
     this.logger.log(`Updating user profile: ${id}`);
     request.id = id;
-    return this.userService.updateUser(request.toCommand());
+    const webCmd = request.toCommand() as unknown as Record<string, string>;
+    const command: UpdateUserCommand = {
+      userId: id,
+      email: webCmd.email,
+      pseudo: webCmd.firstName,
+    };
+    return this.userService.updateUser(command);
   }
 
   @ApiOperation({ summary: 'Delete a user by ID' })
@@ -110,7 +124,7 @@ export class UserController implements OnModuleInit {
   @Delete(':id')
   deleteUser(@Param('id') id: string) {
     this.logger.log(`Deleting user account: ${id}`);
-    const command: DeleteUserCommand = { id };
+    const command: DeleteUserCommand = { userId: id };
     return this.userService.deleteUser(command);
   }
 }
