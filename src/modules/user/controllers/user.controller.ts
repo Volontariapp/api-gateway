@@ -33,8 +33,6 @@ import {
   UserServiceClient,
   DeleteUserCommand,
   GetUserQuery,
-  SignUpCommand,
-  UpdateUserCommand,
 } from '@volontariapp/contracts-nest';
 import { USER_PACKAGE } from '../../../grpc/grpc-packages.js';
 import {
@@ -91,13 +89,7 @@ export class UserController implements OnModuleInit {
   @Post()
   createUser(@Body() request: CreateUserRequestDTO) {
     this.logger.log(`Registering new user: ${request.email}`);
-    const cmd = request.toCommand() as unknown as Record<string, string>;
-    const command: SignUpCommand = {
-      email: cmd.email,
-      password: cmd.password,
-      pseudo: `${cmd.firstName} ${cmd.lastName}`,
-    };
-    return this.userService.signUp(command);
+    return this.userService.signUp(request.toCommand());
   }
 
   @ApiOperation({ summary: 'Update a user by ID' })
@@ -108,12 +100,8 @@ export class UserController implements OnModuleInit {
   updateUser(@Param('id') id: string, @Body() request: UpdateUserRequestDTO) {
     this.logger.log(`Updating user profile: ${id}`);
     request.id = id;
-    const webCmd = request.toCommand() as unknown as Record<string, string>;
-    const command: UpdateUserCommand = {
-      userId: id,
-      email: webCmd.email,
-      pseudo: webCmd.firstName,
-    };
+    const command = request.toCommand();
+    command.userId = id;
     return this.userService.updateUser(command);
   }
 

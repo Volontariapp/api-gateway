@@ -9,7 +9,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
-import { ClientGrpc } from '@nestjs/microservices';
+import type { ClientGrpc } from '@nestjs/microservices';
 import { SOCIAL_PACKAGE } from '../../../grpc/grpc-packages.js';
 import {
   PUBLICATION_COMMAND_SERVICE_NAME,

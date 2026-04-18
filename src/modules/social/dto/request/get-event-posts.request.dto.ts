@@ -2,7 +2,7 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { GetEventPostsQuery } from '@volontariapp/contracts-nest';
 import { GetEventPostsWebRequest } from '@volontariapp/contracts';
-import { PaginationRequestDTO } from '../../common/pagination.dto.js';
+import { PaginationRequestDTO } from '../common/pagination.dto.js';
 
 export class GetEventPostsRequestDTO implements GetEventPostsWebRequest {
   @ApiPropertyOptional({ type: PaginationRequestDTO })

@@ -12,11 +12,10 @@ export class UpdateUserRequestDTO
 
   toCommand(): UpdateUserCommand {
     return {
-      id: this.id,
+      userId: this.id,
       email: this.email,
-      firstName: this.firstName,
-      lastName: this.lastName,
-      role: this.role,
+      pseudo: this.pseudo,
+      bio: this.bio,
     };
   }
 }

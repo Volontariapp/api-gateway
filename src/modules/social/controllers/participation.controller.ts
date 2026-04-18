@@ -9,7 +9,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
-import { ClientGrpc } from '@nestjs/microservices';
+import type { ClientGrpc } from '@nestjs/microservices';
 import { SOCIAL_PACKAGE } from '../../../grpc/grpc-packages.js';
 import {
   PARTICIPATION_COMMAND_SERVICE_NAME,
@@ -59,7 +59,7 @@ export class ParticipationController implements OnModuleInit {
   @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
   @ApiResponse({ status: 200, type: ExistsResponseDTO })
   getEventNode(@Param('eventId') eventId: string) {
-    return this.queryService.getUserEvent({ userId: eventId });
+    return this.queryService.getEventNode({ eventId });
   }
 
   @Delete('events/:eventId')
