@@ -28,6 +28,12 @@ import {
   GetMyBlocksRequestDTO,
   GetWhoBlockedMeRequestDTO,
 } from '../dto/request/index.js';
+import {
+  CustomApiError,
+  SOCIAL_RELATIONSHIP_ALREADY_EXISTS,
+  SOCIAL_RELATIONSHIP_NOT_FOUND,
+  DATABASE_ERROR,
+} from '@volontariapp/errors-nest';
 
 @ApiTags('Social - Relationships')
 @Controller('social/users/:userId')
@@ -52,6 +58,12 @@ export class RelationshipController implements OnModuleInit {
   @ApiParam({ name: 'userId', example: 'uuid-follower' })
   @ApiParam({ name: 'followedId', example: 'uuid-followed' })
   @ApiResponse({ status: 201, type: ActionSuccessResponseDTO })
+  @CustomApiError(() =>
+    SOCIAL_RELATIONSHIP_ALREADY_EXISTS('userId', 'followedId', 'FOLLOW'),
+  )
+  @CustomApiError(() =>
+    DATABASE_ERROR('creating follow relationship', 'details'),
+  )
   follow(
     @Param('userId') userId: string,
     @Param('followedId') followedId: string,
@@ -69,6 +81,12 @@ export class RelationshipController implements OnModuleInit {
   @ApiParam({ name: 'userId', example: 'uuid-follower' })
   @ApiParam({ name: 'followedId', example: 'uuid-followed' })
   @ApiResponse({ status: 200, type: ActionSuccessResponseDTO })
+  @CustomApiError(() =>
+    SOCIAL_RELATIONSHIP_NOT_FOUND('userId', 'followedId', 'FOLLOW'),
+  )
+  @CustomApiError(() =>
+    DATABASE_ERROR('deleting follow relationship', 'details'),
+  )
   unfollow(
     @Param('userId') userId: string,
     @Param('followedId') followedId: string,
@@ -86,6 +104,12 @@ export class RelationshipController implements OnModuleInit {
   @ApiParam({ name: 'userId', example: 'uuid-blocker' })
   @ApiParam({ name: 'blockedId', example: 'uuid-blocked' })
   @ApiResponse({ status: 201, type: ActionSuccessResponseDTO })
+  @CustomApiError(() =>
+    SOCIAL_RELATIONSHIP_ALREADY_EXISTS('userId', 'blockedId', 'BLOCK'),
+  )
+  @CustomApiError(() =>
+    DATABASE_ERROR('creating block relationship', 'details'),
+  )
   block(
     @Param('userId') userId: string,
     @Param('blockedId') blockedId: string,
@@ -100,6 +124,12 @@ export class RelationshipController implements OnModuleInit {
   @ApiParam({ name: 'userId', example: 'uuid-blocker' })
   @ApiParam({ name: 'blockedId', example: 'uuid-blocked' })
   @ApiResponse({ status: 200, type: ActionSuccessResponseDTO })
+  @CustomApiError(() =>
+    SOCIAL_RELATIONSHIP_NOT_FOUND('userId', 'blockedId', 'BLOCK'),
+  )
+  @CustomApiError(() =>
+    DATABASE_ERROR('deleting block relationship', 'details'),
+  )
   unblock(
     @Param('userId') userId: string,
     @Param('blockedId') blockedId: string,
@@ -116,6 +146,7 @@ export class RelationshipController implements OnModuleInit {
   @ApiOperation({ summary: 'Get list of users followed by this user' })
   @ApiParam({ name: 'userId', example: 'uuid-user' })
   @ApiResponse({ status: 200, type: IdsListResponseDTO })
+  @CustomApiError(() => DATABASE_ERROR('fetching follows', 'details'))
   getFollows(
     @Param('userId') userId: string,
     @Query() query: GetMyFollowsRequestDTO,
@@ -128,6 +159,7 @@ export class RelationshipController implements OnModuleInit {
   @ApiOperation({ summary: 'Get list of users following this user' })
   @ApiParam({ name: 'userId', example: 'uuid-user' })
   @ApiResponse({ status: 200, type: IdsListResponseDTO })
+  @CustomApiError(() => DATABASE_ERROR('fetching followers', 'details'))
   getFollowers(
     @Param('userId') userId: string,
     @Query() query: GetMyFollowersRequestDTO,
@@ -140,6 +172,7 @@ export class RelationshipController implements OnModuleInit {
   @ApiOperation({ summary: 'Get list of blocked users' })
   @ApiParam({ name: 'userId', example: 'uuid-user' })
   @ApiResponse({ status: 200, type: IdsListResponseDTO })
+  @CustomApiError(() => DATABASE_ERROR('fetching blocks', 'details'))
   getBlocks(
     @Param('userId') userId: string,
     @Query() query: GetMyBlocksRequestDTO,
@@ -152,6 +185,7 @@ export class RelationshipController implements OnModuleInit {
   @ApiOperation({ summary: 'Get list of users who blocked this user' })
   @ApiParam({ name: 'userId', example: 'uuid-user' })
   @ApiResponse({ status: 200, type: IdsListResponseDTO })
+  @CustomApiError(() => DATABASE_ERROR('fetching who blocked me', 'details'))
   getWhoBlockedMe(
     @Param('userId') userId: string,
     @Query() query: GetWhoBlockedMeRequestDTO,

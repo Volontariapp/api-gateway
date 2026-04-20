@@ -27,6 +27,12 @@ import {
   GetFeedRequestDTO,
   GetUserPostsRequestDTO,
 } from '../dto/request/index.js';
+import {
+  CustomApiError,
+  SOCIAL_POST_ALREADY_EXISTS,
+  SOCIAL_POST_NOT_FOUND,
+  DATABASE_ERROR,
+} from '@volontariapp/errors-nest';
 
 @ApiTags('Social - Publications')
 @Controller('social')
@@ -50,6 +56,8 @@ export class PublicationController implements OnModuleInit {
   @ApiOperation({ summary: 'Create a social post node' })
   @ApiParam({ name: 'postId', example: 'uuid-post-123' })
   @ApiResponse({ status: 201, type: ActionSuccessResponseDTO })
+  @CustomApiError(() => SOCIAL_POST_ALREADY_EXISTS('postId'))
+  @CustomApiError(() => DATABASE_ERROR('creating social post node', 'details'))
   createPostNode(@Param('postId') postId: string) {
     return this.commandService
       .createPostNode({ postId })
@@ -60,6 +68,9 @@ export class PublicationController implements OnModuleInit {
   @ApiOperation({ summary: 'Check if post node exists' })
   @ApiParam({ name: 'postId', example: 'uuid-post-123' })
   @ApiResponse({ status: 200, type: ExistsResponseDTO })
+  @CustomApiError(() =>
+    DATABASE_ERROR('checking social post existence', 'details'),
+  )
   getPostNode(@Param('postId') postId: string) {
     return this.queryService.getPostNode({ postId });
   }
@@ -68,6 +79,8 @@ export class PublicationController implements OnModuleInit {
   @ApiOperation({ summary: 'Delete a social post node' })
   @ApiParam({ name: 'postId', example: 'uuid-post-123' })
   @ApiResponse({ status: 200, type: ActionSuccessResponseDTO })
+  @CustomApiError(() => SOCIAL_POST_NOT_FOUND('postId'))
+  @CustomApiError(() => DATABASE_ERROR('deleting social post node', 'details'))
   deletePostNode(@Param('postId') postId: string) {
     return this.commandService
       .deletePostNode({ postId })
@@ -79,6 +92,7 @@ export class PublicationController implements OnModuleInit {
   @ApiParam({ name: 'userId', example: 'uuid-user-123' })
   @ApiParam({ name: 'postId', example: 'uuid-post-123' })
   @ApiResponse({ status: 201, type: ActionSuccessResponseDTO })
+  @CustomApiError(() => DATABASE_ERROR('creating post ownership', 'details'))
   ownPost(@Param('userId') userId: string, @Param('postId') postId: string) {
     return this.commandService
       .postUserOwn({ userId, postId })
@@ -90,6 +104,7 @@ export class PublicationController implements OnModuleInit {
   @ApiParam({ name: 'userId', example: 'uuid-user-123' })
   @ApiParam({ name: 'postId', example: 'uuid-post-123' })
   @ApiResponse({ status: 200, type: ActionSuccessResponseDTO })
+  @CustomApiError(() => DATABASE_ERROR('deleting post ownership', 'details'))
   disownPost(@Param('userId') userId: string, @Param('postId') postId: string) {
     return this.commandService
       .deleteUserOwn({ userId, postId })
@@ -100,6 +115,7 @@ export class PublicationController implements OnModuleInit {
   @ApiOperation({ summary: 'Get posts from a specific user' })
   @ApiParam({ name: 'userId', example: 'uuid-user-123' })
   @ApiResponse({ status: 200, type: IdsListResponseDTO })
+  @CustomApiError(() => DATABASE_ERROR('fetching user posts', 'details'))
   getUserPosts(
     @Param('userId') userId: string,
     @Query() query: GetUserPostsRequestDTO,
@@ -112,6 +128,7 @@ export class PublicationController implements OnModuleInit {
   @ApiOperation({ summary: 'Get social feed for a user' })
   @ApiParam({ name: 'userId', example: 'uuid-user-123' })
   @ApiResponse({ status: 200, type: IdsListResponseDTO })
+  @CustomApiError(() => DATABASE_ERROR('fetching user feed', 'details'))
   getFeed(@Param('userId') userId: string, @Query() query: GetFeedRequestDTO) {
     query.userId = userId;
     return this.queryService.getFeed(query.toQuery());

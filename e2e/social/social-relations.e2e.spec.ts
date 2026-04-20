@@ -444,4 +444,55 @@ describe('Social Relations & Interactions (E2E)', () => {
       .delete(`/api/v1/social/users/${userBId}`)
       .expect(200);
   });
+
+  it('should handle wish event lifecycle: create, list, conflict, delete, and not found', async () => {
+    const userId = randomUUID();
+    const eventId = randomUUID();
+
+    await request(app.getHttpServer())
+      .post(`/api/v1/social/users/${userId}`)
+      .expect(201);
+
+    await request(app.getHttpServer())
+      .post(`/api/v1/social/events/${eventId}`)
+      .expect(201);
+
+    await request(app.getHttpServer())
+      .post(`/api/v1/social/users/${userId}/events/${eventId}/wish`)
+      .expect(201);
+
+    const wishedEventsResponse = await request(app.getHttpServer())
+      .get(`/api/v1/social/users/${userId}/events/wished`)
+      .expect(200);
+
+    const wishedEventsData = wishedEventsResponse.body as GetMyFollowsWebResponse;
+    expect(wishedEventsData.ids).toContain(eventId);
+
+    await request(app.getHttpServer())
+      .post(`/api/v1/social/users/${userId}/events/${eventId}/wish`)
+      .expect(409);
+
+    await request(app.getHttpServer())
+      .delete(`/api/v1/social/users/${userId}/events/${eventId}/wish`)
+      .expect(200);
+
+    const emptyWishedEventsResponse = await request(app.getHttpServer())
+      .get(`/api/v1/social/users/${userId}/events/wished`)
+      .expect(200);
+
+    const emptyWishedEventsData =
+      emptyWishedEventsResponse.body as GetMyFollowsWebResponse;
+    expect(emptyWishedEventsData.ids).not.toContain(eventId);
+
+    await request(app.getHttpServer())
+      .delete(`/api/v1/social/users/${userId}/events/${eventId}/wish`)
+      .expect(404);
+
+    await request(app.getHttpServer())
+      .delete(`/api/v1/social/events/${eventId}`)
+      .expect(200);
+    await request(app.getHttpServer())
+      .delete(`/api/v1/social/users/${userId}`)
+      .expect(200);
+  });
 });

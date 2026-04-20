@@ -8,5 +8,6 @@ export * from './get-user-likes.request.dto.js';
 export * from './get-post-likers.request.dto.js';
 export * from './get-user-events.request.dto.js';
 export * from './get-user-participations.request.dto.js';
+export * from './get-user-wishes.request.dto.js';
 export * from './get-event-participants.request.dto.js';
 export * from './get-event-posts.request.dto.js';
