@@ -5,6 +5,7 @@ import { apiReference } from '@scalar/nestjs-api-reference';
 import { UserModule } from '../modules/user/user.module.js';
 import { PostModule } from '../modules/post/post.module.js';
 import { EventModule } from '../modules/event/event.module.js';
+import { SocialModule } from '../modules/social/social.module.js';
 
 export function setupSwagger(app: INestApplication): void {
   const setupDocs = (
@@ -64,6 +65,19 @@ export function setupSwagger(app: INestApplication): void {
     [UserModule],
   );
 
+  // 🤝 ms-social Specific Documentation
+  setupDocs(
+    '/docs/social',
+    new DocumentBuilder()
+      .setTitle('🤝 Social — Microservice')
+      .setDescription(
+        'Dedicated documentation for the Social domain. manage relationships, publications, interactions, and participation.\n\n' +
+          '🔙 [Back to Global Hub](/docs)',
+      )
+      .setVersion('1.0'),
+    [SocialModule],
+  );
+
   // 🌍 Global API Reference
   setupDocs(
     '/docs',
@@ -75,7 +89,8 @@ export function setupSwagger(app: INestApplication): void {
           '#### 📌 Service Breakdown:\n' +
           '- [📅 ms-event Documentation](/docs/event)\n' +
           '- [📝 ms-post Documentation](/docs/post)\n' +
-          '- [👤 ms-user Documentation](/docs/user)',
+          '- [👤 ms-user Documentation](/docs/user)\n' +
+          '- [🤝 ms-social Documentation](/docs/social)',
       )
       .setVersion('1.0'),
   );

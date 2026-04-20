@@ -5,9 +5,16 @@ import { GrpcClientModule } from './grpc/grpc-client.module.js';
 import { UserModule } from './modules/user/user.module.js';
 import { PostModule } from './modules/post/post.module.js';
 import { EventModule } from './modules/event/event.module.js';
+import { SocialModule } from './modules/social/social.module.js';
 
 @Module({
-  imports: [GrpcClientModule, UserModule, PostModule, EventModule],
+  imports: [
+    GrpcClientModule,
+    UserModule,
+    PostModule,
+    EventModule,
+    SocialModule,
+  ],
 })
 export class AppModule {
   static register(config: CustomConfig): DynamicModule {
@@ -19,6 +26,7 @@ export class AppModule {
         UserModule,
         PostModule,
         EventModule,
+        SocialModule,
       ],
     };
   }

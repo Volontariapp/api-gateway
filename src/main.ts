@@ -15,13 +15,21 @@ import { CustomConfig } from './config/base-config.js';
 
 function resolveConfigDirectory(): string {
   const currentFileDir = dirname(fileURLToPath(import.meta.url));
-  const repositoryRootDir = join(currentFileDir, '..');
-  const rootConfigDir = join(repositoryRootDir, 'config');
-  if (existsSync(rootConfigDir)) {
-    return rootConfigDir;
+  const searchPaths = [
+    join(currentFileDir, '..', 'config'),
+    join(currentFileDir, '..', '..', 'config'),
+    join(currentFileDir, 'config'),
+  ];
+
+  for (const rootConfigDir of searchPaths) {
+    if (existsSync(rootConfigDir)) {
+      return rootConfigDir;
+    }
   }
 
-  throw new Error(`Config directory not found: ${rootConfigDir}`);
+  throw new Error(
+    `Config directory not found. Checked paths: ${searchPaths.join(', ')}`,
+  );
 }
 
 async function bootstrap() {
@@ -56,6 +64,9 @@ async function bootstrap() {
   );
   logger.log(
     `DOCUMENTATION (Users):  http://localhost:${port.toString()}/docs/user`,
+  );
+  logger.log(
+    `DOCUMENTATION (Social): http://localhost:${port.toString()}/docs/social`,
   );
   logger.log(
     '=================================== API Gateway ===================================',

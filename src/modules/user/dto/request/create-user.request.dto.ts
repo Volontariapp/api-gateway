@@ -1,30 +1,26 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { CreateUserCommand } from '@volontariapp/contracts-nest';
-import { CreateUserRequest } from '@volontariapp/contracts';
+import { SignUpCommand } from '@volontariapp/contracts-nest';
+import { SignUpRequest } from '@volontariapp/contracts';
 
-export class CreateUserRequestDTO implements CreateUserRequest {
+export class CreateUserRequestDTO implements SignUpRequest {
   @ApiProperty({ example: 'john.doe@example.com' })
   email!: string;
 
-  @ApiProperty({ example: 'John' })
-  firstName!: string;
-
-  @ApiProperty({ example: 'Doe' })
-  lastName!: string;
+  @ApiProperty({ example: 'john_doe' })
+  pseudo!: string;
 
   @ApiProperty({ example: 'strongPassword123' })
   password!: string;
 
-  @ApiProperty({ example: 'USER' })
-  role!: string;
+  @ApiProperty({ example: 'My bio', required: false })
+  bio?: string;
 
-  toCommand(): CreateUserCommand {
+  toCommand(): SignUpCommand {
     return {
       email: this.email,
-      firstName: this.firstName,
-      lastName: this.lastName,
+      pseudo: this.pseudo,
       password: this.password,
-      role: this.role,
+      bio: this.bio,
     };
   }
 }

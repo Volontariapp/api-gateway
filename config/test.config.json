@@ -3,5 +3,11 @@
   "logger": {
     "level": "error",
     "format": "text"
+  },
+  "microServices": {
+    "msUserUrl": "localhost:5001",
+    "msPostUrl": "localhost:5002",
+    "msEventUrl": "localhost:5003",
+    "msSocialUrl": "localhost:5004"
   }
 }
