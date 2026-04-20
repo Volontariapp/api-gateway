@@ -215,12 +215,8 @@ export class ParticipationController implements OnModuleInit {
   @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
   @ApiResponse({ status: 201, type: ActionSuccessResponseDTO })
   @CustomApiError(() => SOCIAL_EVENT_NOT_FOUND('eventId'))
-  @CustomApiError(() =>
-    SOCIAL_WISH_ALREADY_EXISTS('userId', 'eventId'),
-  )
-  @CustomApiError(() =>
-    DATABASE_ERROR('creating event wish', 'details'),
-  )
+  @CustomApiError(() => SOCIAL_WISH_ALREADY_EXISTS('userId', 'eventId'))
+  @CustomApiError(() => DATABASE_ERROR('creating event wish', 'details'))
   wishEvent(
     @Param('userId') userId: string,
     @Param('eventId') eventId: string,
@@ -236,19 +232,17 @@ export class ParticipationController implements OnModuleInit {
   @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
   @ApiResponse({ status: 200, type: ActionSuccessResponseDTO })
   @CustomApiError(() => SOCIAL_EVENT_NOT_FOUND('eventId'))
-  @CustomApiError(() =>
-    SOCIAL_WISH_NOT_FOUND('userId', 'eventId'),
-  )
-  @CustomApiError(() =>
-    DATABASE_ERROR('deleting event wish', 'details'),
-  )
+  @CustomApiError(() => SOCIAL_WISH_NOT_FOUND('userId', 'eventId'))
+  @CustomApiError(() => DATABASE_ERROR('deleting event wish', 'details'))
   unwishEvent(
     @Param('userId') userId: string,
     @Param('eventId') eventId: string,
   ) {
     return this.commandService
       .deleteUserWishEvent({ userId, eventId })
-      .pipe(map(() => ({ success: true, message: 'Event removed from wishes' })));
+      .pipe(
+        map(() => ({ success: true, message: 'Event removed from wishes' })),
+      );
   }
 
   @Get('users/:userId/events/wished')
