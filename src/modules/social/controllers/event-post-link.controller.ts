@@ -24,6 +24,7 @@ import {
   EventIdResponseDTO,
 } from '../dto/response/index.js';
 import { GetEventPostsRequestDTO } from '../dto/request/index.js';
+import { CustomApiError, DATABASE_ERROR } from '@volontariapp/errors-nest';
 
 @ApiTags('Social - Event-Post Links')
 @Controller('social')
@@ -48,6 +49,7 @@ export class EventPostLinkController implements OnModuleInit {
   @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
   @ApiParam({ name: 'postId', example: 'uuid-post-123' })
   @ApiResponse({ status: 201, type: ActionSuccessResponseDTO })
+  @CustomApiError(() => DATABASE_ERROR('linking post to event', 'details'))
   linkPostToEvent(
     @Param('eventId') eventId: string,
     @Param('postId') postId: string,
@@ -62,6 +64,7 @@ export class EventPostLinkController implements OnModuleInit {
   @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
   @ApiParam({ name: 'postId', example: 'uuid-post-123' })
   @ApiResponse({ status: 200, type: ActionSuccessResponseDTO })
+  @CustomApiError(() => DATABASE_ERROR('unlinking post from event', 'details'))
   unlinkPostFromEvent(
     @Param('eventId') eventId: string,
     @Param('postId') postId: string,
@@ -77,6 +80,9 @@ export class EventPostLinkController implements OnModuleInit {
   @ApiOperation({ summary: 'Get event related to a specific post' })
   @ApiParam({ name: 'postId', example: 'uuid-post-123' })
   @ApiResponse({ status: 200, type: EventIdResponseDTO })
+  @CustomApiError(() =>
+    DATABASE_ERROR('fetching event related to post', 'details'),
+  )
   getEventRelatedToPost(@Param('postId') postId: string) {
     return this.queryService.getEventRelatedToPost({ postId });
   }
@@ -85,6 +91,7 @@ export class EventPostLinkController implements OnModuleInit {
   @ApiOperation({ summary: 'Get posts related to a specific event' })
   @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
   @ApiResponse({ status: 200, type: IdsListResponseDTO })
+  @CustomApiError(() => DATABASE_ERROR('fetching event posts', 'details'))
   getEventPosts(
     @Param('eventId') eventId: string,
     @Query() query: GetEventPostsRequestDTO,

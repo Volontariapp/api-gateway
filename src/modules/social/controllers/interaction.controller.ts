@@ -26,6 +26,12 @@ import {
   GetUserLikesRequestDTO,
   GetPostLikersRequestDTO,
 } from '../dto/request/index.js';
+import {
+  CustomApiError,
+  SOCIAL_RELATIONSHIP_ALREADY_EXISTS,
+  SOCIAL_RELATIONSHIP_NOT_FOUND,
+  DATABASE_ERROR,
+} from '@volontariapp/errors-nest';
 
 @ApiTags('Social - Interactions')
 @Controller('social')
@@ -50,6 +56,10 @@ export class InteractionController implements OnModuleInit {
   @ApiParam({ name: 'userId', example: 'uuid-user-123' })
   @ApiParam({ name: 'postId', example: 'uuid-post-123' })
   @ApiResponse({ status: 201, type: ActionSuccessResponseDTO })
+  @CustomApiError(() =>
+    SOCIAL_RELATIONSHIP_ALREADY_EXISTS('userId', 'postId', 'LIKE'),
+  )
+  @CustomApiError(() => DATABASE_ERROR('creating like', 'details'))
   likePost(@Param('userId') userId: string, @Param('postId') postId: string) {
     return this.commandService
       .postLikePost({ userId, postId })
@@ -61,6 +71,10 @@ export class InteractionController implements OnModuleInit {
   @ApiParam({ name: 'userId', example: 'uuid-user-123' })
   @ApiParam({ name: 'postId', example: 'uuid-post-123' })
   @ApiResponse({ status: 200, type: ActionSuccessResponseDTO })
+  @CustomApiError(() =>
+    SOCIAL_RELATIONSHIP_NOT_FOUND('userId', 'postId', 'LIKE'),
+  )
+  @CustomApiError(() => DATABASE_ERROR('deleting like', 'details'))
   unlikePost(@Param('userId') userId: string, @Param('postId') postId: string) {
     return this.commandService
       .deleteLikePost({ userId, postId })
@@ -71,6 +85,7 @@ export class InteractionController implements OnModuleInit {
   @ApiOperation({ summary: 'Get list of posts liked by a user' })
   @ApiParam({ name: 'userId', example: 'uuid-user-123' })
   @ApiResponse({ status: 200, type: IdsListResponseDTO })
+  @CustomApiError(() => DATABASE_ERROR('fetching user likes', 'details'))
   getUserLikes(
     @Param('userId') userId: string,
     @Query() query: GetUserLikesRequestDTO,
@@ -83,6 +98,7 @@ export class InteractionController implements OnModuleInit {
   @ApiOperation({ summary: 'Get list of users who liked a post' })
   @ApiParam({ name: 'postId', example: 'uuid-post-123' })
   @ApiResponse({ status: 200, type: IdsListResponseDTO })
+  @CustomApiError(() => DATABASE_ERROR('fetching post likers', 'details'))
   getPostLikers(
     @Param('postId') postId: string,
     @Query() query: GetPostLikersRequestDTO,

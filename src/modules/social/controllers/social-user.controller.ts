@@ -21,6 +21,12 @@ import {
   ActionSuccessResponseDTO,
   ExistsResponseDTO,
 } from '../dto/response/index.js';
+import {
+  CustomApiError,
+  SOCIAL_USER_ALREADY_EXISTS,
+  SOCIAL_USER_NOT_FOUND,
+  DATABASE_ERROR,
+} from '@volontariapp/errors-nest';
 
 @ApiTags('Social - Users')
 @Controller('social/users')
@@ -45,6 +51,8 @@ export class SocialUserController implements OnModuleInit {
   @ApiOperation({ summary: 'Create a social user node' })
   @ApiParam({ name: 'userId', example: 'uuid-user-123' })
   @ApiResponse({ status: 201, type: ActionSuccessResponseDTO })
+  @CustomApiError(() => SOCIAL_USER_ALREADY_EXISTS('userId'))
+  @CustomApiError(() => DATABASE_ERROR('creating social user node', 'details'))
   createUserNode(@Param('userId') userId: string) {
     return this.commandService
       .createUserNode({ userId })
@@ -55,6 +63,9 @@ export class SocialUserController implements OnModuleInit {
   @ApiOperation({ summary: 'Check if user node exists' })
   @ApiParam({ name: 'userId', example: 'uuid-user-123' })
   @ApiResponse({ status: 200, type: ExistsResponseDTO })
+  @CustomApiError(() =>
+    DATABASE_ERROR('checking social user existence', 'details'),
+  )
   getUserNode(@Param('userId') userId: string) {
     return this.queryService.getUserNode({ userId });
   }
@@ -63,6 +74,8 @@ export class SocialUserController implements OnModuleInit {
   @ApiOperation({ summary: 'Delete a social user node' })
   @ApiParam({ name: 'userId', example: 'uuid-user-123' })
   @ApiResponse({ status: 200, type: ActionSuccessResponseDTO })
+  @CustomApiError(() => SOCIAL_USER_NOT_FOUND('userId'))
+  @CustomApiError(() => DATABASE_ERROR('deleting social user node', 'details'))
   deleteUserNode(@Param('userId') userId: string) {
     return this.commandService
       .deleteUserNode({ userId })
