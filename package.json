@@ -23,7 +23,8 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "node --experimental-vm-modules node_modules/.bin/jest --config ./test/jest-e2e.json",
     "check-arch": "tsx scripts/check-dto-architecture.ts",
-    "seed:social": "tsx scripts/seed-social.ts"
+    "seed:social": "tsx scripts/seed-social.ts",
+    "swagger:export": "nest build && node dist/src/export-main.js && tsx scripts/generate-clean-md.ts"
   },
   "dependencies": {
     "@grpc/grpc-js": "^1.14.3",
