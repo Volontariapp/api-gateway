@@ -6,82 +6,68 @@ import { UserModule } from '../modules/user/user.module.js';
 import { PostModule } from '../modules/post/post.module.js';
 import { EventModule } from '../modules/event/event.module.js';
 import { SocialModule } from '../modules/social/social.module.js';
+import { ErrorResponseDto } from '@volontariapp/errors-nest';
 
-export function setupSwagger(app: INestApplication): void {
-  const setupDocs = (
-    path: string,
-    options: DocumentBuilder,
-    modules?: Function[],
-  ) => {
-    const document = SwaggerModule.createDocument(app, options.build(), {
-      include: modules,
-    });
-    app.use(
-      path,
-      apiReference({
-        theme: 'kepler',
-        darkMode: true,
-        content: document,
-      }),
-    );
-  };
+export interface SwaggerConfig {
+  path: string;
+  name: string;
+  builder: DocumentBuilder;
+  modules?: Function[];
+}
 
-  // 📅 ms-event Specific Documentation
-  setupDocs(
-    '/docs/event',
-    new DocumentBuilder()
+export const swaggerConfigs: SwaggerConfig[] = [
+  {
+    path: '/docs/event',
+    name: 'event',
+    builder: new DocumentBuilder()
       .setTitle('📅 Events — Microservice')
       .setDescription(
         'Dedicated documentation for the Events domain. Manage event listing, requirements, and participation.\n\n' +
           '🔙 [Back to Global Hub](/docs)',
       )
       .setVersion('1.0'),
-    [EventModule],
-  );
-
-  // 📝 ms-post Specific Documentation
-  setupDocs(
-    '/docs/post',
-    new DocumentBuilder()
+    modules: [EventModule],
+  },
+  {
+    path: '/docs/post',
+    name: 'post',
+    builder: new DocumentBuilder()
       .setTitle('📝 Posts — Microservice')
       .setDescription(
         'Dedicated documentation for the Posts domain. Manage community posts, updates, and interactions.\n\n' +
           '🔙 [Back to Global Hub](/docs)',
       )
       .setVersion('1.0'),
-    [PostModule],
-  );
-
-  // 👤 ms-user Specific Documentation
-  setupDocs(
-    '/docs/user',
-    new DocumentBuilder()
+    modules: [PostModule],
+  },
+  {
+    path: '/docs/user',
+    name: 'user',
+    builder: new DocumentBuilder()
       .setTitle('👤 Users — Microservice')
       .setDescription(
         'Dedicated documentation for the Users domain. Manage user profiles, authentication context, and roles.\n\n' +
           '🔙 [Back to Global Hub](/docs)',
       )
       .setVersion('1.0'),
-    [UserModule],
-  );
-
-  // 🤝 ms-social Specific Documentation
-  setupDocs(
-    '/docs/social',
-    new DocumentBuilder()
+    modules: [UserModule],
+  },
+  {
+    path: '/docs/social',
+    name: 'social',
+    builder: new DocumentBuilder()
       .setTitle('🤝 Social — Microservice')
       .setDescription(
         'Dedicated documentation for the Social domain. manage relationships, publications, interactions, and participation.\n\n' +
           '🔙 [Back to Global Hub](/docs)',
       )
       .setVersion('1.0'),
-    [SocialModule],
-  );
-
-  // 🌍 Global API Reference
-  setupDocs(
-    '/docs',
-    new DocumentBuilder()
+    modules: [SocialModule],
+  },
+  {
+    path: '/docs',
+    name: 'global',
+    builder: new DocumentBuilder()
       .setTitle('🌐 VolontariApp — API Gateway')
       .setDescription(
         '### Welcome to the VolontariApp Ecosystem Documentation\n\n' +
@@ -93,5 +79,22 @@ export function setupSwagger(app: INestApplication): void {
           '- [🤝 ms-social Documentation](/docs/social)',
       )
       .setVersion('1.0'),
-  );
+  },
+];
+
+export function setupSwagger(app: INestApplication): void {
+  for (const config of swaggerConfigs) {
+    const document = SwaggerModule.createDocument(app, config.builder.build(), {
+      include: config.modules,
+      extraModels: [ErrorResponseDto],
+    });
+    app.use(
+      config.path,
+      apiReference({
+        theme: 'kepler',
+        darkMode: true,
+        content: document,
+      }),
+    );
+  }
 }
