@@ -1,12 +1,31 @@
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 
+interface SwaggerResponse {
+  description?: string;
+  content?: Record<string, any>;
+}
+
+interface SwaggerOperation {
+  summary?: string;
+  operationId?: string;
+  description?: string;
+  security?: any[];
+  parameters?: any[];
+  requestBody?: any;
+  responses: Record<string, SwaggerResponse>;
+}
+
 function generateCleanMarkdown(jsonPath: string, outputPath: string) {
   const data = JSON.parse(readFileSync(jsonPath, 'utf-8'));
   let md = `# ${data.info.title}\n\n`;
 
-  for (const [path, methods] of Object.entries(data.paths as any)) {
-    for (const [method, details] of Object.entries(methods as any)) {
+  for (const [path, methods] of Object.entries(
+    data.paths as Record<string, any>,
+  )) {
+    for (const [method, details] of Object.entries(
+      methods as Record<string, SwaggerOperation>,
+    )) {
       md += `## 🔹 ${details.summary || details.operationId}\n\n`;
       md += `### 📍 Route\n\n${method.toUpperCase()} \`${path}\`\n\n`;
 
@@ -14,16 +33,14 @@ function generateCleanMarkdown(jsonPath: string, outputPath: string) {
         md += `### 📝 Description\n\n${details.description}\n\n`;
       }
 
-      // Headers (if any security defined)
       if (details.security) {
         md += `### 🔑 Headers\n\n\`\`\`html\nAuthorization: Bearer <token>\n\`\`\`\n\n`;
       }
 
-      // Query Parameters
       const queryParams = details.parameters?.filter(
         (p: any) => p.in === 'query',
       );
-      if (queryParams?.length > 0) {
+      if (queryParams && queryParams.length > 0) {
         md += `### 🔎 Query Parameters\n\n`;
         md += `| Field | In | Type | Required | Description |\n`;
         md += `| --- | --- | --- | --- | --- |\n`;
@@ -36,7 +53,6 @@ function generateCleanMarkdown(jsonPath: string, outputPath: string) {
         md += `\n`;
       }
 
-      // Request Body
       if (details.requestBody) {
         md += `### 📦 Request Body\n\n`;
         const content = details.requestBody.content?.['application/json'];
@@ -57,9 +73,7 @@ function generateCleanMarkdown(jsonPath: string, outputPath: string) {
 
       md += `### ✅ Responses\n\n---\n\n`;
 
-      for (const [status, response] of Object.entries(
-        details.responses as any,
-      )) {
+      for (const [status, response] of Object.entries(details.responses)) {
         let emoji = '⚪';
         if (status.startsWith('2')) emoji = '🟢';
         else if (status.startsWith('4')) emoji = '🔴';

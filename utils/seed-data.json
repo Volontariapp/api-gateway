@@ -1,0 +1,514 @@
+{
+  "events": [
+    {
+      "title": "Collecte de déchets - Berges de Seine",
+      "description": "Rejoignez-nous pour une matinée d'action écologique ! Nous allons nettoyer les berges de la Seine pour protéger notre écosystème local. Gants et sacs fournis.",
+      "localisationName": "Quai de la Râpée, 75012 Paris",
+      "awardedImpactScore": 50,
+      "type": 1,
+      "maxParticipants": 30,
+      "tags": ["Écologie", "Seine", "Nature"],
+      "requirements": ["Ramenez des sacs poubelles supplémentaires", "Gants de protection", "Vêtements peu salissants"]
+    },
+    {
+      "title": "Atelier Répar'Vélo Solidaire",
+      "description": "Apprenez à réparer votre vélo ou aidez les autres à remettre le leur en état. Un moment de partage et de mécanique conviviale.",
+      "localisationName": "Place de la République, 75011 Paris",
+      "awardedImpactScore": 30,
+      "type": 1,
+      "maxParticipants": 12,
+      "tags": ["Vélo", "Entraide", "Mécanique"],
+      "requirements": ["Votre propre vélo à réparer (si possible)", "Quelques outils si vous en avez"]
+    },
+    {
+      "title": "Distribution Alimentaire Maraude",
+      "description": "Aidez-nous à distribuer des repas chauds et des produits de première nécessité aux personnes en situation de précarité dans le centre de Paris.",
+      "localisationName": "Châtelet - Les Halles, 75001 Paris",
+      "awardedImpactScore": 100,
+      "type": 1,
+      "maxParticipants": 15,
+      "tags": ["Social", "Maraude", "Aide"],
+      "requirements": ["Masque chirurgical obligatoire", "Chaussures confortables pour marcher"]
+    },
+    {
+      "title": "Végétalisation Urbaine - Quartier Est",
+      "description": "Opération mains vertes ! Nous plantons des arbustes et des fleurs mellifères pour favoriser la biodiversité en ville.",
+      "localisationName": "Parc de Belleville, 75020 Paris",
+      "awardedImpactScore": 40,
+      "type": 1,
+      "maxParticipants": 20,
+      "tags": ["Biodiversité", "Jardinage", "Paris20"],
+      "requirements": ["Petite pelle ou déplantoir si possible", "Bouteille d'eau"]
+    },
+    {
+      "title": "Nettoyage participatif du Canal St-Martin",
+      "description": "Le Canal a besoin de nous. Venez aider à ramasser les détritus sur les quais et sensibiliser les passants à la protection de l'eau.",
+      "localisationName": "Quai de Valmy, 75010 Paris",
+      "awardedImpactScore": 50,
+      "type": 1,
+      "maxParticipants": 25,
+      "tags": ["Eau", "ZéroDéchet", "Canal"],
+      "requirements": ["Sourire et bonne humeur", "Sacs poubelles solides"]
+    },
+    {
+      "title": "Maraude de nuit - Gare de l'Est",
+      "description": "Distribution de boissons chaudes et de couvertures pour les sans-abris dans le secteur de la Gare de l'Est.",
+      "localisationName": "Place du 11 Novembre 1918, 75010 Paris",
+      "awardedImpactScore": 120,
+      "type": 1,
+      "maxParticipants": 10,
+      "tags": ["Urgence", "Froid", "Solidarité"],
+      "requirements": ["Couloire d'hiver chaude", "Lampe frontale conseillée"]
+    },
+    {
+      "title": "Atelier Compostage pour débutants",
+      "description": "Apprenez à transformer vos biodéchets en engrais naturel. Formation pratique sur les bacs de compostage de quartier.",
+      "localisationName": "Jardin Solidaire, 75018 Paris",
+      "awardedImpactScore": 20,
+      "type": 2,
+      "maxParticipants": 20,
+      "tags": ["Compost", "Déchets", "Formation"],
+      "requirements": ["Un petit seau de vos propres épluchures"]
+    },
+    {
+      "title": "Ramassage mégots - Grands Boulevards",
+      "description": "Un mégot pollue jusqu'à 500 litres d'eau. Aidons à rendre nos rues plus propres et sauvons le cycle de l'eau.",
+      "localisationName": "Opéra Garnier, 75009 Paris",
+      "awardedImpactScore": 45,
+      "type": 1,
+      "maxParticipants": 40,
+      "tags": ["Pollution", "Océan", "Paris9"],
+      "requirements": ["Petite bouteille en plastique vide pour les mégots"]
+    },
+    {
+      "title": "Aide aux devoirs - Enfance défavorisée",
+      "description": "Soutien scolaire pour des enfants du quartier. Un peu de temps pour beaucoup d'avenir.",
+      "localisationName": "Bibliothèque de quartier, 75019 Paris",
+      "awardedImpactScore": 80,
+      "type": 2,
+      "maxParticipants": 10,
+      "tags": ["Éducation", "Enfance", "Quartier"],
+      "requirements": ["Casier judiciaire vierge (vérifié plus tard)", "Patience et pédagogie"]
+    },
+    {
+      "title": "Tri de vêtements - Secours Populaire",
+      "description": "Aidez-nous à trier les dons de vêtements pour les redistribuer aux plus démunis.",
+      "localisationName": "Rue de Montreuil, 75011 Paris",
+      "awardedImpactScore": 60,
+      "type": 1,
+      "maxParticipants": 25,
+      "tags": ["Vêtements", "Recyclage", "Don"],
+      "requirements": ["Pas de symptômes grippaux"]
+    },
+    {
+      "title": "Chantier Nature - Bois de Vincennes",
+      "description": "Gestion des espèces invasives et entretien des sentiers naturels pour préserver le poumon vert de Paris.",
+      "localisationName": "Lac Daumesnil, 75012 Paris",
+      "awardedImpactScore": 55,
+      "type": 1,
+      "maxParticipants": 35,
+      "tags": ["Forêt", "Biodiversité", "Entretien"],
+      "requirements": ["Bottes de pluie fortement conseillées"]
+    },
+    {
+      "title": "Fresque du Climat - Atelier public",
+      "description": "Un atelier ludique et collaboratif pour comprendre les enjeux du changement climatique.",
+      "localisationName": "Café des Arts, 75003 Paris",
+      "awardedImpactScore": 35,
+      "type": 2,
+      "maxParticipants": 50,
+      "tags": ["Climat", "Atelier", "Science"],
+      "requirements": ["De quoi prendre des notes"]
+    },
+    {
+      "title": "Cuisine Mobile Solidaire",
+      "description": "Préparation de repas équilibrés à partir d'invendus alimentaires pour les distribuer aux étudiants précaires.",
+      "localisationName": "Campus Jussieu, 75005 Paris",
+      "awardedImpactScore": 110,
+      "type": 1,
+      "maxParticipants": 15,
+      "tags": ["Cuisine", "Gaspillage", "Étudiants"],
+      "requirements": ["Tablier si vous en avez un", "Attacher ses cheveux"]
+    },
+    {
+      "title": "Repair Café - Petit électroménager",
+      "description": "Ne jetez plus vos cafetières ou grille-pains en panne ! Venez les réparer avec nos experts bénévoles.",
+      "localisationName": "Maison de la Transition, 75014 Paris",
+      "awardedImpactScore": 40,
+      "type": 1,
+      "maxParticipants": 20,
+      "tags": ["Réparation", "Électronique", "Durable"],
+      "requirements": ["Votre appareil en panne", "Tournevis si vous en avez"]
+    },
+    {
+      "title": "Visite amicale en EHPAD",
+      "description": "Luttons contre l'isolement de nos aînés en partageant un moment de discussion, de lecture ou de jeu.",
+      "localisationName": "Résidence Les Lilas, 75015 Paris",
+      "awardedImpactScore": 90,
+      "type": 1,
+      "maxParticipants": 8,
+      "tags": ["Séniors", "LienSocial", "Écoute"],
+      "requirements": ["Test COVID négatif de moins de 48h"]
+    },
+    {
+      "title": "CleanWalk - Montmartre",
+      "description": "Nettoyage des escaliers et des espaces verts de la butte Montmartre.",
+      "localisationName": "Sacré-Cœur, 75018 Paris",
+      "awardedImpactScore": 50,
+      "type": 1,
+      "maxParticipants": 45,
+      "tags": ["Patrimoine", "Propreté", "Sport"],
+      "requirements": ["Bonnes baskets", "Gourde d'eau"]
+    },
+    {
+      "title": "Collecte de jouets - Noël Solidaire",
+      "description": "Récupération et remise en état de jouets d'occasion pour les offrir aux enfants hospitalisés.",
+      "localisationName": "Place du Panthéon, 75005 Paris",
+      "awardedImpactScore": 70,
+      "type": 1,
+      "maxParticipants": 30,
+      "tags": ["Enfants", "Jouets", "Noël"],
+      "requirements": ["Piles neuves pour les tests si possible"]
+    },
+    {
+      "title": "Atelier Zéro Déchet - Cosmétiques",
+      "description": "Fabriquez votre propre dentifrice et déodorant naturels. Moins de plastique, plus de santé.",
+      "localisationName": "Boutique Eco-Geste, 75002 Paris",
+      "awardedImpactScore": 25,
+      "type": 2,
+      "maxParticipants": 20,
+      "tags": ["ZéroDéchet", "Cosmétique", "DIY"],
+      "requirements": ["Deux petits pots en verre vides et propres"]
+    },
+    {
+      "title": "Maraude Hygiène - Kits de survie",
+      "description": "Distribution de kits d'hygiène (savon, brosses à dents, serviettes) aux personnes à la rue.",
+      "localisationName": "Place d'Italie, 75013 Paris",
+      "awardedImpactScore": 100,
+      "type": 1,
+      "maxParticipants": 12,
+      "tags": ["Santé", "Hygiène", "Précarité"],
+      "requirements": ["Sacs à dos pour transporter les kits"]
+    },
+    {
+      "title": "Rénovation d'un jardin partagé",
+      "description": "Peinture des bacs, préparation des sols et installation d'un composteur collectif.",
+      "localisationName": "Jardin des Rosiers, 75004 Paris",
+      "awardedImpactScore": 45,
+      "type": 1,
+      "maxParticipants": 25,
+      "tags": ["Jardin", "Bricolage", "Marais"],
+      "requirements": ["Vêtements qui ne craignent pas la peinture"]
+    },
+    {
+      "title": "Atelier Couture - Upcycling",
+      "description": "Donnez une seconde vie à vos vieux vêtements grâce à la couture. Réparation et transformation créative.",
+      "localisationName": "Atelier Recycle, 75011 Paris",
+      "awardedImpactScore": 30,
+      "type": 2,
+      "maxParticipants": 10,
+      "tags": ["Couture", "Upcycling", "Mode"],
+      "requirements": ["Vos vêtements à transformer", "Fil et aiguilles si vous avez"]
+    },
+    {
+      "title": "Collecte de sang - Établissement Français",
+      "description": "Soutenez le personnel médical en aidant à l'accueil des donneurs de sang.",
+      "localisationName": "Hôpital St Louis, 75010 Paris",
+      "awardedImpactScore": 60,
+      "type": 1,
+      "maxParticipants": 50,
+      "tags": ["Santé", "Médical", "Accueil"],
+      "requirements": ["Être majeur"]
+    },
+    {
+      "title": "Initiation à la Permaculture",
+      "description": "Découvrez les principes de la permaculture et aidez à l'entretien de notre micro-ferme urbaine.",
+      "localisationName": "La Recyclerie, 75018 Paris",
+      "awardedImpactScore": 35,
+      "type": 2,
+      "maxParticipants": 25,
+      "tags": ["Permaculture", "Ferme", "Urbain"],
+      "requirements": ["Gants de jardinage"]
+    },
+    {
+      "title": "Plonplon pour tous - Baignade solidaire",
+      "description": "Accompagnement de personnes en situation de handicap pour une sortie au bassin de la Villette.",
+      "localisationName": "Bassin de la Villette, 75019 Paris",
+      "awardedImpactScore": 100,
+      "type": 1,
+      "maxParticipants": 12,
+      "tags": ["Handicap", "Sport", "Inclusion"],
+      "requirements": ["Savoir nager (brevet de 50m souhaité)", "Maillot de bain"]
+    },
+    {
+      "title": "Nettoyage du Parc des Buttes-Chaumont",
+      "description": "Après un week-end ensoleillé, le parc a besoin d'un coup de propre. Rejoignez l'équipe !",
+      "localisationName": "Buttes-Chaumont, 75019 Paris",
+      "awardedImpactScore": 50,
+      "type": 1,
+      "maxParticipants": 60,
+      "tags": ["Parc", "Déchets", "Paris19"],
+      "requirements": ["Gants fournis", "Sac poubelle fourni"]
+    },
+    {
+      "title": "Atelier Langues Solidaires",
+      "description": "Donnez des cours de français langue étrangère (FLE) à des réfugiés pour faciliter leur intégration.",
+      "localisationName": "Centre Social, 75020 Paris",
+      "awardedImpactScore": 85,
+      "type": 2,
+      "maxParticipants": 15,
+      "tags": ["FLE", "Intégration", "Langues"],
+      "requirements": ["Maîtrise parfaite du français"]
+    },
+    {
+      "title": "Collecte de livres - Boîtes à lire",
+      "description": "Réapprovisionnement des boîtes à lire du quartier avec des dons de livres variés.",
+      "localisationName": "Square Maurice Gardette, 75011 Paris",
+      "awardedImpactScore": 30,
+      "type": 1,
+      "maxParticipants": 20,
+      "tags": ["Culture", "Livres", "Quartier"],
+      "requirements": ["Petit chariot recommandé"]
+    },
+    {
+      "title": "Recensement de la faune urbaine",
+      "description": "Aidez les scientifiques à compter les oiseaux et insectes dans les parcs de la ville.",
+      "localisationName": "Jardin des Plantes, 75005 Paris",
+      "awardedImpactScore": 40,
+      "type": 2,
+      "maxParticipants": 30,
+      "tags": ["Science", "Oiseaux", "Biodiversité"],
+      "requirements": ["Smartphone chargé pour l'appli de saisie"]
+    },
+    {
+      "title": "Réparation de matériel informatique",
+      "description": "Remettez en état de vieux ordinateurs pour les donner à des familles dans le besoin.",
+      "localisationName": "Espace Numérique, 75013 Paris",
+      "awardedImpactScore": 75,
+      "type": 1,
+      "maxParticipants": 10,
+      "tags": ["Informatique", "SolidaritéNumérique", "Hardware"],
+      "requirements": ["Connaissances de base en montage PC"]
+    },
+    {
+      "title": "Maraude Animale - Soins aux chiens",
+      "description": "Distribution de croquettes et premiers soins pour les animaux des sans-abris.",
+      "localisationName": "Place de la Bastille, 75004 Paris",
+      "awardedImpactScore": 110,
+      "type": 1,
+      "maxParticipants": 12,
+      "tags": ["Animaux", "Chiens", "SDF"],
+      "requirements": ["Avoir l'habitude des chiens", "Laisse de secours si vous avez"]
+    },
+    {
+      "title": "Sensibilisation tri sélectif",
+      "description": "Stand d'information sur le marché pour expliquer les nouvelles consignes de tri.",
+      "localisationName": "Marché d'Aligre, 75012 Paris",
+      "awardedImpactScore": 25,
+      "type": 2,
+      "maxParticipants": 100,
+      "tags": ["Tri", "Éducation", "Déchets"],
+      "requirements": ["Aisance à l'oral"]
+    },
+    {
+      "title": "Jardinage avec les enfants",
+      "description": "Atelier de semis et de découverte de la nature pour les plus jeunes.",
+      "localisationName": "Parc Montsouris, 75014 Paris",
+      "awardedImpactScore": 50,
+      "type": 2,
+      "maxParticipants": 20,
+      "tags": ["Enfants", "Pédagogie", "Potager"],
+      "requirements": ["Genouillères si fragile des articulations"]
+    },
+    {
+      "title": "Soutien informatique aux seniors",
+      "description": "Aidez les personnes âgées à utiliser Skype, WhatsApp ou à faire leurs démarches en ligne.",
+      "localisationName": "Club Senior, 75016 Paris",
+      "awardedImpactScore": 80,
+      "type": 2,
+      "maxParticipants": 12,
+      "tags": ["Seniors", "Numérique", "Partage"],
+      "requirements": ["Beaucoup de patience"]
+    },
+    {
+      "title": "Nettoyage du Bois de Boulogne",
+      "description": "Action coup de poing contre les dépôts sauvages en bord de bois.",
+      "localisationName": "Lac Inférieur, 75016 Paris",
+      "awardedImpactScore": 60,
+      "type": 1,
+      "maxParticipants": 50,
+      "tags": ["Forêt", "Écologie", "Paris16"],
+      "requirements": ["Bottes indispensables"]
+    },
+    {
+      "title": "Atelier fabrication de nichoirs",
+      "description": "Construisons des nichoirs pour protéger les oiseaux parisiens pendant l'hiver.",
+      "localisationName": "Maison de l'Oiseau, 75007 Paris",
+      "awardedImpactScore": 45,
+      "type": 1,
+      "maxParticipants": 15,
+      "tags": ["Bricolage", "Oiseaux", "Hiver"],
+      "requirements": ["Petit marteau si possible"]
+    },
+    {
+      "title": "Maraude Café Mobile - Matinale",
+      "description": "Un café chaud et un sourire pour bien commencer la journée des sans-abris.",
+      "localisationName": "Gare du Nord, 75010 Paris",
+      "awardedImpactScore": 115,
+      "type": 1,
+      "maxParticipants": 10,
+      "tags": ["PetitDéjeuner", "Café", "Sourire"],
+      "requirements": ["Réveil matinal !"]
+    },
+    {
+      "title": "Animation ludothèque solidaire",
+      "description": "Encadrer des jeux de société pour favoriser le lien social entre les habitants du quartier.",
+      "localisationName": "Quartier Latin, 75005 Paris",
+      "awardedImpactScore": 40,
+      "type": 1,
+      "maxParticipants": 30,
+      "tags": ["Jeux", "LienSocial", "Quartier"],
+      "requirements": ["Connaître quelques règles de jeux classiques"]
+    },
+    {
+      "title": "Collecte de lunettes d'occasion",
+      "description": "Récupération de vieilles montures pour les envoyer dans des dispensaires à l'étranger.",
+      "localisationName": "Mairie du 6ème, 75006 Paris",
+      "awardedImpactScore": 50,
+      "type": 1,
+      "maxParticipants": 100,
+      "tags": ["Santé", "Vue", "Don"],
+      "requirements": ["Pochette de protection si possible"]
+    },
+    {
+      "title": "Atelier Cuisine Végétale",
+      "description": "Découvrez comment cuisiner bon, pas cher et sans viande pour réduire votre empreinte carbone.",
+      "localisationName": "Cantine Ouverte, 75010 Paris",
+      "awardedImpactScore": 30,
+      "type": 2,
+      "maxParticipants": 20,
+      "tags": ["Cuisine", "Végane", "Écologie"],
+      "requirements": ["Tupperware pour ramener vos créations"]
+    },
+    {
+      "title": "Ramassage de déchets - Canal de l'Ourcq",
+      "description": "En canoë ou à pied, nettoyons le canal de l'Ourcq !",
+      "localisationName": "Parc de la Villette, 75019 Paris",
+      "awardedImpactScore": 60,
+      "type": 1,
+      "maxParticipants": 35,
+      "tags": ["Canal", "Sport", "Nature"],
+      "requirements": ["Change de vêtements (risque de mouillage)"]
+    },
+    {
+      "title": "Aide logistique Banque Alimentaire",
+      "description": "Chargement et déchargement des camions de denrées pour les associations caritatives.",
+      "localisationName": "Entrepôt Solidaire, 75015 Paris",
+      "awardedImpactScore": 100,
+      "type": 1,
+      "maxParticipants": 15,
+      "tags": ["Logistique", "BanqueAlimentaire", "Force"],
+      "requirements": ["Bonne condition physique"]
+    },
+    {
+      "title": "Atelier Protection des Abeilles",
+      "description": "Installation d'hôtels à insectes et sensibilisation au rôle crucial des pollinisateurs.",
+      "localisationName": "Ruchers de Paris, 75020 Paris",
+      "awardedImpactScore": 40,
+      "type": 2,
+      "maxParticipants": 20,
+      "tags": ["Abeilles", "Pollinisation", "Nature"],
+      "requirements": ["Pas d'allergie connue aux piqûres d'hyménoptères"]
+    },
+    {
+      "title": "Distribution de protections périodiques",
+      "description": "Lutter contre la précarité menstruelle en distribuant des protections aux femmes SDF.",
+      "localisationName": "Place de Clichy, 75017 Paris",
+      "awardedImpactScore": 90,
+      "type": 1,
+      "maxParticipants": 10,
+      "tags": ["Femmes", "Solidarité", "Hygiène"],
+      "requirements": ["Sens de l'écoute"]
+    },
+    {
+      "title": "Éveil musical pour enfants hospitalisés",
+      "description": "Apportez un peu de joie et de musique aux enfants qui sont à l'hôpital.",
+      "localisationName": "Hôpital Necker, 75015 Paris",
+      "awardedImpactScore": 130,
+      "type": 1,
+      "maxParticipants": 5,
+      "tags": ["Musique", "Enfants", "Hôpital"],
+      "requirements": ["Savoir jouer d'un instrument transportable"]
+    },
+    {
+      "title": "Collecte de bouchons en plastique",
+      "description": "Trions et collectons les bouchons au profit d'associations pour le handicap.",
+      "localisationName": "Point Relais, 75013 Paris",
+      "awardedImpactScore": 20,
+      "type": 1,
+      "maxParticipants": 1000,
+      "tags": ["Handicap", "Plastique", "Tris"],
+      "requirements": ["Bouchons propres uniquement"]
+    },
+    {
+      "title": "CleanWalk - Quartier Saint-Michel",
+      "description": "Nettoyage des petites rues historiques de la rive gauche.",
+      "localisationName": "Fontaine Saint-Michel, 75006 Paris",
+      "awardedImpactScore": 45,
+      "type": 1,
+      "maxParticipants": 40,
+      "tags": ["Histoire", "RiveGauche", "CleanWalk"],
+      "requirements": ["Bonne humeur exigée"]
+    },
+    {
+      "title": "Aide à la mobilité - Accompagnement",
+      "description": "Accompagner une personne aveugle ou malvoyante pour ses courses ou une promenade.",
+      "localisationName": "Métro Duroc, 75007 Paris",
+      "awardedImpactScore": 95,
+      "type": 1,
+      "maxParticipants": 12,
+      "tags": ["Cécité", "Mobilité", "Compagnie"],
+      "requirements": ["Chaussures de marche confortables"]
+    },
+    {
+      "title": "Sensibilisation Pollution Lumineuse",
+      "description": "Action nocturne pour sensibiliser les commerçants à l'extinction des enseignes.",
+      "localisationName": "Rue de Rivoli, 75001 Paris",
+      "awardedImpactScore": 30,
+      "type": 2,
+      "maxParticipants": 20,
+      "tags": ["ÉconomieÉnergie", "Astronomie", "CielNoir"],
+      "requirements": ["Gilet réfléchissant (fourni)"]
+    },
+    {
+      "title": "Fabrication de mobilier en palettes",
+      "description": "Atelier menuiserie pour fabriquer des jardinières pour le quartier à partir de bois récupéré.",
+      "localisationName": "Atelier Partagé, 75018 Paris",
+      "awardedImpactScore": 40,
+      "type": 1,
+      "maxParticipants": 12,
+      "tags": ["Bricolage", "Récup", "Mobilier"],
+      "requirements": ["Vêtements de travail robustes"]
+    },
+    {
+      "title": "Maraude Vestimentaire - Hiver",
+      "description": "Distribution urgente de gants, bonnets et chaussettes thermiques.",
+      "localisationName": "Gare de Lyon, 75012 Paris",
+      "awardedImpactScore": 110,
+      "type": 1,
+      "maxParticipants": 15,
+      "tags": ["Hiver", "Vêtements", "Urgence"],
+      "requirements": ["Sacs de rechange"]
+    },
+    {
+      "title": "Atelier Fresque de la Biodiversité",
+      "description": "Comprendre les menaces pesant sur le vivant et comment agir à notre échelle.",
+      "localisationName": "Académie du Climat, 75004 Paris",
+      "awardedImpactScore": 35,
+      "type": 2,
+      "maxParticipants": 50,
+      "tags": ["Biodiversité", "Science", "Action"],
+      "requirements": ["Curiosité et envie d'apprendre"]
+    }
+  ]
+}

@@ -52,7 +52,6 @@ async function exportSwagger() {
       const { execSync } = await import('node:child_process');
       execSync(
         `PATH=/usr/local/bin:$PATH npx swagger-markdown -i ${jsonOutputPath} -o ${mdOutputPath}`,
-        { shell: true },
       );
       console.log(`✅ Saved Markdown to ${mdOutputPath}`);
     } catch (err) {
