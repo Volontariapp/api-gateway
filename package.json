@@ -42,7 +42,7 @@
     "@volontariapp/bridge-nest": "0.3.10",
     "@volontariapp/config": "2.0.0",
     "@volontariapp/contracts": "4.0.2",
-    "@volontariapp/contracts-nest": "3.0.2",
+    "@volontariapp/contracts-nest": "3.0.5-snap-3f71c98",
     "@volontariapp/errors": "0.4.4",
     "@volontariapp/errors-nest": "0.9.0",
     "@volontariapp/logger": "0.2.3",

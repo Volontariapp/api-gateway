@@ -2,28 +2,28 @@ import {
   Body,
   Controller,
   Delete,
-  Inject,
   Get,
+  Inject,
   OnModuleInit,
   Param,
   Patch,
   Post,
   Query,
 } from '@nestjs/common';
+import { map } from 'rxjs';
 import { Logger } from '@volontariapp/logger';
 import {
+  ApiExtraModels,
   ApiOperation,
   ApiParam,
-  ApiTags,
   ApiResponse,
-  ApiExtraModels,
+  ApiTags,
 } from '@nestjs/swagger';
 import {
   ApiForbiddenResponse,
   ApiInternalServerErrorResponse,
   ApiNotFoundResponse,
   ApiConflictResponse,
-  ApiTooManyRequestsResponse,
   CustomApiError,
   MISSING_ACCESS_TOKEN,
 } from '@volontariapp/errors-nest';
@@ -33,25 +33,38 @@ import {
   UserServiceClient,
   DeleteUserCommand,
   GetUserQuery,
+  UserResponse,
+  AddBadgeToUserCommand,
+  RemoveBadgeFromUserCommand,
+  IncrementImpactScoreCommand,
 } from '@volontariapp/contracts-nest';
 import { USER_PACKAGE } from '../../../grpc/grpc-packages.js';
 import {
-  CreateUserRequestDTO,
+  SignUpRequestDTO,
   UpdateUserRequestDTO,
   ListUsersRequestDTO,
+  LoginRequestDTO,
+  RefreshTokenRequestDTO,
+  AddBadgeToUserRequestDTO,
+  IncrementImpactScoreRequestDTO,
 } from '../dto/request/index.js';
 import {
   UserResponseDTO,
   ListUsersResponseDTO,
+  SignUpResponseDTO,
+  LoginResponseDTO,
 } from '../dto/response/index.js';
-import { ActionSuccessResponseDTO } from '../../event/dto/response/index.js';
 
 @ApiTags('Users')
-@ApiExtraModels(UserResponseDTO, ListUsersResponseDTO, ActionSuccessResponseDTO)
+@ApiExtraModels(
+  UserResponseDTO,
+  ListUsersResponseDTO,
+  SignUpResponseDTO,
+  LoginResponseDTO,
+)
 @CustomApiError(MISSING_ACCESS_TOKEN)
 @ApiForbiddenResponse('You do not have permission to manage users')
 @ApiInternalServerErrorResponse('An unexpected error occurred on the server')
-@ApiTooManyRequestsResponse('Too many requests, please try again later')
 @Controller('users')
 export class UserController implements OnModuleInit {
   private readonly logger = new Logger({ context: UserController.name });
@@ -69,50 +82,123 @@ export class UserController implements OnModuleInit {
   @Get()
   listUsers(@Query() request: ListUsersRequestDTO) {
     this.logger.log('Listing users');
-    return this.userService.listUsers(request.toQuery());
+    return this.userService
+      .listUsers(request.toQuery())
+      .pipe(map((res) => ListUsersResponseDTO.fromResponse(res)));
   }
 
   @ApiOperation({ summary: 'Get a user by ID' })
   @ApiParam({ name: 'id', example: 'uuid-123' })
   @ApiResponse({ status: 200, type: UserResponseDTO })
-  @ApiNotFoundResponse('UserDTO not found')
+  @ApiNotFoundResponse('User not found')
   @Get(':id')
   getUser(@Param('id') id: string) {
     this.logger.log(`Fetching user profile: ${id}`);
     const query: GetUserQuery = { userId: id };
-    return this.userService.getUser(query);
+    return this.userService
+      .getUser(query)
+      .pipe(map((res) => UserResponseDTO.fromResponse(res)));
   }
 
-  @ApiOperation({ summary: 'Create a new user' })
-  @ApiResponse({ status: 201, type: UserResponseDTO })
-  @ApiConflictResponse('UserDTO already exists')
+  @ApiOperation({ summary: 'Register a new user' })
+  @ApiResponse({ status: 201, type: SignUpResponseDTO })
+  @ApiConflictResponse('User already exists')
   @Post()
-  createUser(@Body() request: CreateUserRequestDTO) {
+  signUp(@Body() request: SignUpRequestDTO) {
     this.logger.log(`Registering new user: ${request.email}`);
-    return this.userService.signUp(request.toCommand());
+    return this.userService
+      .signUp(request.toCommand())
+      .pipe(map((res) => SignUpResponseDTO.fromResponse(res)));
+  }
+
+  @ApiOperation({ summary: 'Login with email and password' })
+  @ApiResponse({ status: 200, type: LoginResponseDTO })
+  @Post('login')
+  login(@Body() request: LoginRequestDTO) {
+    this.logger.log(`Login attempt for: ${request.email}`);
+    return this.userService
+      .login(request.toCommand())
+      .pipe(map((res) => LoginResponseDTO.fromResponse(res)));
+  }
+
+  @ApiOperation({ summary: 'Refresh access token' })
+  @ApiResponse({ status: 200, type: LoginResponseDTO })
+  @Post('refresh')
+  refreshToken(@Body() request: RefreshTokenRequestDTO) {
+    this.logger.log('Refreshing tokens');
+    return this.userService
+      .refreshToken(request.toCommand())
+      .pipe(map((res) => LoginResponseDTO.fromResponse(res)));
   }
 
   @ApiOperation({ summary: 'Update a user by ID' })
   @ApiParam({ name: 'id', example: 'uuid-123' })
   @ApiResponse({ status: 200, type: UserResponseDTO })
-  @ApiNotFoundResponse('UserDTO not found')
+  @ApiNotFoundResponse('User not found')
   @Patch(':id')
   updateUser(@Param('id') id: string, @Body() request: UpdateUserRequestDTO) {
     this.logger.log(`Updating user profile: ${id}`);
     request.id = id;
-    const command = request.toCommand();
-    command.userId = id;
-    return this.userService.updateUser(command);
+    return this.userService
+      .updateUser(request.toCommand())
+      .pipe(
+        map((res) =>
+          UserResponseDTO.fromResponse(res as unknown as UserResponse),
+        ),
+      );
   }
 
   @ApiOperation({ summary: 'Delete a user by ID' })
   @ApiParam({ name: 'id', example: 'uuid-123' })
-  @ApiResponse({ status: 200, type: ActionSuccessResponseDTO })
-  @ApiNotFoundResponse('UserDTO not found')
+  @ApiResponse({ status: 200 })
+  @ApiNotFoundResponse('User not found')
   @Delete(':id')
   deleteUser(@Param('id') id: string) {
     this.logger.log(`Deleting user account: ${id}`);
     const command: DeleteUserCommand = { userId: id };
     return this.userService.deleteUser(command);
+  }
+
+  @ApiOperation({ summary: 'Add a badge to a user' })
+  @ApiParam({ name: 'id', example: 'uuid-123' })
+  @ApiResponse({ status: 201 })
+  @ApiNotFoundResponse('User or badge not found')
+  @Post(':id/badges')
+  addBadge(
+    @Param('id') userId: string,
+    @Body() request: AddBadgeToUserRequestDTO,
+  ) {
+    this.logger.log(`Adding badge ${request.badgeId} to user ${userId}`);
+    const command: AddBadgeToUserCommand = { userId, badgeId: request.badgeId };
+    return this.userService.addBadgeToUser(command);
+  }
+
+  @ApiOperation({ summary: 'Remove a badge from a user' })
+  @ApiParam({ name: 'id', example: 'uuid-123' })
+  @ApiParam({ name: 'badgeId', example: 'uuid-badge-123' })
+  @ApiResponse({ status: 200 })
+  @ApiNotFoundResponse('User or badge not found')
+  @Delete(':id/badges/:badgeId')
+  removeBadge(@Param('id') userId: string, @Param('badgeId') badgeId: string) {
+    this.logger.log(`Removing badge ${badgeId} from user ${userId}`);
+    const command: RemoveBadgeFromUserCommand = { userId, badgeId };
+    return this.userService.removeBadgeFromUser(command);
+  }
+
+  @ApiOperation({ summary: 'Increment impact score for a user' })
+  @ApiParam({ name: 'id', example: 'uuid-123' })
+  @ApiResponse({ status: 200 })
+  @ApiNotFoundResponse('User not found')
+  @Post(':id/impact-score')
+  incrementImpactScore(
+    @Param('id') userId: string,
+    @Body() request: IncrementImpactScoreRequestDTO,
+  ) {
+    this.logger.log(`Incrementing impact score for user ${userId}`);
+    const command: IncrementImpactScoreCommand = {
+      userId,
+      scoreIncrement: request.scoreIncrement,
+    };
+    return this.userService.incrementImpactScore(command);
   }
 }
