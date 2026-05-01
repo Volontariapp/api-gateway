@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Inject,
   OnModuleInit,
   Param,
@@ -10,7 +11,7 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { map } from 'rxjs';
+import { map, switchMap } from 'rxjs';
 import { Logger } from '@volontariapp/logger';
 import {
   ApiExtraModels,
@@ -38,7 +39,6 @@ import {
   UserServiceClient,
   DeleteUserCommand,
   GetUserQuery,
-  UserResponse,
   AddBadgeToUserCommand,
   RemoveBadgeFromUserCommand,
   IncrementImpactScoreCommand,
@@ -118,6 +118,7 @@ export class UserController implements OnModuleInit {
 
   @ApiOperation({ summary: 'Login with email and password' })
   @ApiResponse({ status: 200, type: LoginResponseDTO })
+  @HttpCode(200)
   @Post('login')
   login(@Body() request: LoginRequestDTO) {
     this.logger.log(`Login attempt for: ${request.email}`);
@@ -128,6 +129,7 @@ export class UserController implements OnModuleInit {
 
   @ApiOperation({ summary: 'Refresh access token' })
   @ApiResponse({ status: 200, type: LoginResponseDTO })
+  @HttpCode(200)
   @Post('refresh')
   refreshToken(@Body() request: RefreshTokenRequestDTO) {
     this.logger.log('Refreshing tokens');
@@ -145,13 +147,13 @@ export class UserController implements OnModuleInit {
   updateUser(@Param('id') id: string, @Body() request: UpdateUserRequestDTO) {
     this.logger.log(`Updating user profile: ${id}`);
     request.id = id;
-    return this.userService
-      .updateUser(request.toCommand())
-      .pipe(
-        map((res) =>
-          UserResponseDTO.fromResponse(res as unknown as UserResponse),
-        ),
-      );
+    return this.userService.updateUser(request.toCommand()).pipe(
+      switchMap(() => {
+        const query: GetUserQuery = { userId: id };
+        return this.userService.getUser(query);
+      }),
+      map((res) => UserResponseDTO.fromResponse(res)),
+    );
   }
 
   @ApiOperation({ summary: 'Delete a user by ID' })
