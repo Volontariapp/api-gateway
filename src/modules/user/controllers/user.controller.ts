@@ -22,10 +22,15 @@ import {
 import {
   ApiForbiddenResponse,
   ApiInternalServerErrorResponse,
-  ApiNotFoundResponse,
-  ApiConflictResponse,
   CustomApiError,
   MISSING_ACCESS_TOKEN,
+  USER_NOT_FOUND,
+  USER_ALREADY_EXISTS,
+  INVALID_RNA,
+  INVALID_SCORE_INCREMENT,
+  USER_ALREADY_HAS_BADGE,
+  USER_BADGE_NOT_FOUND,
+  BADGE_NOT_FOUND,
 } from '@volontariapp/errors-nest';
 import type { ClientGrpc } from '@nestjs/microservices';
 import {
@@ -90,7 +95,7 @@ export class UserController implements OnModuleInit {
   @ApiOperation({ summary: 'Get a user by ID' })
   @ApiParam({ name: 'id', example: 'uuid-123' })
   @ApiResponse({ status: 200, type: UserResponseDTO })
-  @ApiNotFoundResponse('User not found')
+  @CustomApiError(() => USER_NOT_FOUND(''))
   @Get(':id')
   getUser(@Param('id') id: string) {
     this.logger.log(`Fetching user profile: ${id}`);
@@ -102,7 +107,7 @@ export class UserController implements OnModuleInit {
 
   @ApiOperation({ summary: 'Register a new user' })
   @ApiResponse({ status: 201, type: SignUpResponseDTO })
-  @ApiConflictResponse('User already exists')
+  @CustomApiError(() => USER_ALREADY_EXISTS(''))
   @Post()
   signUp(@Body() request: SignUpRequestDTO) {
     this.logger.log(`Registering new user: ${request.email}`);
@@ -134,7 +139,8 @@ export class UserController implements OnModuleInit {
   @ApiOperation({ summary: 'Update a user by ID' })
   @ApiParam({ name: 'id', example: 'uuid-123' })
   @ApiResponse({ status: 200, type: UserResponseDTO })
-  @ApiNotFoundResponse('User not found')
+  @CustomApiError(() => USER_NOT_FOUND(''))
+  @CustomApiError(() => INVALID_RNA(''))
   @Patch(':id')
   updateUser(@Param('id') id: string, @Body() request: UpdateUserRequestDTO) {
     this.logger.log(`Updating user profile: ${id}`);
@@ -151,7 +157,7 @@ export class UserController implements OnModuleInit {
   @ApiOperation({ summary: 'Delete a user by ID' })
   @ApiParam({ name: 'id', example: 'uuid-123' })
   @ApiResponse({ status: 200 })
-  @ApiNotFoundResponse('User not found')
+  @CustomApiError(() => USER_NOT_FOUND(''))
   @Delete(':id')
   deleteUser(@Param('id') id: string) {
     this.logger.log(`Deleting user account: ${id}`);
@@ -162,7 +168,9 @@ export class UserController implements OnModuleInit {
   @ApiOperation({ summary: 'Add a badge to a user' })
   @ApiParam({ name: 'id', example: 'uuid-123' })
   @ApiResponse({ status: 201 })
-  @ApiNotFoundResponse('User or badge not found')
+  @CustomApiError(() => USER_NOT_FOUND(''))
+  @CustomApiError(() => BADGE_NOT_FOUND(''))
+  @CustomApiError(() => USER_ALREADY_HAS_BADGE('', ''))
   @Post(':id/badges')
   addBadge(
     @Param('id') userId: string,
@@ -177,7 +185,8 @@ export class UserController implements OnModuleInit {
   @ApiParam({ name: 'id', example: 'uuid-123' })
   @ApiParam({ name: 'badgeId', example: 'uuid-badge-123' })
   @ApiResponse({ status: 200 })
-  @ApiNotFoundResponse('User or badge not found')
+  @CustomApiError(() => USER_NOT_FOUND(''))
+  @CustomApiError(() => USER_BADGE_NOT_FOUND('', ''))
   @Delete(':id/badges/:badgeId')
   removeBadge(@Param('id') userId: string, @Param('badgeId') badgeId: string) {
     this.logger.log(`Removing badge ${badgeId} from user ${userId}`);
@@ -188,7 +197,8 @@ export class UserController implements OnModuleInit {
   @ApiOperation({ summary: 'Increment impact score for a user' })
   @ApiParam({ name: 'id', example: 'uuid-123' })
   @ApiResponse({ status: 200 })
-  @ApiNotFoundResponse('User not found')
+  @CustomApiError(() => USER_NOT_FOUND(''))
+  @CustomApiError(() => INVALID_SCORE_INCREMENT(0))
   @Post(':id/impact-score')
   incrementImpactScore(
     @Param('id') userId: string,

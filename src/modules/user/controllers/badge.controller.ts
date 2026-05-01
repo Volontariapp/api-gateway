@@ -24,6 +24,8 @@ import {
   ApiInternalServerErrorResponse,
   CustomApiError,
   MISSING_ACCESS_TOKEN,
+  BADGE_NOT_FOUND,
+  BADGE_ALREADY_EXISTS,
 } from '@volontariapp/errors-nest';
 import type { ClientGrpc } from '@nestjs/microservices';
 import {
