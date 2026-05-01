@@ -26,4 +26,8 @@ export class AppConfigService {
   get loggerLevel(): string {
     return this.config.logger.level;
   }
+
+  get auth() {
+    return this.config.auth;
+  }
 }

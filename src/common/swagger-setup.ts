@@ -6,6 +6,7 @@ import { UserModule } from '../modules/user/user.module.js';
 import { PostModule } from '../modules/post/post.module.js';
 import { EventModule } from '../modules/event/event.module.js';
 import { SocialModule } from '../modules/social/social.module.js';
+import { HelperModule } from '../modules/helper/helper.module.js';
 import { ErrorResponseDto } from '@volontariapp/errors-nest';
 
 export interface SwaggerConfig {
@@ -25,7 +26,10 @@ export const swaggerConfigs: SwaggerConfig[] = [
         'Dedicated documentation for the Events domain. Manage event listing, requirements, and participation.\n\n' +
           '🔙 [Back to Global Hub](/docs)',
       )
-      .setVersion('1.0'),
+      .setVersion('1.0')
+      .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'access-token')
+      .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'refresh-token')
+      .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'internal-token'),
     modules: [EventModule],
   },
   {
@@ -37,7 +41,10 @@ export const swaggerConfigs: SwaggerConfig[] = [
         'Dedicated documentation for the Posts domain. Manage community posts, updates, and interactions.\n\n' +
           '🔙 [Back to Global Hub](/docs)',
       )
-      .setVersion('1.0'),
+      .setVersion('1.0')
+      .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'access-token')
+      .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'refresh-token')
+      .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'internal-token'),
     modules: [PostModule],
   },
   {
@@ -49,7 +56,10 @@ export const swaggerConfigs: SwaggerConfig[] = [
         'Dedicated documentation for the Users domain. Manage user profiles, authentication context, and roles.\n\n' +
           '🔙 [Back to Global Hub](/docs)',
       )
-      .setVersion('1.0'),
+      .setVersion('1.0')
+      .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'access-token')
+      .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'refresh-token')
+      .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'internal-token'),
     modules: [UserModule],
   },
   {
@@ -61,8 +71,27 @@ export const swaggerConfigs: SwaggerConfig[] = [
         'Dedicated documentation for the Social domain. manage relationships, publications, interactions, and participation.\n\n' +
           '🔙 [Back to Global Hub](/docs)',
       )
-      .setVersion('1.0'),
+      .setVersion('1.0')
+      .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'access-token')
+      .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'refresh-token')
+      .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'internal-token'),
     modules: [SocialModule],
+  },
+  {
+    path: '/docs/helpers',
+    name: 'helpers',
+    builder: new DocumentBuilder()
+      .setTitle('🛠️ Helpers — Utils')
+      .setDescription(
+        'Dedicated documentation for Helper utilities. Generate tokens and other testing tools.\n\n' +
+          '⚠️ **NOT ACCESSIBLE IN PRODUCTION**\n\n' +
+          '🔙 [Back to Global Hub](/docs)',
+      )
+      .setVersion('1.0')
+      .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'access-token')
+      .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'refresh-token')
+      .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'internal-token'),
+    modules: [HelperModule],
   },
   {
     path: '/docs',
@@ -76,9 +105,13 @@ export const swaggerConfigs: SwaggerConfig[] = [
           '- [📅 ms-event Documentation](/docs/event)\n' +
           '- [📝 ms-post Documentation](/docs/post)\n' +
           '- [👤 ms-user Documentation](/docs/user)\n' +
-          '- [🤝 ms-social Documentation](/docs/social)',
+          '- [🤝 ms-social Documentation](/docs/social)\n' +
+          '- [🛠️ Helpers & Utils](/docs/helpers)',
       )
-      .setVersion('1.0'),
+      .setVersion('1.0')
+      .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'access-token')
+      .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'refresh-token')
+      .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'internal-token'),
   },
 ];
 

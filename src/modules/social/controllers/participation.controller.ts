@@ -7,10 +7,13 @@ import {
   Inject,
   OnModuleInit,
   Query,
+  Req,
 } from '@nestjs/common';
 import { map } from 'rxjs';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
 import type { ClientGrpc } from '@nestjs/microservices';
+import type { Metadata } from '@grpc/grpc-js';
+import { WithMetadata } from '../../../common/types/grpc.types.js';
 import { SOCIAL_PACKAGE } from '../../../grpc/grpc-packages.js';
 import {
   PARTICIPATION_COMMAND_SERVICE_NAME,
@@ -38,21 +41,27 @@ import {
   SOCIAL_WISH_ALREADY_EXISTS,
   SOCIAL_WISH_NOT_FOUND,
   DATABASE_ERROR,
+  ApiUnauthorizedResponse,
+  ApiForbiddenResponse,
 } from '@volontariapp/errors-nest';
 
 @ApiTags('Social - Participation')
+@ApiBearerAuth('access-token')
+@ApiBearerAuth('refresh-token')
+@ApiBearerAuth('internal-token')
+@ApiUnauthorizedResponse('Missing or invalid access token')
+@ApiForbiddenResponse('You do not have permission to access this resource')
 @Controller('social')
 export class ParticipationController implements OnModuleInit {
-  private commandService!: ParticipationCommandServiceClient;
-  private queryService!: ParticipationQueryServiceClient;
+  private commandService!: WithMetadata<ParticipationCommandServiceClient>;
+  private queryService!: WithMetadata<ParticipationQueryServiceClient>;
 
   constructor(@Inject(SOCIAL_PACKAGE) private client: ClientGrpc) {}
 
   onModuleInit() {
-    this.commandService =
-      this.client.getService<ParticipationCommandServiceClient>(
-        PARTICIPATION_COMMAND_SERVICE_NAME,
-      );
+    this.commandService = this.client.getService<ParticipationCommandServiceClient>(
+      PARTICIPATION_COMMAND_SERVICE_NAME,
+    );
     this.queryService = this.client.getService<ParticipationQueryServiceClient>(
       PARTICIPATION_QUERY_SERVICE_NAME,
     );
@@ -64,9 +73,10 @@ export class ParticipationController implements OnModuleInit {
   @ApiResponse({ status: 201, type: ActionSuccessResponseDTO })
   @CustomApiError(() => SOCIAL_EVENT_ALREADY_EXISTS('eventId'))
   @CustomApiError(() => DATABASE_ERROR('creating social event node', 'details'))
-  createEventNode(@Param('eventId') eventId: string) {
+  createEventNode(@Param('eventId') eventId: string, @Req() req: Record<string, unknown>) {
+    const metadata = req['internalMetadata'] as Metadata;
     return this.commandService
-      .createEventNode({ eventId })
+      .createEventNode({ eventId }, metadata)
       .pipe(map(() => ({ success: true, message: 'Event node created' })));
   }
 
@@ -74,11 +84,10 @@ export class ParticipationController implements OnModuleInit {
   @ApiOperation({ summary: 'Check if event node exists' })
   @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
   @ApiResponse({ status: 200, type: ExistsResponseDTO })
-  @CustomApiError(() =>
-    DATABASE_ERROR('checking social event existence', 'details'),
-  )
-  getEventNode(@Param('eventId') eventId: string) {
-    return this.queryService.getEventNode({ eventId });
+  @CustomApiError(() => DATABASE_ERROR('checking social event existence', 'details'))
+  getEventNode(@Param('eventId') eventId: string, @Req() req: Record<string, unknown>) {
+    const metadata = req['internalMetadata'] as Metadata;
+    return this.queryService.getEventNode({ eventId }, metadata);
   }
 
   @Delete('events/:eventId')
@@ -87,9 +96,10 @@ export class ParticipationController implements OnModuleInit {
   @ApiResponse({ status: 200, type: ActionSuccessResponseDTO })
   @CustomApiError(() => SOCIAL_EVENT_NOT_FOUND('eventId'))
   @CustomApiError(() => DATABASE_ERROR('deleting social event node', 'details'))
-  deleteEventNode(@Param('eventId') eventId: string) {
+  deleteEventNode(@Param('eventId') eventId: string, @Req() req: Record<string, unknown>) {
+    const metadata = req['internalMetadata'] as Metadata;
     return this.commandService
-      .deleteEventNode({ eventId })
+      .deleteEventNode({ eventId }, metadata)
       .pipe(map(() => ({ success: true, message: 'Event node deleted' })));
   }
 
@@ -100,9 +110,14 @@ export class ParticipationController implements OnModuleInit {
   @ApiResponse({ status: 201, type: ActionSuccessResponseDTO })
   @CustomApiError(() => SOCIAL_EVENT_NOT_FOUND('eventId'))
   @CustomApiError(() => DATABASE_ERROR('setting event creator', 'details'))
-  ownEvent(@Param('userId') userId: string, @Param('eventId') eventId: string) {
+  ownEvent(
+    @Param('userId') userId: string,
+    @Param('eventId') eventId: string,
+    @Req() req: Record<string, unknown>,
+  ) {
+    const metadata = req['internalMetadata'] as Metadata;
     return this.commandService
-      .postUserEvent({ userId, eventId })
+      .postUserEvent({ userId, eventId }, metadata)
       .pipe(map(() => ({ success: true, message: 'Event ownership linked' })));
   }
 
@@ -116,12 +131,12 @@ export class ParticipationController implements OnModuleInit {
   disownEvent(
     @Param('userId') userId: string,
     @Param('eventId') eventId: string,
+    @Req() req: Record<string, unknown>,
   ) {
+    const metadata = req['internalMetadata'] as Metadata;
     return this.commandService
-      .deleteUserEvent({ userId, eventId })
-      .pipe(
-        map(() => ({ success: true, message: 'Event ownership unlinked' })),
-      );
+      .deleteUserEvent({ userId, eventId }, metadata)
+      .pipe(map(() => ({ success: true, message: 'Event ownership unlinked' })));
   }
 
   @Post('users/:userId/events/:eventId/participate')
@@ -130,18 +145,16 @@ export class ParticipationController implements OnModuleInit {
   @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
   @ApiResponse({ status: 201, type: ActionSuccessResponseDTO })
   @CustomApiError(() => SOCIAL_EVENT_NOT_FOUND('eventId'))
-  @CustomApiError(() =>
-    SOCIAL_PARTICIPATION_ALREADY_EXISTS('userId', 'eventId'),
-  )
-  @CustomApiError(() =>
-    DATABASE_ERROR('creating event participation', 'details'),
-  )
+  @CustomApiError(() => SOCIAL_PARTICIPATION_ALREADY_EXISTS('userId', 'eventId'))
+  @CustomApiError(() => DATABASE_ERROR('creating event participation', 'details'))
   participate(
     @Param('userId') userId: string,
     @Param('eventId') eventId: string,
+    @Req() req: Record<string, unknown>,
   ) {
+    const metadata = req['internalMetadata'] as Metadata;
     return this.commandService
-      .postUserParticipateEvent({ userId, eventId })
+      .postUserParticipateEvent({ userId, eventId }, metadata)
       .pipe(map(() => ({ success: true, message: 'Participation linked' })));
   }
 
@@ -152,15 +165,15 @@ export class ParticipationController implements OnModuleInit {
   @ApiResponse({ status: 200, type: ActionSuccessResponseDTO })
   @CustomApiError(() => SOCIAL_EVENT_NOT_FOUND('eventId'))
   @CustomApiError(() => SOCIAL_PARTICIPATION_NOT_FOUND('userId', 'eventId'))
-  @CustomApiError(() =>
-    DATABASE_ERROR('deleting event participation', 'details'),
-  )
+  @CustomApiError(() => DATABASE_ERROR('deleting event participation', 'details'))
   unparticipate(
     @Param('userId') userId: string,
     @Param('eventId') eventId: string,
+    @Req() req: Record<string, unknown>,
   ) {
+    const metadata = req['internalMetadata'] as Metadata;
     return this.commandService
-      .deleteUserParticipateEvent({ userId, eventId })
+      .deleteUserParticipateEvent({ userId, eventId }, metadata)
       .pipe(map(() => ({ success: true, message: 'Participation unlinked' })));
   }
 
@@ -168,45 +181,45 @@ export class ParticipationController implements OnModuleInit {
   @ApiOperation({ summary: 'Get events created by a user' })
   @ApiParam({ name: 'userId', example: 'uuid-user-123' })
   @ApiResponse({ status: 200, type: IdsListResponseDTO })
-  @CustomApiError(() =>
-    DATABASE_ERROR('fetching user created events', 'details'),
-  )
+  @CustomApiError(() => DATABASE_ERROR('fetching user created events', 'details'))
   getUserCreatedEvents(
     @Param('userId') userId: string,
     @Query() query: GetUserEventsRequestDTO,
+    @Req() req: Record<string, unknown>,
   ) {
     query.userId = userId;
-    return this.queryService.getUserEvent(query.toQuery());
+    const metadata = req['internalMetadata'] as Metadata;
+    return this.queryService.getUserEvent(query.toQuery(), metadata);
   }
 
   @Get('users/:userId/events/participated')
   @ApiOperation({ summary: 'Get events a user participates in' })
   @ApiParam({ name: 'userId', example: 'uuid-user-123' })
   @ApiResponse({ status: 200, type: IdsListResponseDTO })
-  @CustomApiError(() =>
-    DATABASE_ERROR('fetching user participations', 'details'),
-  )
+  @CustomApiError(() => DATABASE_ERROR('fetching user participations', 'details'))
   getUserParticipatedEvents(
     @Param('userId') userId: string,
     @Query() query: GetUserParticipationsRequestDTO,
+    @Req() req: Record<string, unknown>,
   ) {
     query.userId = userId;
-    return this.queryService.getUserParticipateEvent(query.toQuery());
+    const metadata = req['internalMetadata'] as Metadata;
+    return this.queryService.getUserParticipateEvent(query.toQuery(), metadata);
   }
 
   @Get('events/:eventId/participants')
   @ApiOperation({ summary: 'Get list of participants for an event' })
   @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
   @ApiResponse({ status: 200, type: IdsListResponseDTO })
-  @CustomApiError(() =>
-    DATABASE_ERROR('fetching event participants', 'details'),
-  )
+  @CustomApiError(() => DATABASE_ERROR('fetching event participants', 'details'))
   getEventParticipants(
     @Param('eventId') eventId: string,
     @Query() query: GetEventParticipantsRequestDTO,
+    @Req() req: Record<string, unknown>,
   ) {
     query.eventId = eventId;
-    return this.queryService.getEventParticipants(query.toQuery());
+    const metadata = req['internalMetadata'] as Metadata;
+    return this.queryService.getEventParticipants(query.toQuery(), metadata);
   }
 
   @Post('users/:userId/events/:eventId/wish')
@@ -220,9 +233,11 @@ export class ParticipationController implements OnModuleInit {
   wishEvent(
     @Param('userId') userId: string,
     @Param('eventId') eventId: string,
+    @Req() req: Record<string, unknown>,
   ) {
+    const metadata = req['internalMetadata'] as Metadata;
     return this.commandService
-      .postUserWishEvent({ userId, eventId })
+      .postUserWishEvent({ userId, eventId }, metadata)
       .pipe(map(() => ({ success: true, message: 'Event added to wishes' })));
   }
 
@@ -237,26 +252,26 @@ export class ParticipationController implements OnModuleInit {
   unwishEvent(
     @Param('userId') userId: string,
     @Param('eventId') eventId: string,
+    @Req() req: Record<string, unknown>,
   ) {
+    const metadata = req['internalMetadata'] as Metadata;
     return this.commandService
-      .deleteUserWishEvent({ userId, eventId })
-      .pipe(
-        map(() => ({ success: true, message: 'Event removed from wishes' })),
-      );
+      .deleteUserWishEvent({ userId, eventId }, metadata)
+      .pipe(map(() => ({ success: true, message: 'Event removed from wishes' })));
   }
 
   @Get('users/:userId/events/wished')
   @ApiOperation({ summary: 'Get events wished by a user' })
   @ApiParam({ name: 'userId', example: 'uuid-user-123' })
   @ApiResponse({ status: 200, type: IdsListResponseDTO })
-  @CustomApiError(() =>
-    DATABASE_ERROR('fetching user wished events', 'details'),
-  )
+  @CustomApiError(() => DATABASE_ERROR('fetching user wished events', 'details'))
   getUserWishedEvents(
     @Param('userId') userId: string,
     @Query() query: GetUserWishesRequestDTO,
+    @Req() req: Record<string, unknown>,
   ) {
     query.userId = userId;
-    return this.queryService.getUserWishEvent(query.toQuery());
+    const metadata = req['internalMetadata'] as Metadata;
+    return this.queryService.getUserWishEvent(query.toQuery(), metadata);
   }
 }

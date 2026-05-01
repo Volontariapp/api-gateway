@@ -9,6 +9,7 @@ import {
   Patch,
   Post,
   Query,
+  Req,
 } from '@nestjs/common';
 import { map } from 'rxjs';
 import { Logger } from '@volontariapp/logger';
@@ -18,17 +19,18 @@ import {
   ApiTags,
   ApiResponse,
   ApiExtraModels,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import {
-  ApiForbiddenResponse,
   ApiInternalServerErrorResponse,
   CustomApiError,
   INVALID_DATE_PARAMETERS,
-  MISSING_ACCESS_TOKEN,
   EVENT_NOT_FOUND,
   EVENT_ALREADY_EXISTS,
   INVALID_EVENT_STATE_TRANSITION,
   DATABASE_ERROR,
+  MISSING_ACCESS_TOKEN,
+  INSUFFICIENT_PERMISSIONS,
 } from '@volontariapp/errors-nest';
 import type { ClientGrpc } from '@nestjs/microservices';
 import {
@@ -55,6 +57,8 @@ import {
   ListRequirementsResponseDTO,
 } from '../dto/response/index.js';
 import type { UUID } from 'crypto';
+import { WithMetadata } from '../../../common/types/grpc.types.js';
+import type { Metadata } from '@grpc/grpc-js';
 
 @ApiTags('Events')
 @ApiExtraModels(
@@ -63,16 +67,19 @@ import type { UUID } from 'crypto';
   ListRequirementsResponseDTO,
   ActionSuccessResponseDTO,
 )
+@ApiBearerAuth('access-token')
+@ApiBearerAuth('refresh-token')
+@ApiBearerAuth('internal-token')
 @CustomApiError(MISSING_ACCESS_TOKEN)
-@ApiForbiddenResponse('You do not have permission to perform this action')
+@CustomApiError(INSUFFICIENT_PERMISSIONS)
 @ApiInternalServerErrorResponse('An unexpected error occurred on the server')
 @Controller('events')
 export class EventController implements OnModuleInit {
   private readonly logger = new Logger({
     context: EventController.name,
   });
-  private commandService!: EventCommandServiceClient;
-  private queryService!: EventQueryServiceClient;
+  private commandService!: WithMetadata<EventCommandServiceClient>;
+  private queryService!: WithMetadata<EventQueryServiceClient>;
 
   constructor(@Inject(EVENT_PACKAGE) private client: ClientGrpc) {}
 
@@ -80,9 +87,7 @@ export class EventController implements OnModuleInit {
     this.commandService = this.client.getService<EventCommandServiceClient>(
       EVENT_COMMAND_SERVICE_NAME,
     );
-    this.queryService = this.client.getService<EventQueryServiceClient>(
-      EVENT_QUERY_SERVICE_NAME,
-    );
+    this.queryService = this.client.getService<EventQueryServiceClient>(EVENT_QUERY_SERVICE_NAME);
   }
 
   @ApiOperation({
@@ -96,12 +101,11 @@ export class EventController implements OnModuleInit {
   })
   @CustomApiError(() => DATABASE_ERROR('searching events', 'details'))
   @Get()
-  searchEvents(@Query() request: SearchEventsRequestDTO) {
-    this.logger.log(
-      `Searching events with filters: ${JSON.stringify(request)}`,
-    );
+  searchEvents(@Query() request: SearchEventsRequestDTO, @Req() req: Record<string, unknown>) {
+    this.logger.log(`Searching events with filters: ${JSON.stringify(request)}`);
+    const metadata = req['internalMetadata'] as Metadata;
     return this.queryService
-      .searchEvents(request.toQuery())
+      .searchEvents(request.toQuery(), metadata)
       .pipe(map((res) => SearchEventsResponseDTO.fromResponse(res)));
   }
 
@@ -118,12 +122,13 @@ export class EventController implements OnModuleInit {
   @CustomApiError(() => EVENT_NOT_FOUND('id'))
   @CustomApiError(() => DATABASE_ERROR('finding event', 'details'))
   @Get(':id')
-  getEvent(@Param('id') id: string) {
+  getEvent(@Param('id') id: string, @Req() req: Record<string, unknown>) {
     this.logger.log(`Fetching event with id: ${id}`);
     const request = new GetEventRequestDTO();
     request.id = id;
+    const metadata = req['internalMetadata'] as Metadata;
     return this.queryService
-      .getEvent(request.toQuery())
+      .getEvent(request.toQuery(), metadata)
       .pipe(map((res) => GetEventResponseDTO.fromResponse(res)));
   }
 
@@ -140,10 +145,11 @@ export class EventController implements OnModuleInit {
   @CustomApiError(() => EVENT_ALREADY_EXISTS('title'))
   @CustomApiError(() => DATABASE_ERROR('creating event', 'details'))
   @Post()
-  createEvent(@Body() request: CreateEventRequestDTO) {
+  createEvent(@Body() request: CreateEventRequestDTO, @Req() req: Record<string, unknown>) {
     this.logger.log(`Creating event with title: ${request.title}`);
+    const metadata = req['internalMetadata'] as Metadata;
     return this.commandService
-      .createEvent(request.toCommand())
+      .createEvent(request.toCommand(), metadata)
       .pipe(map((res) => GetEventResponseDTO.fromResponse(res)));
   }
 
@@ -162,11 +168,16 @@ export class EventController implements OnModuleInit {
   @CustomApiError(() => EVENT_ALREADY_EXISTS('title'))
   @CustomApiError(() => DATABASE_ERROR('updating event', 'details'))
   @Patch(':id')
-  updateEvent(@Param('id') id: string, @Body() request: UpdateEventRequestDTO) {
+  updateEvent(
+    @Param('id') id: string,
+    @Body() request: UpdateEventRequestDTO,
+    @Req() req: Record<string, unknown>,
+  ) {
     this.logger.log(`Updating event with id: ${id}`);
     request.id = id;
+    const metadata = req['internalMetadata'] as Metadata;
     return this.commandService
-      .updateEvent(request.toCommand())
+      .updateEvent(request.toCommand(), metadata)
       .pipe(map((res) => GetEventResponseDTO.fromResponse(res)));
   }
 
@@ -186,11 +197,13 @@ export class EventController implements OnModuleInit {
   changeEventState(
     @Param('id') id: string,
     @Body() request: ChangeEventStateRequestDTO,
+    @Req() req: Record<string, unknown>,
   ) {
     this.logger.log(`Changing state for event with id: ${id}`);
     request.id = id;
+    const metadata = req['internalMetadata'] as Metadata;
     return this.commandService
-      .changeEventState(request.toCommand())
+      .changeEventState(request.toCommand(), metadata)
       .pipe(map((res) => GetEventResponseDTO.fromResponse(res)));
   }
 
@@ -208,10 +221,12 @@ export class EventController implements OnModuleInit {
   addRequirement(
     @Param('id') id: UUID,
     @Body() request: AddRequirementRequestDTO,
+    @Req() req: Record<string, unknown>,
   ) {
     this.logger.log(`Adding requirement to event with id: ${id}`);
     request.eventId = id;
-    return this.commandService.manageRequirements(request.toCommand());
+    const metadata = req['internalMetadata'] as Metadata;
+    return this.commandService.manageRequirements(request.toCommand(), metadata);
   }
 
   @ApiOperation({
@@ -229,12 +244,14 @@ export class EventController implements OnModuleInit {
   removeRequirement(
     @Param('id') id: UUID,
     @Param('requirementId') requirementId: UUID,
+    @Req() req: Record<string, unknown>,
   ) {
     this.logger.log(`Removing requirement ${requirementId} from event ${id}`);
     const request = new RemoveRequirementRequestDTO();
     request.eventId = id;
     request.requirementId = requirementId;
-    return this.commandService.manageRequirements(request.toCommand());
+    const metadata = req['internalMetadata'] as Metadata;
+    return this.commandService.manageRequirements(request.toCommand(), metadata);
   }
 
   @ApiOperation({
@@ -248,9 +265,10 @@ export class EventController implements OnModuleInit {
   @CustomApiError(() => EVENT_NOT_FOUND('id'))
   @CustomApiError(() => DATABASE_ERROR('listing requirements', 'details'))
   @Get(':id/requirements')
-  listRequirements(@Param('id') id: string) {
+  listRequirements(@Param('id') id: string, @Req() req: Record<string, unknown>) {
     this.logger.log(`Listing requirements for event with id: ${id}`);
-    return this.queryService.listRequirements({ eventId: id });
+    const metadata = req['internalMetadata'] as Metadata;
+    return this.queryService.listRequirements({ eventId: id }, metadata);
   }
 
   @ApiOperation({
@@ -264,9 +282,10 @@ export class EventController implements OnModuleInit {
   @CustomApiError(() => EVENT_NOT_FOUND('id'))
   @CustomApiError(() => DATABASE_ERROR('deleting event', 'details'))
   @Delete(':id')
-  deleteEvent(@Param('id') id: string) {
+  deleteEvent(@Param('id') id: string, @Req() req: Record<string, unknown>) {
     this.logger.log(`Deleting event with id: ${id}`);
     const command: DeleteEventCommand = { id };
-    return this.commandService.deleteEvent(command);
+    const metadata = req['internalMetadata'] as Metadata;
+    return this.commandService.deleteEvent(command, metadata);
   }
 }

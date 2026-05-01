@@ -12,6 +12,9 @@ import { setupSwagger } from './common/swagger-setup.js';
 import { AppConfigService } from './config/app-config.service.js';
 import { Logger } from '@volontariapp/logger';
 import { CustomConfig } from './config/base-config.js';
+import { NodeEnv } from '@volontariapp/config';
+import { AccessTokenGuard, AccessTokenMiddleware, JwtService } from '@volontariapp/auth';
+import { Reflector } from '@nestjs/core';
 
 function resolveConfigDirectory(): string {
   const currentFileDir = dirname(fileURLToPath(import.meta.url));
@@ -27,9 +30,7 @@ function resolveConfigDirectory(): string {
     }
   }
 
-  throw new Error(
-    `Config directory not found. Checked paths: ${searchPaths.join(', ')}`,
-  );
+  throw new Error(`Config directory not found. Checked paths: ${searchPaths.join(', ')}`);
 }
 
 async function bootstrap() {
@@ -48,28 +49,22 @@ async function bootstrap() {
 
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
   app.useGlobalFilters(new GlobalExceptionFilter());
+
+  const reflector = app.get(Reflector);
+  const jwtService = app.get(JwtService);
+  app.useGlobalGuards(new AccessTokenGuard(jwtService, reflector));
+  app.use(new AccessTokenMiddleware().use);
   const port = configService.config.port;
   await app.listen(port);
-  logger.log(
-    '=================================== API Gateway ===================================',
-  );
-  logger.log(
-    `DOCUMENTATION (Global): http://localhost:${port.toString()}/docs`,
-  );
-  logger.log(
-    `DOCUMENTATION (Events): http://localhost:${port.toString()}/docs/event`,
-  );
-  logger.log(
-    `DOCUMENTATION (Posts):  http://localhost:${port.toString()}/docs/post`,
-  );
-  logger.log(
-    `DOCUMENTATION (Users):  http://localhost:${port.toString()}/docs/user`,
-  );
-  logger.log(
-    `DOCUMENTATION (Social): http://localhost:${port.toString()}/docs/social`,
-  );
-  logger.log(
-    '=================================== API Gateway ===================================',
-  );
+  logger.log('=================================== API Gateway ===================================');
+  logger.log(`DOCUMENTATION (Global): http://localhost:${port.toString()}/docs`);
+  logger.log(`DOCUMENTATION (Events): http://localhost:${port.toString()}/docs/event`);
+  logger.log(`DOCUMENTATION (Posts):  http://localhost:${port.toString()}/docs/post`);
+  logger.log(`DOCUMENTATION (Users):  http://localhost:${port.toString()}/docs/user`);
+  logger.log(`DOCUMENTATION (Social): http://localhost:${port.toString()}/docs/social`);
+  if (appConfig.nodeEnv !== NodeEnv.PRODUCTION) {
+    logger.log(`DOCUMENTATION (Helper): http://localhost:${port.toString()}/docs/helpers`);
+  }
+  logger.log('=================================== API Gateway ===================================');
 }
 void bootstrap();

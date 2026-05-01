@@ -11,12 +11,14 @@ import {
   Query,
 } from '@nestjs/common';
 import { Logger } from '@volontariapp/logger';
+import { Public } from '@volontariapp/auth';
 import {
   ApiOperation,
   ApiParam,
   ApiTags,
   ApiResponse,
   ApiExtraModels,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import {
   ApiForbiddenResponse,
@@ -26,6 +28,7 @@ import {
   ApiTooManyRequestsResponse,
   CustomApiError,
   MISSING_ACCESS_TOKEN,
+  ApiUnauthorizedResponse,
 } from '@volontariapp/errors-nest';
 import type { ClientGrpc } from '@nestjs/microservices';
 import {
@@ -40,18 +43,20 @@ import {
   UpdateUserRequestDTO,
   ListUsersRequestDTO,
 } from '../dto/request/index.js';
-import {
-  UserResponseDTO,
-  ListUsersResponseDTO,
-} from '../dto/response/index.js';
+import { UserResponseDTO, ListUsersResponseDTO } from '../dto/response/index.js';
 import { ActionSuccessResponseDTO } from '../../event/dto/response/index.js';
 
 @ApiTags('Users')
 @ApiExtraModels(UserResponseDTO, ListUsersResponseDTO, ActionSuccessResponseDTO)
+@ApiBearerAuth('access-token')
+@ApiBearerAuth('refresh-token')
+@ApiBearerAuth('internal-token')
 @CustomApiError(MISSING_ACCESS_TOKEN)
+@ApiUnauthorizedResponse('Missing or invalid access token')
 @ApiForbiddenResponse('You do not have permission to manage users')
 @ApiInternalServerErrorResponse('An unexpected error occurred on the server')
 @ApiTooManyRequestsResponse('Too many requests, please try again later')
+@Public()
 @Controller('users')
 export class UserController implements OnModuleInit {
   private readonly logger = new Logger({ context: UserController.name });
@@ -60,8 +65,7 @@ export class UserController implements OnModuleInit {
   constructor(@Inject(USER_PACKAGE) private client: ClientGrpc) {}
 
   onModuleInit() {
-    this.userService =
-      this.client.getService<UserServiceClient>(USER_SERVICE_NAME);
+    this.userService = this.client.getService<UserServiceClient>(USER_SERVICE_NAME);
   }
 
   @ApiOperation({ summary: 'List all users' })
