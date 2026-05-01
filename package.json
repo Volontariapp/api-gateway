@@ -24,7 +24,8 @@
     "test:e2e": "node --experimental-vm-modules node_modules/.bin/jest --config ./test/jest-e2e.json",
     "check-arch": "tsx scripts/check-dto-architecture.ts",
     "seed:data": "tsx scripts/seed-data.ts",
-    "swagger:export": "nest build && node dist/src/export-main.js && tsx scripts/generate-clean-md.ts"
+    "swagger:export": "nest build && node dist/src/export-main.js && tsx scripts/generate-clean-md.ts",
+    "prepare": "husky"
   },
   "dependencies": {
     "@grpc/grpc-js": "^1.14.3",
@@ -76,8 +77,10 @@
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-prettier": "^5.2.2",
     "globals": "^16.0.0",
+    "husky": "^9.1.7",
     "jest": "^30.0.0",
-    "prettier": "^3.4.2",
+    "lint-staged": "^15.4.0",
+    "prettier": "3.4.2",
     "source-map-support": "^0.5.21",
     "supertest": "^7.0.0",
     "ts-jest": "^29.2.5",
@@ -88,6 +91,18 @@
     "typescript": "5.7.3",
     "typescript-eslint": "^8.20.0",
     "webpack": "^5.97.1"
+  },
+  "lint-staged": {
+    "*.{ts,js,mjs,cjs}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.json": [
+      "prettier --write"
+    ],
+    "*.md": [
+      "prettier --write"
+    ]
   },
   "engines": {
     "node": ">=24.14.0"
