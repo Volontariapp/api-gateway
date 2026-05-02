@@ -27,9 +27,7 @@ function resolveConfigDirectory(): string {
     }
   }
 
-  throw new Error(
-    `Config directory not found. Checked paths: ${searchPaths.join(', ')}`,
-  );
+  throw new Error(`Config directory not found. Checked paths: ${searchPaths.join(', ')}`);
 }
 
 async function bootstrap() {
@@ -50,26 +48,12 @@ async function bootstrap() {
   app.useGlobalFilters(new GlobalExceptionFilter());
   const port = configService.config.port;
   await app.listen(port);
-  logger.log(
-    '=================================== API Gateway ===================================',
-  );
-  logger.log(
-    `DOCUMENTATION (Global): http://localhost:${port.toString()}/docs`,
-  );
-  logger.log(
-    `DOCUMENTATION (Events): http://localhost:${port.toString()}/docs/event`,
-  );
-  logger.log(
-    `DOCUMENTATION (Posts):  http://localhost:${port.toString()}/docs/post`,
-  );
-  logger.log(
-    `DOCUMENTATION (Users):  http://localhost:${port.toString()}/docs/user`,
-  );
-  logger.log(
-    `DOCUMENTATION (Social): http://localhost:${port.toString()}/docs/social`,
-  );
-  logger.log(
-    '=================================== API Gateway ===================================',
-  );
+  logger.log('=================================== API Gateway ===================================');
+  logger.log(`DOCUMENTATION (Global): http://localhost:${port.toString()}/docs`);
+  logger.log(`DOCUMENTATION (Events): http://localhost:${port.toString()}/docs/event`);
+  logger.log(`DOCUMENTATION (Posts):  http://localhost:${port.toString()}/docs/post`);
+  logger.log(`DOCUMENTATION (Users):  http://localhost:${port.toString()}/docs/user`);
+  logger.log(`DOCUMENTATION (Social): http://localhost:${port.toString()}/docs/social`);
+  logger.log('=================================== API Gateway ===================================');
 }
 void bootstrap();

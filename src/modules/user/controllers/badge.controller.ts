@@ -12,13 +12,7 @@ import {
 } from '@nestjs/common';
 import { map } from 'rxjs';
 import { Logger } from '@volontariapp/logger';
-import {
-  ApiExtraModels,
-  ApiOperation,
-  ApiParam,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiExtraModels, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
   ApiForbiddenResponse,
   ApiInternalServerErrorResponse,
@@ -33,14 +27,8 @@ import {
   GetBadgeQuery,
 } from '@volontariapp/contracts-nest';
 import { USER_PACKAGE } from '../../../grpc/grpc-packages.js';
-import {
-  CreateBadgeRequestDTO,
-  UpdateBadgeRequestDTO,
-} from '../dto/request/index.js';
-import {
-  BadgeResponseDTO,
-  ListBadgesResponseDTO,
-} from '../dto/response/index.js';
+import { CreateBadgeRequestDTO, UpdateBadgeRequestDTO } from '../dto/request/index.js';
+import { BadgeResponseDTO, ListBadgesResponseDTO } from '../dto/response/index.js';
 import { ListBadgesRequestDTO } from '../dto/request/list-badges.request.dto.js';
 
 @ApiTags('Badges')
@@ -56,8 +44,7 @@ export class BadgeController implements OnModuleInit {
   constructor(@Inject(USER_PACKAGE) private client: ClientGrpc) {}
 
   onModuleInit() {
-    this.badgeService =
-      this.client.getService<BadgeServiceClient>(BADGE_SERVICE_NAME);
+    this.badgeService = this.client.getService<BadgeServiceClient>(BADGE_SERVICE_NAME);
   }
 
   @ApiOperation({ summary: 'List all badges' })
@@ -88,9 +75,7 @@ export class BadgeController implements OnModuleInit {
   getBadge(@Param('id') id: string) {
     this.logger.log(`Fetching badge with id: ${id}`);
     const query: GetBadgeQuery = { badgeId: id };
-    return this.badgeService
-      .getBadge(query)
-      .pipe(map((res) => BadgeResponseDTO.fromResponse(res)));
+    return this.badgeService.getBadge(query).pipe(map((res) => BadgeResponseDTO.fromResponse(res)));
   }
 
   @ApiOperation({ summary: 'Create a new badge' })

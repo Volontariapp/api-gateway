@@ -1,13 +1,4 @@
-import {
-  Controller,
-  Post,
-  Get,
-  Delete,
-  Param,
-  Inject,
-  OnModuleInit,
-  Query,
-} from '@nestjs/common';
+import { Controller, Post, Get, Delete, Param, Inject, OnModuleInit, Query } from '@nestjs/common';
 import { map } from 'rxjs';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import type { ClientGrpc } from '@nestjs/microservices';
@@ -35,10 +26,9 @@ export class EventPostLinkController implements OnModuleInit {
   constructor(@Inject(SOCIAL_PACKAGE) private client: ClientGrpc) {}
 
   onModuleInit() {
-    this.commandService =
-      this.client.getService<EventPostLinkCommandServiceClient>(
-        EVENT_POST_LINK_COMMAND_SERVICE_NAME,
-      );
+    this.commandService = this.client.getService<EventPostLinkCommandServiceClient>(
+      EVENT_POST_LINK_COMMAND_SERVICE_NAME,
+    );
     this.queryService = this.client.getService<EventPostLinkQueryServiceClient>(
       EVENT_POST_LINK_QUERY_SERVICE_NAME,
     );
@@ -50,10 +40,7 @@ export class EventPostLinkController implements OnModuleInit {
   @ApiParam({ name: 'postId', example: 'uuid-post-123' })
   @ApiResponse({ status: 201, type: ActionSuccessResponseDTO })
   @CustomApiError(() => DATABASE_ERROR('linking post to event', 'details'))
-  linkPostToEvent(
-    @Param('eventId') eventId: string,
-    @Param('postId') postId: string,
-  ) {
+  linkPostToEvent(@Param('eventId') eventId: string, @Param('postId') postId: string) {
     return this.commandService
       .linkPostToEvent({ eventId, postId })
       .pipe(map(() => ({ success: true, message: 'Post linked to event' })));
@@ -65,24 +52,17 @@ export class EventPostLinkController implements OnModuleInit {
   @ApiParam({ name: 'postId', example: 'uuid-post-123' })
   @ApiResponse({ status: 200, type: ActionSuccessResponseDTO })
   @CustomApiError(() => DATABASE_ERROR('unlinking post from event', 'details'))
-  unlinkPostFromEvent(
-    @Param('eventId') eventId: string,
-    @Param('postId') postId: string,
-  ) {
+  unlinkPostFromEvent(@Param('eventId') eventId: string, @Param('postId') postId: string) {
     return this.commandService
       .unlinkPostFromEvent({ eventId, postId })
-      .pipe(
-        map(() => ({ success: true, message: 'Post unlinked from event' })),
-      );
+      .pipe(map(() => ({ success: true, message: 'Post unlinked from event' })));
   }
 
   @Get('posts/:postId/related-event')
   @ApiOperation({ summary: 'Get event related to a specific post' })
   @ApiParam({ name: 'postId', example: 'uuid-post-123' })
   @ApiResponse({ status: 200, type: EventIdResponseDTO })
-  @CustomApiError(() =>
-    DATABASE_ERROR('fetching event related to post', 'details'),
-  )
+  @CustomApiError(() => DATABASE_ERROR('fetching event related to post', 'details'))
   getEventRelatedToPost(@Param('postId') postId: string) {
     return this.queryService.getEventRelatedToPost({ postId });
   }
@@ -92,10 +72,7 @@ export class EventPostLinkController implements OnModuleInit {
   @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
   @ApiResponse({ status: 200, type: IdsListResponseDTO })
   @CustomApiError(() => DATABASE_ERROR('fetching event posts', 'details'))
-  getEventPosts(
-    @Param('eventId') eventId: string,
-    @Query() query: GetEventPostsRequestDTO,
-  ) {
+  getEventPosts(@Param('eventId') eventId: string, @Query() query: GetEventPostsRequestDTO) {
     query.eventId = eventId;
     return this.queryService.getEventPosts(query.toQuery());
   }

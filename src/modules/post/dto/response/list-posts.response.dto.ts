@@ -5,9 +5,7 @@ import { PaginationResponseDTO } from '../../../../common/dto/response/index.js'
 
 import { PostDTO } from '../common/post.dto.js';
 
-export class ListPostsResponseDTO
-  implements ListPostsResponse, ListPostsWebResponse
-{
+export class ListPostsResponseDTO implements ListPostsResponse, ListPostsWebResponse {
   @ApiProperty({ type: [PostDTO] })
   posts!: PostDTO[];
 

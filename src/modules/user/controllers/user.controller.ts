@@ -13,13 +13,7 @@ import {
 } from '@nestjs/common';
 import { map, switchMap } from 'rxjs';
 import { Logger } from '@volontariapp/logger';
-import {
-  ApiExtraModels,
-  ApiOperation,
-  ApiParam,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiExtraModels, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
   ApiForbiddenResponse,
   ApiInternalServerErrorResponse,
@@ -61,12 +55,7 @@ import {
 } from '../dto/response/index.js';
 
 @ApiTags('Users')
-@ApiExtraModels(
-  UserResponseDTO,
-  ListUsersResponseDTO,
-  SignUpResponseDTO,
-  LoginResponseDTO,
-)
+@ApiExtraModels(UserResponseDTO, ListUsersResponseDTO, SignUpResponseDTO, LoginResponseDTO)
 @CustomApiError(MISSING_ACCESS_TOKEN)
 @ApiForbiddenResponse('You do not have permission to manage users')
 @ApiInternalServerErrorResponse('An unexpected error occurred on the server')
@@ -78,8 +67,7 @@ export class UserController implements OnModuleInit {
   constructor(@Inject(USER_PACKAGE) private client: ClientGrpc) {}
 
   onModuleInit() {
-    this.userService =
-      this.client.getService<UserServiceClient>(USER_SERVICE_NAME);
+    this.userService = this.client.getService<UserServiceClient>(USER_SERVICE_NAME);
   }
 
   @ApiOperation({ summary: 'List all users' })
@@ -100,9 +88,7 @@ export class UserController implements OnModuleInit {
   getUser(@Param('id') id: string) {
     this.logger.log(`Fetching user profile: ${id}`);
     const query: GetUserQuery = { userId: id };
-    return this.userService
-      .getUser(query)
-      .pipe(map((res) => UserResponseDTO.fromResponse(res)));
+    return this.userService.getUser(query).pipe(map((res) => UserResponseDTO.fromResponse(res)));
   }
 
   @ApiOperation({ summary: 'Register a new user' })
@@ -174,10 +160,7 @@ export class UserController implements OnModuleInit {
   @CustomApiError(() => BADGE_NOT_FOUND(''))
   @CustomApiError(() => USER_ALREADY_HAS_BADGE('', ''))
   @Post(':id/badges')
-  addBadge(
-    @Param('id') userId: string,
-    @Body() request: AddBadgeToUserRequestDTO,
-  ) {
+  addBadge(@Param('id') userId: string, @Body() request: AddBadgeToUserRequestDTO) {
     this.logger.log(`Adding badge ${request.badgeId} to user ${userId}`);
     const command: AddBadgeToUserCommand = { userId, badgeId: request.badgeId };
     return this.userService.addBadgeToUser(command);

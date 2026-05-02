@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Post,
-  Get,
-  Delete,
-  Param,
-  Inject,
-  OnModuleInit,
-} from '@nestjs/common';
+import { Controller, Post, Get, Delete, Param, Inject, OnModuleInit } from '@nestjs/common';
 import { map } from 'rxjs';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import type { ClientGrpc } from '@nestjs/microservices';
@@ -17,10 +9,7 @@ import {
   SOCIAL_USER_NODE_QUERY_SERVICE_NAME,
   SocialUserNodeQueryServiceClient,
 } from '@volontariapp/contracts-nest';
-import {
-  ActionSuccessResponseDTO,
-  ExistsResponseDTO,
-} from '../dto/response/index.js';
+import { ActionSuccessResponseDTO, ExistsResponseDTO } from '../dto/response/index.js';
 import {
   CustomApiError,
   SOCIAL_USER_ALREADY_EXISTS,
@@ -37,14 +26,12 @@ export class SocialUserController implements OnModuleInit {
   constructor(@Inject(SOCIAL_PACKAGE) private client: ClientGrpc) {}
 
   onModuleInit() {
-    this.commandService =
-      this.client.getService<SocialUserNodeCommandServiceClient>(
-        SOCIAL_USER_NODE_COMMAND_SERVICE_NAME,
-      );
-    this.queryService =
-      this.client.getService<SocialUserNodeQueryServiceClient>(
-        SOCIAL_USER_NODE_QUERY_SERVICE_NAME,
-      );
+    this.commandService = this.client.getService<SocialUserNodeCommandServiceClient>(
+      SOCIAL_USER_NODE_COMMAND_SERVICE_NAME,
+    );
+    this.queryService = this.client.getService<SocialUserNodeQueryServiceClient>(
+      SOCIAL_USER_NODE_QUERY_SERVICE_NAME,
+    );
   }
 
   @Post(':userId')
@@ -63,9 +50,7 @@ export class SocialUserController implements OnModuleInit {
   @ApiOperation({ summary: 'Check if user node exists' })
   @ApiParam({ name: 'userId', example: 'uuid-user-123' })
   @ApiResponse({ status: 200, type: ExistsResponseDTO })
-  @CustomApiError(() =>
-    DATABASE_ERROR('checking social user existence', 'details'),
-  )
+  @CustomApiError(() => DATABASE_ERROR('checking social user existence', 'details'))
   getUserNode(@Param('userId') userId: string) {
     return this.queryService.getUserNode({ userId });
   }

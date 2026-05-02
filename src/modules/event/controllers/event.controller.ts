@@ -12,13 +12,7 @@ import {
 } from '@nestjs/common';
 import { map } from 'rxjs';
 import { Logger } from '@volontariapp/logger';
-import {
-  ApiOperation,
-  ApiParam,
-  ApiTags,
-  ApiResponse,
-  ApiExtraModels,
-} from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiTags, ApiResponse, ApiExtraModels } from '@nestjs/swagger';
 import {
   ApiForbiddenResponse,
   ApiInternalServerErrorResponse,
@@ -80,9 +74,7 @@ export class EventController implements OnModuleInit {
     this.commandService = this.client.getService<EventCommandServiceClient>(
       EVENT_COMMAND_SERVICE_NAME,
     );
-    this.queryService = this.client.getService<EventQueryServiceClient>(
-      EVENT_QUERY_SERVICE_NAME,
-    );
+    this.queryService = this.client.getService<EventQueryServiceClient>(EVENT_QUERY_SERVICE_NAME);
   }
 
   @ApiOperation({
@@ -97,9 +89,7 @@ export class EventController implements OnModuleInit {
   @CustomApiError(() => DATABASE_ERROR('searching events', 'details'))
   @Get()
   searchEvents(@Query() request: SearchEventsRequestDTO) {
-    this.logger.log(
-      `Searching events with filters: ${JSON.stringify(request)}`,
-    );
+    this.logger.log(`Searching events with filters: ${JSON.stringify(request)}`);
     return this.queryService
       .searchEvents(request.toQuery())
       .pipe(map((res) => SearchEventsResponseDTO.fromResponse(res)));
@@ -183,10 +173,7 @@ export class EventController implements OnModuleInit {
   @CustomApiError(() => INVALID_EVENT_STATE_TRANSITION('from', 'to'))
   @CustomApiError(() => DATABASE_ERROR('changing event state', 'details'))
   @Patch(':id/state')
-  changeEventState(
-    @Param('id') id: string,
-    @Body() request: ChangeEventStateRequestDTO,
-  ) {
+  changeEventState(@Param('id') id: string, @Body() request: ChangeEventStateRequestDTO) {
     this.logger.log(`Changing state for event with id: ${id}`);
     request.id = id;
     return this.commandService
@@ -205,10 +192,7 @@ export class EventController implements OnModuleInit {
   @CustomApiError(() => EVENT_NOT_FOUND('id'))
   @CustomApiError(() => DATABASE_ERROR('adding requirement', 'details'))
   @Post(':id/requirements')
-  addRequirement(
-    @Param('id') id: UUID,
-    @Body() request: AddRequirementRequestDTO,
-  ) {
+  addRequirement(@Param('id') id: UUID, @Body() request: AddRequirementRequestDTO) {
     this.logger.log(`Adding requirement to event with id: ${id}`);
     request.eventId = id;
     return this.commandService.manageRequirements(request.toCommand());
@@ -226,10 +210,7 @@ export class EventController implements OnModuleInit {
   @CustomApiError(() => EVENT_NOT_FOUND('id'))
   @CustomApiError(() => DATABASE_ERROR('removing requirement', 'details'))
   @Delete(':id/requirements/:requirementId')
-  removeRequirement(
-    @Param('id') id: UUID,
-    @Param('requirementId') requirementId: UUID,
-  ) {
+  removeRequirement(@Param('id') id: UUID, @Param('requirementId') requirementId: UUID) {
     this.logger.log(`Removing requirement ${requirementId} from event ${id}`);
     const request = new RemoveRequirementRequestDTO();
     request.eventId = id;

@@ -19,8 +19,7 @@ export class AppConfigModule {
         },
         {
           provide: AppConfigService,
-          useFactory: (appConfig: CustomConfig) =>
-            new AppConfigService(appConfig),
+          useFactory: (appConfig: CustomConfig) => new AppConfigService(appConfig),
           inject: [APP_CONFIG],
         },
       ],

@@ -1,9 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  CreateEventCommand,
-  EventType,
-  GrpcDateMapper,
-} from '@volontariapp/contracts-nest';
+import { CreateEventCommand, EventType, GrpcDateMapper } from '@volontariapp/contracts-nest';
 import { CreateEventRequest } from '@volontariapp/contracts';
 import { Type } from 'class-transformer';
 import { INVALID_DATE_PARAMETERS } from '@volontariapp/errors-nest';

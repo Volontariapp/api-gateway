@@ -1,13 +1,4 @@
-import {
-  Controller,
-  Post,
-  Get,
-  Delete,
-  Param,
-  Inject,
-  OnModuleInit,
-  Query,
-} from '@nestjs/common';
+import { Controller, Post, Get, Delete, Param, Inject, OnModuleInit, Query } from '@nestjs/common';
 import { map } from 'rxjs';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import type { ClientGrpc } from '@nestjs/microservices';
@@ -18,10 +9,7 @@ import {
   RELATIONSHIP_QUERY_SERVICE_NAME,
   RelationshipQueryServiceClient,
 } from '@volontariapp/contracts-nest';
-import {
-  ActionSuccessResponseDTO,
-  IdsListResponseDTO,
-} from '../dto/response/index.js';
+import { ActionSuccessResponseDTO, IdsListResponseDTO } from '../dto/response/index.js';
 import {
   GetMyFollowsRequestDTO,
   GetMyFollowersRequestDTO,
@@ -44,10 +32,9 @@ export class RelationshipController implements OnModuleInit {
   constructor(@Inject(SOCIAL_PACKAGE) private client: ClientGrpc) {}
 
   onModuleInit() {
-    this.commandService =
-      this.client.getService<RelationshipCommandServiceClient>(
-        RELATIONSHIP_COMMAND_SERVICE_NAME,
-      );
+    this.commandService = this.client.getService<RelationshipCommandServiceClient>(
+      RELATIONSHIP_COMMAND_SERVICE_NAME,
+    );
     this.queryService = this.client.getService<RelationshipQueryServiceClient>(
       RELATIONSHIP_QUERY_SERVICE_NAME,
     );
@@ -58,16 +45,9 @@ export class RelationshipController implements OnModuleInit {
   @ApiParam({ name: 'userId', example: 'uuid-follower' })
   @ApiParam({ name: 'followedId', example: 'uuid-followed' })
   @ApiResponse({ status: 201, type: ActionSuccessResponseDTO })
-  @CustomApiError(() =>
-    SOCIAL_RELATIONSHIP_ALREADY_EXISTS('userId', 'followedId', 'FOLLOW'),
-  )
-  @CustomApiError(() =>
-    DATABASE_ERROR('creating follow relationship', 'details'),
-  )
-  follow(
-    @Param('userId') userId: string,
-    @Param('followedId') followedId: string,
-  ) {
+  @CustomApiError(() => SOCIAL_RELATIONSHIP_ALREADY_EXISTS('userId', 'followedId', 'FOLLOW'))
+  @CustomApiError(() => DATABASE_ERROR('creating follow relationship', 'details'))
+  follow(@Param('userId') userId: string, @Param('followedId') followedId: string) {
     return this.commandService
       .postFollowUser({
         followerId: userId,
@@ -81,16 +61,9 @@ export class RelationshipController implements OnModuleInit {
   @ApiParam({ name: 'userId', example: 'uuid-follower' })
   @ApiParam({ name: 'followedId', example: 'uuid-followed' })
   @ApiResponse({ status: 200, type: ActionSuccessResponseDTO })
-  @CustomApiError(() =>
-    SOCIAL_RELATIONSHIP_NOT_FOUND('userId', 'followedId', 'FOLLOW'),
-  )
-  @CustomApiError(() =>
-    DATABASE_ERROR('deleting follow relationship', 'details'),
-  )
-  unfollow(
-    @Param('userId') userId: string,
-    @Param('followedId') followedId: string,
-  ) {
+  @CustomApiError(() => SOCIAL_RELATIONSHIP_NOT_FOUND('userId', 'followedId', 'FOLLOW'))
+  @CustomApiError(() => DATABASE_ERROR('deleting follow relationship', 'details'))
+  unfollow(@Param('userId') userId: string, @Param('followedId') followedId: string) {
     return this.commandService
       .deleteFollowUser({
         followerId: userId,
@@ -104,16 +77,9 @@ export class RelationshipController implements OnModuleInit {
   @ApiParam({ name: 'userId', example: 'uuid-blocker' })
   @ApiParam({ name: 'blockedId', example: 'uuid-blocked' })
   @ApiResponse({ status: 201, type: ActionSuccessResponseDTO })
-  @CustomApiError(() =>
-    SOCIAL_RELATIONSHIP_ALREADY_EXISTS('userId', 'blockedId', 'BLOCK'),
-  )
-  @CustomApiError(() =>
-    DATABASE_ERROR('creating block relationship', 'details'),
-  )
-  block(
-    @Param('userId') userId: string,
-    @Param('blockedId') blockedId: string,
-  ) {
+  @CustomApiError(() => SOCIAL_RELATIONSHIP_ALREADY_EXISTS('userId', 'blockedId', 'BLOCK'))
+  @CustomApiError(() => DATABASE_ERROR('creating block relationship', 'details'))
+  block(@Param('userId') userId: string, @Param('blockedId') blockedId: string) {
     return this.commandService
       .postBlockUser({ blockerId: userId, blockedId })
       .pipe(map(() => ({ success: true, message: 'Blocked successfully' })));
@@ -124,16 +90,9 @@ export class RelationshipController implements OnModuleInit {
   @ApiParam({ name: 'userId', example: 'uuid-blocker' })
   @ApiParam({ name: 'blockedId', example: 'uuid-blocked' })
   @ApiResponse({ status: 200, type: ActionSuccessResponseDTO })
-  @CustomApiError(() =>
-    SOCIAL_RELATIONSHIP_NOT_FOUND('userId', 'blockedId', 'BLOCK'),
-  )
-  @CustomApiError(() =>
-    DATABASE_ERROR('deleting block relationship', 'details'),
-  )
-  unblock(
-    @Param('userId') userId: string,
-    @Param('blockedId') blockedId: string,
-  ) {
+  @CustomApiError(() => SOCIAL_RELATIONSHIP_NOT_FOUND('userId', 'blockedId', 'BLOCK'))
+  @CustomApiError(() => DATABASE_ERROR('deleting block relationship', 'details'))
+  unblock(@Param('userId') userId: string, @Param('blockedId') blockedId: string) {
     return this.commandService
       .deleteBlockUser({
         blockerId: userId,
@@ -147,10 +106,7 @@ export class RelationshipController implements OnModuleInit {
   @ApiParam({ name: 'userId', example: 'uuid-user' })
   @ApiResponse({ status: 200, type: IdsListResponseDTO })
   @CustomApiError(() => DATABASE_ERROR('fetching follows', 'details'))
-  getFollows(
-    @Param('userId') userId: string,
-    @Query() query: GetMyFollowsRequestDTO,
-  ) {
+  getFollows(@Param('userId') userId: string, @Query() query: GetMyFollowsRequestDTO) {
     query.userId = userId;
     return this.queryService.getMyFollows(query.toQuery());
   }
@@ -160,10 +116,7 @@ export class RelationshipController implements OnModuleInit {
   @ApiParam({ name: 'userId', example: 'uuid-user' })
   @ApiResponse({ status: 200, type: IdsListResponseDTO })
   @CustomApiError(() => DATABASE_ERROR('fetching followers', 'details'))
-  getFollowers(
-    @Param('userId') userId: string,
-    @Query() query: GetMyFollowersRequestDTO,
-  ) {
+  getFollowers(@Param('userId') userId: string, @Query() query: GetMyFollowersRequestDTO) {
     query.userId = userId;
     return this.queryService.getMyFollowers(query.toQuery());
   }
@@ -173,10 +126,7 @@ export class RelationshipController implements OnModuleInit {
   @ApiParam({ name: 'userId', example: 'uuid-user' })
   @ApiResponse({ status: 200, type: IdsListResponseDTO })
   @CustomApiError(() => DATABASE_ERROR('fetching blocks', 'details'))
-  getBlocks(
-    @Param('userId') userId: string,
-    @Query() query: GetMyBlocksRequestDTO,
-  ) {
+  getBlocks(@Param('userId') userId: string, @Query() query: GetMyBlocksRequestDTO) {
     query.userId = userId;
     return this.queryService.getMyBlocks(query.toQuery());
   }
@@ -186,10 +136,7 @@ export class RelationshipController implements OnModuleInit {
   @ApiParam({ name: 'userId', example: 'uuid-user' })
   @ApiResponse({ status: 200, type: IdsListResponseDTO })
   @CustomApiError(() => DATABASE_ERROR('fetching who blocked me', 'details'))
-  getWhoBlockedMe(
-    @Param('userId') userId: string,
-    @Query() query: GetWhoBlockedMeRequestDTO,
-  ) {
+  getWhoBlockedMe(@Param('userId') userId: string, @Query() query: GetWhoBlockedMeRequestDTO) {
     query.userId = userId;
     return this.queryService.getWhoBlockedMe(query.toQuery());
   }

@@ -40,9 +40,7 @@ export class UpdateEventRequestDTO
     }
 
     if (tagIds !== undefined) {
-      event.tags = tagIds.map(
-        (tagId) => ({ id: tagId }) as unknown as Event['tags'][number],
-      );
+      event.tags = tagIds.map((tagId) => ({ id: tagId }) as unknown as Event['tags'][number]);
       updateMask.push('tags');
     }
     console.log(event);
