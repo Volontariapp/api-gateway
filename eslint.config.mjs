@@ -21,17 +21,11 @@ export default tseslint.config(
       prettier: prettierPlugin,
     },
     rules: {
-      'prettier/prettier': ['error', { endOfLine: 'auto' }],
+      'prettier/prettier': ['error', { endOfLine: 'lf' }],
     },
   },
   prettierConfig,
   {
-    ignores: [
-      'dist/**',
-      'node_modules/**',
-      'eslint.config.mjs',
-      'swagger-static/**',
-      'scripts/**',
-    ],
+    ignores: ['dist/**', 'node_modules/**', 'eslint.config.mjs', 'swagger-static/**', 'scripts/**'],
   },
 );
