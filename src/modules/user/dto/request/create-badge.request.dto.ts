@@ -1,7 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { CreateBadgeRequest } from '@volontariapp/contracts';
 import { CreateBadgeCommand } from '@volontariapp/contracts-nest';
 
-export class CreateBadgeRequestDTO {
+export class CreateBadgeRequestDTO implements CreateBadgeRequest {
   @ApiProperty({ example: 'Volunteer' })
   name!: string;
 

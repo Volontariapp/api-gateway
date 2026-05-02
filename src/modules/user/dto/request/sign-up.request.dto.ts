@@ -1,8 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { SignUpRequest } from '@volontariapp/contracts';
 import { SignUpCommand } from '@volontariapp/contracts-nest';
 import { OrganisationInfoDTO } from '../common/user.dto.js';
 
-export class SignUpRequestDTO {
+export class SignUpRequestDTO implements SignUpRequest {
   @ApiProperty({ example: 'john.doe@example.com' })
   email!: string;
 

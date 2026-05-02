@@ -1,7 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { UpdateBadgeRequest } from '@volontariapp/contracts';
 import { UpdateBadgeCommand } from '@volontariapp/contracts-nest';
 
-export class UpdateBadgeRequestDTO {
+export class UpdateBadgeRequestDTO implements UpdateBadgeRequest {
+  badgeId!: string;
+
   @ApiProperty({ required: false, example: 'Super Volunteer' })
   name?: string;
 
@@ -17,9 +20,9 @@ export class UpdateBadgeRequestDTO {
   @ApiProperty({ required: false, example: '/badges/super-volunteer.png' })
   iconPath?: string;
 
-  toCommand(badgeId: string): UpdateBadgeCommand {
+  toCommand(): UpdateBadgeCommand {
     return {
-      badgeId,
+      badgeId: this.badgeId,
       name: this.name,
       slug: this.slug,
       description: this.description,

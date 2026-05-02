@@ -1,8 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { UpdateUserRequest } from '@volontariapp/contracts';
 import { UpdateUserCommand } from '@volontariapp/contracts-nest';
 import { OrganisationInfoDTO } from '../common/user.dto.js';
 
-export class UpdateUserRequestDTO {
+export class UpdateUserRequestDTO implements UpdateUserRequest {
   id!: string;
 
   @ApiProperty({ required: false, example: 'john.doe@example.com' })

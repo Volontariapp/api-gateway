@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { AuthWebResponse } from '@volontariapp/contracts';
 
-export class AuthResponseDTO {
+export class AuthResponseDTO implements AuthWebResponse {
   @ApiProperty({ example: 'eyJhbGciOiJSUzI1NiJ9...' })
   accessToken!: string;
 
