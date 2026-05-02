@@ -1,0 +1,77 @@
+import { Body, Controller, Delete, Param, Patch, Post, Req } from '@nestjs/common';
+import { map } from 'rxjs';
+import { Logger } from '@volontariapp/logger';
+import {
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+  ApiTags,
+  ApiBearerAuth,
+  ApiExtraModels,
+} from '@nestjs/swagger';
+import {
+  ApiForbiddenResponse,
+  ApiUnauthorizedResponse,
+  CustomApiError,
+  MISSING_ACCESS_TOKEN,
+} from '@volontariapp/errors-nest';
+import type { Metadata } from '@grpc/grpc-js';
+import { Roles } from '../../../../common/decorators/roles.decorator.js';
+import { UserRoles } from '@volontariapp/shared';
+import { BaseBadgeGrpcController } from '../base-badge-grpc.controller.js';
+import { DeleteBadgeCommand } from '@volontariapp/contracts-nest';
+import { CreateBadgeRequestDTO, UpdateBadgeRequestDTO } from '../../dto/request/index.js';
+import { BadgeResponseDTO } from '../../dto/response/index.js';
+
+@ApiTags('Badges - Admin')
+@ApiExtraModels(BadgeResponseDTO)
+@ApiBearerAuth('access-token')
+@ApiBearerAuth('refresh-token')
+@ApiBearerAuth('internal-token')
+@CustomApiError(MISSING_ACCESS_TOKEN)
+@ApiUnauthorizedResponse('Missing or invalid access token')
+@ApiForbiddenResponse('You do not have permission to manage badges')
+@Controller('badges')
+export class BadgeAdminCommandController extends BaseBadgeGrpcController {
+  private readonly logger = new Logger({ context: BadgeAdminCommandController.name });
+
+  @ApiOperation({ summary: 'Create a new badge' })
+  @ApiResponse({ status: 201, type: BadgeResponseDTO })
+  @Roles(UserRoles.ADMIN)
+  @Post()
+  createBadge(@Body() request: CreateBadgeRequestDTO, @Req() req: Record<string, unknown>) {
+    this.logger.log(`Creating badge with slug: ${request.slug}`);
+    const metadata = req['internalMetadata'] as Metadata;
+    return this.badgeService
+      .createBadge(request.toCommand(), metadata)
+      .pipe(map((res) => BadgeResponseDTO.fromResponse(res)));
+  }
+
+  @ApiOperation({ summary: 'Update a badge by ID' })
+  @ApiParam({ name: 'id', example: 'uuid-badge-123' })
+  @ApiResponse({ status: 200, type: BadgeResponseDTO })
+  @Roles(UserRoles.ADMIN)
+  @Patch(':id')
+  updateBadge(
+    @Param('id') id: string,
+    @Body() request: UpdateBadgeRequestDTO,
+    @Req() req: Record<string, unknown>,
+  ) {
+    this.logger.log(`Updating badge with id: ${id}`);
+    request.badgeId = id;
+    const metadata = req['internalMetadata'] as Metadata;
+    return this.badgeService.updateBadge(request.toCommand(), metadata);
+  }
+
+  @ApiOperation({ summary: 'Delete a badge by ID' })
+  @ApiParam({ name: 'id', example: 'uuid-badge-123' })
+  @ApiResponse({ status: 200 })
+  @Roles(UserRoles.ADMIN)
+  @Delete(':id')
+  deleteBadge(@Param('id') id: string, @Req() req: Record<string, unknown>) {
+    this.logger.log(`Deleting badge with id: ${id}`);
+    const command: DeleteBadgeCommand = { badgeId: id };
+    const metadata = req['internalMetadata'] as Metadata;
+    return this.badgeService.deleteBadge(command, metadata);
+  }
+}

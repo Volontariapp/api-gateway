@@ -18,6 +18,7 @@ import {
   AccessTokenMiddleware,
   RefreshTokenMiddleware,
   JwtService,
+  RolesGuard,
 } from '@volontariapp/auth';
 import { Reflector } from '@nestjs/core';
 
@@ -57,7 +58,7 @@ async function bootstrap() {
 
   const reflector = app.get(Reflector);
   const jwtService = app.get(JwtService);
-  app.useGlobalGuards(new AccessTokenGuard(jwtService, reflector));
+  app.useGlobalGuards(new AccessTokenGuard(jwtService, reflector), new RolesGuard(reflector));
   app.use(new AccessTokenMiddleware().use);
   app.use(new RefreshTokenMiddleware().use);
   const port = configService.config.port;

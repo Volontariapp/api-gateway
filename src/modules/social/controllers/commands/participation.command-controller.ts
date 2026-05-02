@@ -1,37 +1,7 @@
-import {
-  Controller,
-  Post,
-  Get,
-  Delete,
-  Param,
-  Inject,
-  OnModuleInit,
-  Query,
-  Req,
-} from '@nestjs/common';
 import { map } from 'rxjs';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
-import type { ClientGrpc } from '@nestjs/microservices';
-import type { Metadata } from '@grpc/grpc-js';
-import { WithMetadata } from '../../../common/types/grpc.types.js';
-import { SOCIAL_PACKAGE } from '../../../grpc/grpc-packages.js';
-import {
-  PARTICIPATION_COMMAND_SERVICE_NAME,
-  ParticipationCommandServiceClient,
-  PARTICIPATION_QUERY_SERVICE_NAME,
-  ParticipationQueryServiceClient,
-} from '@volontariapp/contracts-nest';
-import {
-  ActionSuccessResponseDTO,
-  ExistsResponseDTO,
-  IdsListResponseDTO,
-} from '../dto/response/index.js';
-import {
-  GetUserEventsRequestDTO,
-  GetUserParticipationsRequestDTO,
-  GetUserWishesRequestDTO,
-  GetEventParticipantsRequestDTO,
-} from '../dto/request/index.js';
+import { Controller, Delete, Param, Post, Req, UseGuards } from '@nestjs/common';
+
+import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
   CustomApiError,
   SOCIAL_EVENT_NOT_FOUND,
@@ -41,32 +11,19 @@ import {
   SOCIAL_WISH_ALREADY_EXISTS,
   SOCIAL_WISH_NOT_FOUND,
   DATABASE_ERROR,
-  ApiUnauthorizedResponse,
-  ApiForbiddenResponse,
 } from '@volontariapp/errors-nest';
+import type { Metadata } from '@grpc/grpc-js';
+import { CurrentUser } from '../../../../common/decorators/current-user.decorator.js';
+import type { AuthUser } from '@volontariapp/auth';
+import { Roles } from '../../../../common/decorators/roles.decorator.js';
+import { UserRoles } from '@volontariapp/shared';
+import { IsCurrentUserOrAdminGuard } from '../../../../common/guards/is-current-user-or-admin.guard.js';
+import { BaseParticipationGrpcController } from '../base-grpc.controller.js';
+import { ActionSuccessResponseDTO } from '../../dto/response/index.js';
 
-@ApiTags('Social - Participation')
-@ApiBearerAuth('access-token')
-@ApiBearerAuth('refresh-token')
-@ApiBearerAuth('internal-token')
-@ApiUnauthorizedResponse('Missing or invalid access token')
-@ApiForbiddenResponse('You do not have permission to access this resource')
+@ApiTags('Social - Participation - Commands')
 @Controller('social')
-export class ParticipationController implements OnModuleInit {
-  private commandService!: WithMetadata<ParticipationCommandServiceClient>;
-  private queryService!: WithMetadata<ParticipationQueryServiceClient>;
-
-  constructor(@Inject(SOCIAL_PACKAGE) private client: ClientGrpc) {}
-
-  onModuleInit() {
-    this.commandService = this.client.getService<ParticipationCommandServiceClient>(
-      PARTICIPATION_COMMAND_SERVICE_NAME,
-    );
-    this.queryService = this.client.getService<ParticipationQueryServiceClient>(
-      PARTICIPATION_QUERY_SERVICE_NAME,
-    );
-  }
-
+export class ParticipationCommandController extends BaseParticipationGrpcController {
   @Post('events/:eventId')
   @ApiOperation({ summary: 'Create a social event node' })
   @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
@@ -78,16 +35,6 @@ export class ParticipationController implements OnModuleInit {
     return this.commandService
       .createEventNode({ eventId }, metadata)
       .pipe(map(() => ({ success: true, message: 'Event node created' })));
-  }
-
-  @Get('events/:eventId')
-  @ApiOperation({ summary: 'Check if event node exists' })
-  @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
-  @ApiResponse({ status: 200, type: ExistsResponseDTO })
-  @CustomApiError(() => DATABASE_ERROR('checking social event existence', 'details'))
-  getEventNode(@Param('eventId') eventId: string, @Req() req: Record<string, unknown>) {
-    const metadata = req['internalMetadata'] as Metadata;
-    return this.queryService.getEventNode({ eventId }, metadata);
   }
 
   @Delete('events/:eventId')
@@ -104,6 +51,7 @@ export class ParticipationController implements OnModuleInit {
   }
 
   @Post('users/:userId/events/:eventId/own')
+  @Roles(UserRoles.ADMIN)
   @ApiOperation({ summary: 'Link a user as creator of an event' })
   @ApiParam({ name: 'userId', example: 'uuid-user-123' })
   @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
@@ -122,6 +70,7 @@ export class ParticipationController implements OnModuleInit {
   }
 
   @Delete('users/:userId/events/:eventId/own')
+  @Roles(UserRoles.ADMIN)
   @ApiOperation({ summary: 'Unlink a user from event creation' })
   @ApiParam({ name: 'userId', example: 'uuid-user-123' })
   @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
@@ -140,6 +89,7 @@ export class ParticipationController implements OnModuleInit {
   }
 
   @Post('users/:userId/events/:eventId/participate')
+  @UseGuards(IsCurrentUserOrAdminGuard)
   @ApiOperation({ summary: 'User participates in an event' })
   @ApiParam({ name: 'userId', example: 'uuid-user-123' })
   @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
@@ -159,6 +109,7 @@ export class ParticipationController implements OnModuleInit {
   }
 
   @Delete('users/:userId/events/:eventId/participate')
+  @UseGuards(IsCurrentUserOrAdminGuard)
   @ApiOperation({ summary: 'User stops participating in an event' })
   @ApiParam({ name: 'userId', example: 'uuid-user-123' })
   @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
@@ -177,52 +128,8 @@ export class ParticipationController implements OnModuleInit {
       .pipe(map(() => ({ success: true, message: 'Participation unlinked' })));
   }
 
-  @Get('users/:userId/events/created')
-  @ApiOperation({ summary: 'Get events created by a user' })
-  @ApiParam({ name: 'userId', example: 'uuid-user-123' })
-  @ApiResponse({ status: 200, type: IdsListResponseDTO })
-  @CustomApiError(() => DATABASE_ERROR('fetching user created events', 'details'))
-  getUserCreatedEvents(
-    @Param('userId') userId: string,
-    @Query() query: GetUserEventsRequestDTO,
-    @Req() req: Record<string, unknown>,
-  ) {
-    query.userId = userId;
-    const metadata = req['internalMetadata'] as Metadata;
-    return this.queryService.getUserEvent(query.toQuery(), metadata);
-  }
-
-  @Get('users/:userId/events/participated')
-  @ApiOperation({ summary: 'Get events a user participates in' })
-  @ApiParam({ name: 'userId', example: 'uuid-user-123' })
-  @ApiResponse({ status: 200, type: IdsListResponseDTO })
-  @CustomApiError(() => DATABASE_ERROR('fetching user participations', 'details'))
-  getUserParticipatedEvents(
-    @Param('userId') userId: string,
-    @Query() query: GetUserParticipationsRequestDTO,
-    @Req() req: Record<string, unknown>,
-  ) {
-    query.userId = userId;
-    const metadata = req['internalMetadata'] as Metadata;
-    return this.queryService.getUserParticipateEvent(query.toQuery(), metadata);
-  }
-
-  @Get('events/:eventId/participants')
-  @ApiOperation({ summary: 'Get list of participants for an event' })
-  @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
-  @ApiResponse({ status: 200, type: IdsListResponseDTO })
-  @CustomApiError(() => DATABASE_ERROR('fetching event participants', 'details'))
-  getEventParticipants(
-    @Param('eventId') eventId: string,
-    @Query() query: GetEventParticipantsRequestDTO,
-    @Req() req: Record<string, unknown>,
-  ) {
-    query.eventId = eventId;
-    const metadata = req['internalMetadata'] as Metadata;
-    return this.queryService.getEventParticipants(query.toQuery(), metadata);
-  }
-
   @Post('users/:userId/events/:eventId/wish')
+  @UseGuards(IsCurrentUserOrAdminGuard)
   @ApiOperation({ summary: 'Add event to user wishes' })
   @ApiParam({ name: 'userId', example: 'uuid-user-123' })
   @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
@@ -242,6 +149,7 @@ export class ParticipationController implements OnModuleInit {
   }
 
   @Delete('users/:userId/events/:eventId/wish')
+  @UseGuards(IsCurrentUserOrAdminGuard)
   @ApiOperation({ summary: 'Remove event from user wishes' })
   @ApiParam({ name: 'userId', example: 'uuid-user-123' })
   @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
@@ -260,18 +168,75 @@ export class ParticipationController implements OnModuleInit {
       .pipe(map(() => ({ success: true, message: 'Event removed from wishes' })));
   }
 
-  @Get('users/:userId/events/wished')
-  @ApiOperation({ summary: 'Get events wished by a user' })
-  @ApiParam({ name: 'userId', example: 'uuid-user-123' })
-  @ApiResponse({ status: 200, type: IdsListResponseDTO })
-  @CustomApiError(() => DATABASE_ERROR('fetching user wished events', 'details'))
-  getUserWishedEvents(
-    @Param('userId') userId: string,
-    @Query() query: GetUserWishesRequestDTO,
+  @Post('events/:eventId/participate')
+  @ApiOperation({ summary: 'User participates in an event (self)' })
+  @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
+  @ApiResponse({ status: 201, type: ActionSuccessResponseDTO })
+  @CustomApiError(() => SOCIAL_EVENT_NOT_FOUND('eventId'))
+  @CustomApiError(() => SOCIAL_PARTICIPATION_ALREADY_EXISTS('userId', 'eventId'))
+  @CustomApiError(() => DATABASE_ERROR('creating event participation', 'details'))
+  participateSelf(
+    @Param('eventId') eventId: string,
+    @CurrentUser() user: AuthUser,
     @Req() req: Record<string, unknown>,
   ) {
-    query.userId = userId;
     const metadata = req['internalMetadata'] as Metadata;
-    return this.queryService.getUserWishEvent(query.toQuery(), metadata);
+    return this.commandService
+      .postUserParticipateEvent({ userId: user.id, eventId }, metadata)
+      .pipe(map(() => ({ success: true, message: 'Participation linked' })));
+  }
+
+  @Delete('events/:eventId/participate')
+  @ApiOperation({ summary: 'User stops participating in an event (self)' })
+  @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
+  @ApiResponse({ status: 200, type: ActionSuccessResponseDTO })
+  @CustomApiError(() => SOCIAL_EVENT_NOT_FOUND('eventId'))
+  @CustomApiError(() => SOCIAL_PARTICIPATION_NOT_FOUND('userId', 'eventId'))
+  @CustomApiError(() => DATABASE_ERROR('deleting event participation', 'details'))
+  unparticipateSelf(
+    @Param('eventId') eventId: string,
+    @CurrentUser() user: AuthUser,
+    @Req() req: Record<string, unknown>,
+  ) {
+    const metadata = req['internalMetadata'] as Metadata;
+    return this.commandService
+      .deleteUserParticipateEvent({ userId: user.id, eventId }, metadata)
+      .pipe(map(() => ({ success: true, message: 'Participation unlinked' })));
+  }
+
+  @Post('events/:eventId/wish')
+  @ApiOperation({ summary: 'Add event to current user wishes' })
+  @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
+  @ApiResponse({ status: 201, type: ActionSuccessResponseDTO })
+  @CustomApiError(() => SOCIAL_EVENT_NOT_FOUND('eventId'))
+  @CustomApiError(() => SOCIAL_WISH_ALREADY_EXISTS('userId', 'eventId'))
+  @CustomApiError(() => DATABASE_ERROR('creating event wish', 'details'))
+  wishEventSelf(
+    @Param('eventId') eventId: string,
+    @CurrentUser() user: AuthUser,
+    @Req() req: Record<string, unknown>,
+  ) {
+    const metadata = req['internalMetadata'] as Metadata;
+    return this.commandService
+      .postUserWishEvent({ userId: user.id, eventId }, metadata)
+      .pipe(map(() => ({ success: true, message: 'Event added to wishes' })));
+  }
+
+  @Delete('events/:eventId/wish')
+  @ApiOperation({ summary: 'Remove event from current user wishes' })
+  @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
+  @ApiResponse({ status: 200, type: ActionSuccessResponseDTO })
+  @CustomApiError(() => SOCIAL_EVENT_NOT_FOUND('eventId'))
+  @CustomApiError(() => SOCIAL_WISH_NOT_FOUND('userId', 'eventId'))
+  @CustomApiError(() => DATABASE_ERROR('deleting event wish', 'details'))
+  unwishEventSelf(
+    @Param('eventId') eventId: string,
+    @CurrentUser() user: AuthUser,
+    @Req() req: Record<string, unknown>,
+  ) {
+    const metadata = req['internalMetadata'] as Metadata;
+    return this.commandService
+      .deleteUserWishEvent({ userId: user.id, eventId }, metadata)
+      .pipe(map(() => ({ success: true, message: 'Event removed from wishes' })));
   }
 }
