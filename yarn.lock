@@ -4049,32 +4049,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@volontariapp/errors-nest@npm:0.10.1":
-  version: 0.10.1
-  resolution: "@volontariapp/errors-nest@npm:0.10.1"
-  dependencies:
-    "@volontariapp/errors": "npm:0.5.0"
-    "@volontariapp/logger": "npm:0.2.3"
-    reflect-metadata: "npm:^0.2.2"
-    rxjs: "npm:^7.8.1"
-  peerDependencies:
-    "@nestjs/common": ^10.0.0 || ^11.0.0
-    "@nestjs/core": ^10.0.0 || ^11.0.0
-    "@nestjs/microservices": ^10.0.0 || ^11.0.0
-    "@nestjs/swagger": ^8.0.0 || ^11.0.0
-  peerDependenciesMeta:
-    "@nestjs/common":
-      optional: true
-    "@nestjs/core":
-      optional: true
-    "@nestjs/microservices":
-      optional: true
-    "@nestjs/swagger":
-      optional: true
-  checksum: 10c0/e0d28aea30bacb7bc7d06c12b7de0628bcdea4516bd80b5f96376b4a01c30da89eb1ed34f280e9033ad9f21c8d5838a934d941e7860303c70c3df704f0573b52
-  languageName: node
-  linkType: hard
-
 "@volontariapp/errors-nest@npm:0.10.2":
   version: 0.10.2
   resolution: "@volontariapp/errors-nest@npm:0.10.2"
@@ -4110,9 +4084,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@volontariapp/eslint-config@npm:2.2.2":
-  version: 2.2.2
-  resolution: "@volontariapp/eslint-config@npm:2.2.2"
+"@volontariapp/eslint-config@npm:2.2.3":
+  version: 2.2.3
+  resolution: "@volontariapp/eslint-config@npm:2.2.3"
   dependencies:
     "@eslint/js": "npm:9.18.0"
     eslint-plugin-import: "npm:^2.32.0"
@@ -4120,7 +4094,7 @@ __metadata:
   peerDependencies:
     eslint: ">=9.0.0"
     typescript: ">=5.0.0"
-  checksum: 10c0/50223d7f48b896af1390420d2c7305100972c2019da6f8a97418f9e5cd5ab111b838b90b909bcc081001cc96ace38ef1637d4f3d7f118ae8603345ca4e0a656c
+  checksum: 10c0/5af08e1b06e6779a1e05d538e1d7de3346ccb4f753d5ee2f369d43726ba15714413b4a6e50f095e0306a1a603167ae5c98f2766867877a77d236c850ecae733c
   languageName: node
   linkType: hard
 
@@ -4583,8 +4557,8 @@ __metadata:
     "@volontariapp/contracts": "npm:4.0.7"
     "@volontariapp/contracts-nest": "npm:3.0.6"
     "@volontariapp/errors": "npm:0.5.0"
-    "@volontariapp/errors-nest": "npm:0.10.1"
-    "@volontariapp/eslint-config": "npm:2.2.2"
+    "@volontariapp/errors-nest": "npm:0.10.2"
+    "@volontariapp/eslint-config": "npm:2.2.3"
     "@volontariapp/logger": "npm:0.2.3"
     "@volontariapp/monitoring": "npm:2.1.3"
     "@volontariapp/shared": "npm:0.3.0"
