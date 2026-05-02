@@ -13,6 +13,18 @@ export class TestClient {
     return this;
   }
 
+  withToken(token: string): TestClient {
+    const newClient = new TestClient(this.app);
+    newClient.authHeader = { Authorization: `Bearer ${token}` };
+    return newClient;
+  }
+
+  setAuthHeader(header: Record<string, string>): TestClient {
+    const newClient = new TestClient(this.app);
+    newClient.authHeader = header;
+    return newClient;
+  }
+
   get(url: string) {
     const req = request(this.app.getHttpServer()).get(url);
     if (this.authHeader) {

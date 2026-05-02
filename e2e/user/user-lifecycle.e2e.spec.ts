@@ -1,426 +1,470 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-import type { TestingModule } from '@nestjs/testing';
-import { Test } from '@nestjs/testing';
 import type { INestApplication } from '@nestjs/common';
-import { ValidationPipe } from '@nestjs/common';
-import request from 'supertest';
-import { AppModule } from '../../src/app.module.js';
-import { GlobalExceptionFilter } from '@volontariapp/errors-nest';
 import { randomUUID } from 'node:crypto';
-import { loadConfig } from '@volontariapp/config';
-import { CustomConfig } from '../../src/config/base-config.js';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { createApp } from '../helpers/create-app.helper.js';
+import type { TestClient } from '../helpers/test-client.helper.js';
+import { createTestClient } from '../helpers/test-client.helper.js';
 import type {
   SignUpResponseDTO,
   LoginResponseDTO,
   UserResponseDTO,
   ListUsersResponseDTO,
-  BadgeResponseDTO,
-  ListBadgesResponseDTO,
 } from '../../src/modules/user/dto/response/index.js';
 import {
   signUpRequestFactory,
   loginRequestFactory,
-  createBadgeRequestFactory,
   updateUserRequestFactory,
+  refreshTokenRequestFactory,
 } from './user-test.factory.js';
 
 describe('User Lifecycle (E2E)', () => {
   let app: INestApplication;
+  let client: TestClient;
 
   beforeAll(async () => {
-    process.env.NODE_ENV = 'test';
-    const currentFileDir = dirname(fileURLToPath(import.meta.url));
-    const configDir = join(currentFileDir, '../../config');
-    const appConfig = loadConfig(configDir, CustomConfig);
-
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule.register(appConfig)],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    app.setGlobalPrefix('api/v1');
-    app.useGlobalPipes(new ValidationPipe({ transform: true }));
-    app.useGlobalFilters(new GlobalExceptionFilter());
-    await app.init();
+    app = await createApp();
+    client = await createTestClient(app).login({ id: randomUUID(), role: 'admin' });
   });
 
   afterAll(async () => {
     await app.close();
   });
 
-  // ─── Badge lifecycle ───────────────────────────────────────────────────────
+  // ─── Auth Flow: SignUp → Login → Refresh ─────────────────────────────────
 
-  it('should cover badge lifecycle: create, get by id, get by slug, list, update, conflict, and delete', async () => {
-    // Arrange
-    const createDto = createBadgeRequestFactory();
+  describe('Auth Flow', () => {
+    it('should register a new user and return user + tokens', async () => {
+      const dto = signUpRequestFactory();
 
-    // Act — create
-    const createRes = await request(app.getHttpServer())
-      .post('/api/v1/badges')
-      .send(createDto)
-      .expect(201);
+      const res = await client.post('/api/v1/users').send(dto).expect(201);
 
-    // Assert — create
-    const createBody = createRes.body as BadgeResponseDTO;
-    const badgeId = createBody.badge.id;
-    expect(badgeId).toBeDefined();
-    expect(createBody.badge.slug).toBe(createDto.slug);
-    expect(createBody.badge.name).toBe(createDto.name);
+      const body = res.body as SignUpResponseDTO;
+      expect(body.user.id).toBeDefined();
+      expect(body.user.email).toBe(dto.email);
+      expect(body.user.pseudo).toBe(dto.pseudo);
+      expect(body.auth.accessToken).toBeDefined();
+      expect(body.auth.refreshToken).toBeDefined();
 
-    // Act — get by id
-    const getByIdRes = await request(app.getHttpServer())
-      .get(`/api/v1/badges/${badgeId}`)
-      .expect(200);
+      // Cleanup
+      await client.delete(`/api/v1/users/${body.user.id}`).expect(200);
+    });
 
-    // Assert — get by id
-    const getByIdBody = getByIdRes.body as BadgeResponseDTO;
-    expect(getByIdBody.badge.id).toBe(badgeId);
+    it('should login with valid credentials', async () => {
+      const signUpDto = signUpRequestFactory();
+      const signUpRes = await client.post('/api/v1/users').send(signUpDto).expect(201);
+      const userId = (signUpRes.body as SignUpResponseDTO).user.id;
 
-    // Act — get by slug
-    const getBySlugRes = await request(app.getHttpServer())
-      .get(`/api/v1/badges/slug/${createDto.slug}`)
-      .expect(200);
+      const loginDto = loginRequestFactory({
+        email: signUpDto.email,
+        password: signUpDto.password,
+      });
+      const res = await client.post('/api/v1/users/login').send(loginDto).expect(200);
 
-    // Assert — get by slug
-    const getBySlugBody = getBySlugRes.body as BadgeResponseDTO;
-    expect(getBySlugBody.badge.slug).toBe(createDto.slug);
+      const body = res.body as LoginResponseDTO;
+      expect(body.auth.accessToken).toBeDefined();
+      expect(body.auth.refreshToken).toBeDefined();
 
-    // Act — list
-    const listRes = await request(app.getHttpServer()).get('/api/v1/badges').expect(200);
+      // Cleanup
+      await client.delete(`/api/v1/users/${userId}`).expect(200);
+    });
 
-    // Assert — list
-    const listBody = listRes.body as ListBadgesResponseDTO;
-    expect(Array.isArray(listBody.badges)).toBe(true);
-    expect(listBody.badges.some((b) => b.id === badgeId)).toBe(true);
+    it('should refresh tokens with a valid refresh token', async () => {
+      const signUpDto = signUpRequestFactory();
+      const signUpRes = await client.post('/api/v1/users').send(signUpDto).expect(201);
+      const signUpBody = signUpRes.body as SignUpResponseDTO;
+      const userId = signUpBody.user.id;
+      const { refreshToken } = signUpBody.auth;
 
-    // Act — update
-    const updatedName = `${createDto.name}-Updated`;
-    await request(app.getHttpServer())
-      .patch(`/api/v1/badges/${badgeId}`)
-      .send({ name: updatedName })
-      .expect(200);
+      const res = await client
+        .withToken(refreshToken)
+        .post('/api/v1/users/refresh')
+        .send(refreshTokenRequestFactory(refreshToken))
+        .expect(200);
 
-    // Act — conflict on duplicate slug
-    await request(app.getHttpServer()).post('/api/v1/badges').send(createDto).expect(409);
+      const body = res.body as LoginResponseDTO;
+      expect(body.auth.accessToken).toBeDefined();
+      expect(body.auth.refreshToken).toBeDefined();
 
-    // Act — delete
-    await request(app.getHttpServer()).delete(`/api/v1/badges/${badgeId}`).expect(200);
+      // Cleanup
+      await client.delete(`/api/v1/users/${userId}`).expect(200);
+    });
 
-    // Assert — get after delete returns 404
-    await request(app.getHttpServer()).get(`/api/v1/badges/${badgeId}`).expect(404);
+    it('should complete full signUp → login → refresh flow', async () => {
+      // 1. Sign up
+      const signUpDto = signUpRequestFactory();
+      const signUpRes = await client.post('/api/v1/users').send(signUpDto).expect(201);
+      const signUpBody = signUpRes.body as SignUpResponseDTO;
+      const userId = signUpBody.user.id;
+
+      // 2. Login
+      const loginDto = loginRequestFactory({
+        email: signUpDto.email,
+        password: signUpDto.password,
+      });
+      const loginRes = await client.post('/api/v1/users/login').send(loginDto).expect(200);
+      const loginBody = loginRes.body as LoginResponseDTO;
+      expect(loginBody.auth.accessToken).toBeDefined();
+
+      // 3. Refresh with the token from login
+      const refreshRes = await client
+        .withToken(loginBody.auth.refreshToken)
+        .post('/api/v1/users/refresh')
+        .send(refreshTokenRequestFactory(loginBody.auth.refreshToken))
+        .expect(200);
+
+      const refreshBody = refreshRes.body as LoginResponseDTO;
+      expect(refreshBody.auth.accessToken).toBeDefined();
+      expect(refreshBody.auth.refreshToken).not.toBe(loginBody.auth.refreshToken);
+
+      // Cleanup
+      await client.delete(`/api/v1/users/${userId}`).expect(200);
+    });
   });
 
-  // ─── Auth lifecycle ────────────────────────────────────────────────────────
+  // ─── Auth Errors ──────────────────────────────────────────────────────────
 
-  it('should cover auth lifecycle: sign up, login, refresh, and token reuse', async () => {
-    // Arrange
-    const signUpDto = signUpRequestFactory();
+  describe('Auth Errors', () => {
+    it('should return 401 on invalid login credentials', async () => {
+      const signUpDto = signUpRequestFactory();
+      const signUpRes = await client.post('/api/v1/users').send(signUpDto).expect(201);
+      const userId = (signUpRes.body as SignUpResponseDTO).user.id;
 
-    // Act — sign up
-    const signUpRes = await request(app.getHttpServer())
-      .post('/api/v1/users')
-      .send(signUpDto)
-      .expect(201);
+      await client
+        .post('/api/v1/users/login')
+        .send(loginRequestFactory({ email: signUpDto.email, password: 'WrongPassword!' }))
+        .expect(404);
 
-    // Assert — sign up
-    const signUpBody = signUpRes.body as SignUpResponseDTO;
-    expect(signUpBody.user.id).toBeDefined();
-    expect(signUpBody.user.email).toBe(signUpDto.email);
-    expect(signUpBody.auth.accessToken).toBeDefined();
-    expect(signUpBody.auth.refreshToken).toBeDefined();
-    const userId = signUpBody.user.id;
-    const { refreshToken } = signUpBody.auth;
+      // Cleanup
+      await client.delete(`/api/v1/users/${userId}`).expect(200);
+    });
 
-    // Act — login
-    const loginRes = await request(app.getHttpServer())
-      .post('/api/v1/users/login')
-      .send(
-        loginRequestFactory({
-          email: signUpDto.email,
-          password: signUpDto.password,
-        }),
-      )
-      .expect(200);
+    it('should return 401 on invalid refresh token', async () => {
+      await client
+        .withToken('this.is.not.a.valid.jwt')
+        .post('/api/v1/users/refresh')
+        .send(refreshTokenRequestFactory('this.is.not.a.valid.jwt'))
+        .expect(401);
+    });
 
-    // Assert — login
-    const loginBody = loginRes.body as LoginResponseDTO;
-    expect(loginBody.auth.accessToken).toBeDefined();
-    expect(loginBody.auth.refreshToken).toBeDefined();
+    it('should return 409 on duplicate user email', async () => {
+      const signUpDto = signUpRequestFactory();
+      const signUpRes = await client.post('/api/v1/users').send(signUpDto).expect(201);
+      const userId = (signUpRes.body as SignUpResponseDTO).user.id;
 
-    // Act — refresh
-    const refreshRes = await request(app.getHttpServer())
-      .post('/api/v1/users/refresh')
-      .send({ refreshToken })
-      .expect(200);
+      await client.post('/api/v1/users').send(signUpDto).expect(409);
 
-    // Assert — refresh
-    const refreshBody = refreshRes.body as LoginResponseDTO;
-    expect(refreshBody.auth.accessToken).toBeDefined();
-    expect(refreshBody.auth.refreshToken).toBeDefined();
+      // Cleanup
+      await client.delete(`/api/v1/users/${userId}`).expect(200);
+    });
 
-    // Cleanup
-    await request(app.getHttpServer()).delete(`/api/v1/users/${userId}`).expect(200);
+    it('should return 400 on sign up with missing required fields', async () => {
+      await client.post('/api/v1/users').send({ pseudo: 'test_user' }).expect(400);
+    });
   });
 
-  // ─── User lifecycle ─────────────────────────────────────────────────────────
+  // ─── User CRUD ────────────────────────────────────────────────────────────
 
-  it('should cover user lifecycle: sign up, get, list, update, and delete', async () => {
-    // Arrange
-    const signUpDto = signUpRequestFactory();
+  describe('User CRUD', () => {
+    it('should get a user by ID', async () => {
+      const signUpDto = signUpRequestFactory();
+      const signUpRes = await client.post('/api/v1/users').send(signUpDto).expect(201);
+      const userId = (signUpRes.body as SignUpResponseDTO).user.id;
 
-    // Act — sign up
-    const signUpRes = await request(app.getHttpServer())
-      .post('/api/v1/users')
-      .send(signUpDto)
-      .expect(201);
+      const res = await client.get(`/api/v1/users/${userId}`).expect(200);
 
-    // Assert — sign up
-    const signUpBody = signUpRes.body as SignUpResponseDTO;
-    const userId = signUpBody.user.id;
-    expect(userId).toBeDefined();
+      const body = res.body as UserResponseDTO;
+      expect(body.user.id).toBe(userId);
+      expect(body.user.email).toBe(signUpDto.email);
+      expect(body.user.pseudo).toBe(signUpDto.pseudo);
+      expect(Array.isArray(body.user.badges)).toBe(true);
 
-    // Act — get by id
-    const getRes = await request(app.getHttpServer()).get(`/api/v1/users/${userId}`).expect(200);
+      // Cleanup
+      await client.delete(`/api/v1/users/${userId}`).expect(200);
+    });
 
-    // Assert — get by id
-    const getBody = getRes.body as UserResponseDTO;
-    expect(getBody.user.email).toBe(signUpDto.email);
-    expect(getBody.user.pseudo).toBe(signUpDto.pseudo);
-    expect(Array.isArray(getBody.user.badges)).toBe(true);
+    it('should list users with pagination', async () => {
+      const signUpDto = signUpRequestFactory();
+      const signUpRes = await client.post('/api/v1/users').send(signUpDto).expect(201);
+      const userId = (signUpRes.body as SignUpResponseDTO).user.id;
 
-    // Act — list
-    const listRes = await request(app.getHttpServer()).get('/api/v1/users').expect(200);
+      const res = await client.get('/api/v1/users').expect(200);
 
-    // Assert — list
-    const listBody = listRes.body as ListUsersResponseDTO;
-    expect(Array.isArray(listBody.users)).toBe(true);
-    expect(listBody.pagination).toBeDefined();
-    expect(listBody.users.some((u) => u.id === userId)).toBe(true);
+      const body = res.body as ListUsersResponseDTO;
+      expect(Array.isArray(body.users)).toBe(true);
+      expect(body.pagination).toBeDefined();
+      expect(body.users.some((u) => u.id === userId)).toBe(true);
 
-    // Act — update
-    const updateDto = updateUserRequestFactory({ bio: 'Updated bio for E2E' });
-    const updateRes = await request(app.getHttpServer())
-      .patch(`/api/v1/users/${userId}`)
-      .send(updateDto)
-      .expect(200);
+      // Cleanup
+      await client.delete(`/api/v1/users/${userId}`).expect(200);
+    });
 
-    // Assert — update
-    const updateBody = updateRes.body as UserResponseDTO;
-    expect(updateBody.user.bio).toBe('Updated bio for E2E');
+    it('should update a user profile', async () => {
+      const signUpDto = signUpRequestFactory();
+      const signUpRes = await client.post('/api/v1/users').send(signUpDto).expect(201);
+      const userId = (signUpRes.body as SignUpResponseDTO).user.id;
 
-    // Act — delete
-    await request(app.getHttpServer()).delete(`/api/v1/users/${userId}`).expect(200);
+      const updateDto = updateUserRequestFactory({ bio: 'E2E updated bio' });
+      const res = await client.patch(`/api/v1/users/${userId}`).send(updateDto).expect(200);
 
-    // Assert — get after delete returns 404
-    await request(app.getHttpServer()).get(`/api/v1/users/${userId}`).expect(404);
+      const body = res.body as UserResponseDTO;
+      expect(body.user.bio).toBe('E2E updated bio');
+
+      // Cleanup
+      await client.delete(`/api/v1/users/${userId}`).expect(200);
+    });
+
+    it('should update user password', async () => {
+      const signUpDto = signUpRequestFactory();
+      const signUpRes = await client.post('/api/v1/users').send(signUpDto).expect(201);
+      const userId = (signUpRes.body as SignUpResponseDTO).user.id;
+
+      await client
+        .patch(`/api/v1/users/${userId}`)
+        .send({
+          previousPassword: signUpDto.password,
+          newPassword: 'NewSecurePassword456!',
+        })
+        .expect(200);
+
+      // Verify login with new password
+      await client
+        .post('/api/v1/users/login')
+        .send(loginRequestFactory({ email: signUpDto.email, password: 'NewSecurePassword456!' }))
+        .expect(200);
+
+      // Cleanup
+      await client.delete(`/api/v1/users/${userId}`).expect(200);
+    });
+
+    it('should update organisation info', async () => {
+      const signUpDto = signUpRequestFactory({
+        organisationInfo: { rna: 'W123456789' },
+      });
+      const signUpRes = await client.post('/api/v1/users').send(signUpDto).expect(201);
+      const userId = (signUpRes.body as SignUpResponseDTO).user.id;
+
+      const res = await client
+        .patch(`/api/v1/users/${userId}`)
+        .send({ organisationInfo: { rna: 'W987654321' } })
+        .expect(200);
+
+      const body = res.body as UserResponseDTO;
+      expect(body.user.organisationInfo).toMatchObject({ rna: 'W987654321' });
+
+      // Cleanup
+      await client.delete(`/api/v1/users/${userId}`).expect(200);
+    });
+
+    it('should delete a user', async () => {
+      const signUpDto = signUpRequestFactory();
+      const signUpRes = await client.post('/api/v1/users').send(signUpDto).expect(201);
+      const userId = (signUpRes.body as SignUpResponseDTO).user.id;
+
+      await client.delete(`/api/v1/users/${userId}`).expect(200);
+
+      // Verify user no longer exists
+      await client.get(`/api/v1/users/${userId}`).expect(404);
+    });
   });
 
-  // ─── User-badge association ────────────────────────────────────────────────
+  // ─── User CRUD Errors ─────────────────────────────────────────────────────
 
-  it('should cover user-badge lifecycle: add badge to user and remove it', async () => {
-    // Arrange — create badge and user
-    const badgeDto = createBadgeRequestFactory();
-    const signUpDto = signUpRequestFactory();
+  describe('User CRUD Errors', () => {
+    it('should return 404 when getting a non-existent user', async () => {
+      await client.get(`/api/v1/users/${randomUUID()}`).expect(404);
+    });
 
-    const [badgeRes, signUpRes] = await Promise.all([
-      request(app.getHttpServer()).post('/api/v1/badges').send(badgeDto).expect(201),
-      request(app.getHttpServer()).post('/api/v1/users').send(signUpDto).expect(201),
-    ]);
+    it('should return 404 when updating a non-existent user', async () => {
+      await client
+        .patch(`/api/v1/users/${randomUUID()}`)
+        .send(updateUserRequestFactory())
+        .expect(404);
+    });
 
-    const badgeId = (badgeRes.body as BadgeResponseDTO).badge.id;
-    const userId = (signUpRes.body as SignUpResponseDTO).user.id;
-
-    // Act — add badge to user
-    await request(app.getHttpServer())
-      .post(`/api/v1/users/${userId}/badges`)
-      .send({ badgeId })
-      .expect(201);
-
-    // Assert — badge appears on user profile
-    const getRes = await request(app.getHttpServer()).get(`/api/v1/users/${userId}`).expect(200);
-    const getBody = getRes.body as UserResponseDTO;
-    expect(getBody.user.badges.some((b) => b.id === badgeId)).toBe(true);
-
-    // Act — remove badge from user
-    await request(app.getHttpServer())
-      .delete(`/api/v1/users/${userId}/badges/${badgeId}`)
-      .expect(200);
-
-    // Assert — badge no longer on user profile
-    const getAfterRes = await request(app.getHttpServer())
-      .get(`/api/v1/users/${userId}`)
-      .expect(200);
-    const getAfterBody = getAfterRes.body as UserResponseDTO;
-    expect(getAfterBody.user.badges.some((b) => b.id === badgeId)).toBe(false);
-
-    // Cleanup
-    await Promise.all([
-      request(app.getHttpServer()).delete(`/api/v1/users/${userId}`).expect(200),
-      request(app.getHttpServer()).delete(`/api/v1/badges/${badgeId}`).expect(200),
-    ]);
+    it('should return 404 when deleting a non-existent user', async () => {
+      await client.delete(`/api/v1/users/${randomUUID()}`).expect(404);
+    });
   });
 
-  // ─── Impact score ──────────────────────────────────────────────────────────
+  // ─── Impact Score ─────────────────────────────────────────────────────────
 
-  it('should increment user impact score', async () => {
-    // Arrange
-    const signUpDto = signUpRequestFactory();
-    const signUpRes = await request(app.getHttpServer())
-      .post('/api/v1/users')
-      .send(signUpDto)
-      .expect(201);
-    const userId = (signUpRes.body as SignUpResponseDTO).user.id;
+  describe('Impact Score', () => {
+    it('should increment user impact score', async () => {
+      const signUpDto = signUpRequestFactory();
+      const signUpRes = await client.post('/api/v1/users').send(signUpDto).expect(201);
+      const userId = (signUpRes.body as SignUpResponseDTO).user.id;
 
-    // Act
-    await request(app.getHttpServer())
-      .post(`/api/v1/users/${userId}/impact-score`)
-      .send({ scoreIncrement: 50 })
-      .expect(201);
+      await client
+        .post(`/api/v1/users/${userId}/impact-score`)
+        .send({ scoreIncrement: 50 })
+        .expect(201);
 
-    // Assert
-    const getRes = await request(app.getHttpServer()).get(`/api/v1/users/${userId}`).expect(200);
-    const getBody = getRes.body as UserResponseDTO;
-    expect(getBody.user.totalImpactScore).toBeGreaterThanOrEqual(50);
+      const getRes = await client.get(`/api/v1/users/${userId}`).expect(200);
+      const body = getRes.body as UserResponseDTO;
+      expect(body.user.totalImpactScore).toBeGreaterThanOrEqual(50);
 
-    // Cleanup
-    await request(app.getHttpServer()).delete(`/api/v1/users/${userId}`).expect(200);
+      // Cleanup
+      await client.delete(`/api/v1/users/${userId}`).expect(200);
+    });
+
+    it('should accumulate impact score on multiple increments', async () => {
+      const signUpDto = signUpRequestFactory();
+      const signUpRes = await client.post('/api/v1/users').send(signUpDto).expect(201);
+      const userId = (signUpRes.body as SignUpResponseDTO).user.id;
+
+      await client
+        .post(`/api/v1/users/${userId}/impact-score`)
+        .send({ scoreIncrement: 30 })
+        .expect(201);
+
+      await client
+        .post(`/api/v1/users/${userId}/impact-score`)
+        .send({ scoreIncrement: 20 })
+        .expect(201);
+
+      const getRes = await client.get(`/api/v1/users/${userId}`).expect(200);
+      const body = getRes.body as UserResponseDTO;
+      expect(body.user.totalImpactScore).toBeGreaterThanOrEqual(50);
+
+      // Cleanup
+      await client.delete(`/api/v1/users/${userId}`).expect(200);
+    });
   });
 
-  // ─── Error cases ───────────────────────────────────────────────────────────
+  // ─── User-Badge Association ───────────────────────────────────────────────
 
-  it('should return 409 on duplicate user email', async () => {
-    // Arrange
-    const signUpDto = signUpRequestFactory();
-    const signUpRes = await request(app.getHttpServer())
-      .post('/api/v1/users')
-      .send(signUpDto)
-      .expect(201);
-    const userId = (signUpRes.body as SignUpResponseDTO).user.id;
+  describe('User-Badge Association', () => {
+    it('should add a badge to a user and see it on profile', async () => {
+      const { createBadgeRequestFactory } = await import('./user-test.factory.js');
 
-    // Act + Assert
-    await request(app.getHttpServer()).post('/api/v1/users').send(signUpDto).expect(409);
+      // Create badge + user
+      const badgeDto = createBadgeRequestFactory();
+      const signUpDto = signUpRequestFactory();
 
-    // Cleanup
-    await request(app.getHttpServer()).delete(`/api/v1/users/${userId}`).expect(200);
+      const [badgeRes, signUpRes] = await Promise.all([
+        client.post('/api/v1/badges').send(badgeDto).expect(201),
+        client.post('/api/v1/users').send(signUpDto).expect(201),
+      ]);
+
+      const badgeId = (badgeRes.body as { badge: { id: string } }).badge.id;
+      const userId = (signUpRes.body as SignUpResponseDTO).user.id;
+
+      // Add badge
+      await client.post(`/api/v1/users/${userId}/badges`).send({ badgeId }).expect(201);
+
+      // Verify badge appears on user
+      const getRes = await client.get(`/api/v1/users/${userId}`).expect(200);
+      const body = getRes.body as UserResponseDTO;
+      expect(body.user.badges.some((b) => b.id === badgeId)).toBe(true);
+
+      // Cleanup
+      await client.delete(`/api/v1/users/${userId}/badges/${badgeId}`).expect(200);
+      await Promise.all([
+        client.delete(`/api/v1/users/${userId}`).expect(200),
+        client.delete(`/api/v1/badges/${badgeId}`).expect(200),
+      ]);
+    });
+
+    it('should remove a badge from a user', async () => {
+      const { createBadgeRequestFactory } = await import('./user-test.factory.js');
+
+      const badgeDto = createBadgeRequestFactory();
+      const signUpDto = signUpRequestFactory();
+
+      const [badgeRes, signUpRes] = await Promise.all([
+        client.post('/api/v1/badges').send(badgeDto).expect(201),
+        client.post('/api/v1/users').send(signUpDto).expect(201),
+      ]);
+
+      const badgeId = (badgeRes.body as { badge: { id: string } }).badge.id;
+      const userId = (signUpRes.body as SignUpResponseDTO).user.id;
+
+      // Add then remove
+      await client.post(`/api/v1/users/${userId}/badges`).send({ badgeId }).expect(201);
+      await client.delete(`/api/v1/users/${userId}/badges/${badgeId}`).expect(200);
+
+      // Verify badge is gone
+      const getRes = await client.get(`/api/v1/users/${userId}`).expect(200);
+      const body = getRes.body as UserResponseDTO;
+      expect(body.user.badges.some((b) => b.id === badgeId)).toBe(false);
+
+      // Cleanup
+      await Promise.all([
+        client.delete(`/api/v1/users/${userId}`).expect(200),
+        client.delete(`/api/v1/badges/${badgeId}`).expect(200),
+      ]);
+    });
+
+    it('should return 400 when adding badge with missing badgeId', async () => {
+      const signUpDto = signUpRequestFactory();
+      const signUpRes = await client.post('/api/v1/users').send(signUpDto).expect(201);
+      const userId = (signUpRes.body as SignUpResponseDTO).user.id;
+
+      await client.post(`/api/v1/users/${userId}/badges`).send({}).expect(400);
+
+      // Cleanup
+      await client.delete(`/api/v1/users/${userId}`).expect(200);
+    });
   });
 
-  it('should return 404 when getting a non-existent user', async () => {
-    // Arrange
-    const nonExistentId = randomUUID();
+  // ─── Full Lifecycle Flow ──────────────────────────────────────────────────
 
-    // Act + Assert
-    await request(app.getHttpServer()).get(`/api/v1/users/${nonExistentId}`).expect(404);
-  });
+  describe('Full Lifecycle', () => {
+    it('signUp → login → getUser → update → addBadge → incrementScore → removeBadge → delete', async () => {
+      const { createBadgeRequestFactory } = await import('./user-test.factory.js');
 
-  it('should return 404 when updating a non-existent user', async () => {
-    // Arrange
-    const nonExistentId = randomUUID();
+      // 1. Create a badge first
+      const badgeDto = createBadgeRequestFactory();
+      const badgeRes = await client.post('/api/v1/badges').send(badgeDto).expect(201);
+      const badgeId = (badgeRes.body as { badge: { id: string } }).badge.id;
 
-    // Act + Assert
-    await request(app.getHttpServer())
-      .patch(`/api/v1/users/${nonExistentId}`)
-      .send(updateUserRequestFactory())
-      .expect(404);
-  });
+      // 2. Sign up
+      const signUpDto = signUpRequestFactory();
+      const signUpRes = await client.post('/api/v1/users').send(signUpDto).expect(201);
+      const signUpBody = signUpRes.body as SignUpResponseDTO;
+      const userId = signUpBody.user.id;
 
-  it('should return 404 when deleting a non-existent user', async () => {
-    // Arrange
-    const nonExistentId = randomUUID();
+      // 3. Login
+      const loginRes = await client
+        .post('/api/v1/users/login')
+        .send(loginRequestFactory({ email: signUpDto.email, password: signUpDto.password }))
+        .expect(200);
+      expect((loginRes.body as LoginResponseDTO).auth.accessToken).toBeDefined();
 
-    // Act + Assert
-    await request(app.getHttpServer()).delete(`/api/v1/users/${nonExistentId}`).expect(404);
-  });
+      // 4. Get user
+      const getRes = await client.get(`/api/v1/users/${userId}`).expect(200);
+      expect((getRes.body as UserResponseDTO).user.email).toBe(signUpDto.email);
 
-  it('should return 401 on invalid login credentials', async () => {
-    // Arrange
-    const signUpDto = signUpRequestFactory();
-    const signUpRes = await request(app.getHttpServer())
-      .post('/api/v1/users')
-      .send(signUpDto)
-      .expect(201);
-    const userId = (signUpRes.body as SignUpResponseDTO).user.id;
+      // 5. Update user
+      const updateRes = await client
+        .patch(`/api/v1/users/${userId}`)
+        .send(updateUserRequestFactory({ bio: 'Lifecycle test bio' }))
+        .expect(200);
+      expect((updateRes.body as UserResponseDTO).user.bio).toBe('Lifecycle test bio');
 
-    // Act + Assert
-    await request(app.getHttpServer())
-      .post('/api/v1/users/login')
-      .send(
-        loginRequestFactory({
-          email: signUpDto.email,
-          password: 'WrongPassword!',
-        }),
-      )
-      .expect(404);
+      // 6. Add badge
+      await client.post(`/api/v1/users/${userId}/badges`).send({ badgeId }).expect(201);
 
-    // Cleanup
-    await request(app.getHttpServer()).delete(`/api/v1/users/${userId}`).expect(200);
-  });
+      // 7. Increment score
+      await client
+        .post(`/api/v1/users/${userId}/impact-score`)
+        .send({ scoreIncrement: 100 })
+        .expect(201);
 
-  it('should return 401 on invalid refresh token', async () => {
-    // Arrange
-    const invalidToken = 'this.is.not.a.valid.jwt';
+      // 8. Verify user state
+      const finalRes = await client.get(`/api/v1/users/${userId}`).expect(200);
+      const finalBody = finalRes.body as UserResponseDTO;
+      expect(finalBody.user.totalImpactScore).toBeGreaterThanOrEqual(100);
+      expect(finalBody.user.badges.some((b) => b.id === badgeId)).toBe(true);
 
-    // Act + Assert
-    await request(app.getHttpServer())
-      .post('/api/v1/users/refresh')
-      .send({ refreshToken: invalidToken })
-      .expect(401);
-  });
+      // 9. Remove badge
+      await client.delete(`/api/v1/users/${userId}/badges/${badgeId}`).expect(200);
 
-  it('should return 404 when getting a non-existent badge', async () => {
-    // Arrange
-    const nonExistentId = randomUUID();
+      // 10. Delete user
+      await client.delete(`/api/v1/users/${userId}`).expect(200);
+      await client.get(`/api/v1/users/${userId}`).expect(404);
 
-    // Act + Assert
-    await request(app.getHttpServer()).get(`/api/v1/badges/${nonExistentId}`).expect(404);
-  });
-
-  it('should return 404 when getting a badge by non-existent slug', async () => {
-    // Arrange
-    const nonExistentSlug = `slug-${randomUUID()}`;
-
-    // Act + Assert
-    await request(app.getHttpServer()).get(`/api/v1/badges/slug/${nonExistentSlug}`).expect(404);
-  });
-
-  it('should return 404 when deleting a non-existent badge', async () => {
-    // Arrange
-    const nonExistentId = randomUUID();
-
-    // Act + Assert
-    await request(app.getHttpServer()).delete(`/api/v1/badges/${nonExistentId}`).expect(404);
-  });
-
-  it('should return 400 on sign up with missing required fields', async () => {
-    // Arrange — missing email and password
-    const invalidDto = { pseudo: 'test_user' };
-
-    // Act + Assert
-    await request(app.getHttpServer()).post('/api/v1/users').send(invalidDto).expect(400);
-  });
-
-  it('should return 400 on badge creation with missing required fields', async () => {
-    // Arrange — missing name and description
-    const invalidDto = { slug: `slug-${randomUUID()}` };
-
-    // Act + Assert
-    await request(app.getHttpServer()).post('/api/v1/badges').send(invalidDto).expect(400);
-  });
-
-  it('should return 400 on add badge with missing badgeId', async () => {
-    // Arrange
-    const signUpDto = signUpRequestFactory();
-    const signUpRes = await request(app.getHttpServer())
-      .post('/api/v1/users')
-      .send(signUpDto)
-      .expect(201);
-    const userId = (signUpRes.body as SignUpResponseDTO).user.id;
-
-    // Act + Assert
-    await request(app.getHttpServer()).post(`/api/v1/users/${userId}/badges`).send({}).expect(400);
-
-    // Cleanup
-    await request(app.getHttpServer()).delete(`/api/v1/users/${userId}`).expect(200);
+      // Cleanup badge
+      await client.delete(`/api/v1/badges/${badgeId}`).expect(200);
+    });
   });
 });

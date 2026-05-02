@@ -51,3 +51,11 @@ export const updateUserRequestFactory = (
   };
   return dto as UpdateUserRequestDTO;
 };
+
+export interface RefreshTokenPayload {
+  refreshToken: string;
+}
+
+export const refreshTokenRequestFactory = (refreshToken: string): RefreshTokenPayload => ({
+  refreshToken,
+});

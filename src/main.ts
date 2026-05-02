@@ -13,7 +13,12 @@ import { AppConfigService } from './config/app-config.service.js';
 import { Logger } from '@volontariapp/logger';
 import { CustomConfig } from './config/base-config.js';
 import { NodeEnv } from '@volontariapp/config';
-import { AccessTokenGuard, AccessTokenMiddleware, JwtService } from '@volontariapp/auth';
+import {
+  AccessTokenGuard,
+  AccessTokenMiddleware,
+  RefreshTokenMiddleware,
+  JwtService,
+} from '@volontariapp/auth';
 import { Reflector } from '@nestjs/core';
 
 function resolveConfigDirectory(): string {
@@ -54,6 +59,7 @@ async function bootstrap() {
   const jwtService = app.get(JwtService);
   app.useGlobalGuards(new AccessTokenGuard(jwtService, reflector));
   app.use(new AccessTokenMiddleware().use);
+  app.use(new RefreshTokenMiddleware().use);
   const port = configService.config.port;
   await app.listen(port);
   logger.log('=================================== API Gateway ===================================');
