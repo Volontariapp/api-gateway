@@ -1,9 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { SignUpWebResponse } from '@volontariapp/contracts';
 import { SignUpResponse } from '@volontariapp/contracts-nest';
 import { UserDTO } from '../common/user.dto.js';
 import { AuthResponseDTO } from './auth.response.dto.js';
 
-export class SignUpResponseDTO {
+export class SignUpResponseDTO implements SignUpWebResponse {
   static fromResponse(res: SignUpResponse): SignUpResponseDTO {
     const dto = new SignUpResponseDTO();
     if (res.user) {

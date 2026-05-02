@@ -33,9 +33,7 @@ import {
   UserServiceClient,
   DeleteUserCommand,
   GetUserQuery,
-  AddBadgeToUserCommand,
   RemoveBadgeFromUserCommand,
-  IncrementImpactScoreCommand,
 } from '@volontariapp/contracts-nest';
 import { USER_PACKAGE } from '../../../grpc/grpc-packages.js';
 import {
@@ -162,8 +160,8 @@ export class UserController implements OnModuleInit {
   @Post(':id/badges')
   addBadge(@Param('id') userId: string, @Body() request: AddBadgeToUserRequestDTO) {
     this.logger.log(`Adding badge ${request.badgeId} to user ${userId}`);
-    const command: AddBadgeToUserCommand = { userId, badgeId: request.badgeId };
-    return this.userService.addBadgeToUser(command);
+    request.userId = userId;
+    return this.userService.addBadgeToUser(request.toCommand());
   }
 
   @ApiOperation({ summary: 'Remove a badge from a user' })
@@ -190,10 +188,7 @@ export class UserController implements OnModuleInit {
     @Body() request: IncrementImpactScoreRequestDTO,
   ) {
     this.logger.log(`Incrementing impact score for user ${userId}`);
-    const command: IncrementImpactScoreCommand = {
-      userId,
-      scoreIncrement: request.scoreIncrement,
-    };
-    return this.userService.incrementImpactScore(command);
+    request.userId = userId;
+    return this.userService.incrementImpactScore(request.toCommand());
   }
 }

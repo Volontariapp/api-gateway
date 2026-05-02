@@ -94,7 +94,8 @@ export class BadgeController implements OnModuleInit {
   @Patch(':id')
   updateBadge(@Param('id') id: string, @Body() request: UpdateBadgeRequestDTO) {
     this.logger.log(`Updating badge with id: ${id}`);
-    return this.badgeService.updateBadge(request.toCommand(id));
+    request.badgeId = id;
+    return this.badgeService.updateBadge(request.toCommand());
   }
 
   @ApiOperation({ summary: 'Delete a badge by ID' })
