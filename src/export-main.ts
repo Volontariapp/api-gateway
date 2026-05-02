@@ -42,14 +42,10 @@ async function bootstrap() {
   for (const config of swaggerConfigs) {
     try {
       console.log(`📝 Generating [${config.name}] JSON...`);
-      const document = SwaggerModule.createDocument(
-        app,
-        config.builder.build(),
-        {
-          include: config.modules,
-          extraModels: [ErrorResponseDto],
-        },
-      );
+      const document = SwaggerModule.createDocument(app, config.builder.build(), {
+        include: config.modules,
+        extraModels: [ErrorResponseDto],
+      });
 
       const jsonPath = join(outputDir, `openapi-${config.name}.json`);
       writeFileSync(jsonPath, JSON.stringify(document, null, 2));

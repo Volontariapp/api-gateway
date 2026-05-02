@@ -1,8 +1,4 @@
-import {
-  BaseConfig,
-  GatewayAuthConfig,
-  MSURLsConfig,
-} from '@volontariapp/config';
+import { BaseConfig, GatewayAuthConfig, MSURLsConfig } from '@volontariapp/config';
 import { Type } from 'class-transformer';
 import { IsDefined, ValidateNested, IsNumber } from 'class-validator';
 

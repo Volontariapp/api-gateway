@@ -11,13 +11,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { Logger } from '@volontariapp/logger';
-import {
-  ApiOperation,
-  ApiParam,
-  ApiTags,
-  ApiResponse,
-  ApiExtraModels,
-} from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiTags, ApiResponse, ApiExtraModels } from '@nestjs/swagger';
 import {
   ApiInternalServerErrorResponse,
   ApiNotFoundResponse,
@@ -68,12 +62,8 @@ export class TagController implements OnModuleInit {
   constructor(@Inject(EVENT_PACKAGE) private client: ClientGrpc) {}
 
   onModuleInit() {
-    this.commandService = this.client.getService<TagCommandServiceClient>(
-      TAG_COMMAND_SERVICE_NAME,
-    );
-    this.queryService = this.client.getService<TagQueryServiceClient>(
-      TAG_QUERY_SERVICE_NAME,
-    );
+    this.commandService = this.client.getService<TagCommandServiceClient>(TAG_COMMAND_SERVICE_NAME);
+    this.queryService = this.client.getService<TagQueryServiceClient>(TAG_QUERY_SERVICE_NAME);
   }
 
   @ApiOperation({ summary: 'Get all tags' })

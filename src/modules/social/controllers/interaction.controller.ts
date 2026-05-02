@@ -1,13 +1,4 @@
-import {
-  Controller,
-  Post,
-  Get,
-  Delete,
-  Param,
-  Inject,
-  OnModuleInit,
-  Query,
-} from '@nestjs/common';
+import { Controller, Post, Get, Delete, Param, Inject, OnModuleInit, Query } from '@nestjs/common';
 import { map } from 'rxjs';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import type { ClientGrpc } from '@nestjs/microservices';
@@ -18,14 +9,8 @@ import {
   INTERACTION_QUERY_SERVICE_NAME,
   InteractionQueryServiceClient,
 } from '@volontariapp/contracts-nest';
-import {
-  ActionSuccessResponseDTO,
-  IdsListResponseDTO,
-} from '../dto/response/index.js';
-import {
-  GetUserLikesRequestDTO,
-  GetPostLikersRequestDTO,
-} from '../dto/request/index.js';
+import { ActionSuccessResponseDTO, IdsListResponseDTO } from '../dto/response/index.js';
+import { GetUserLikesRequestDTO, GetPostLikersRequestDTO } from '../dto/request/index.js';
 import {
   CustomApiError,
   SOCIAL_RELATIONSHIP_ALREADY_EXISTS,
@@ -42,10 +27,9 @@ export class InteractionController implements OnModuleInit {
   constructor(@Inject(SOCIAL_PACKAGE) private client: ClientGrpc) {}
 
   onModuleInit() {
-    this.commandService =
-      this.client.getService<InteractionCommandServiceClient>(
-        INTERACTION_COMMAND_SERVICE_NAME,
-      );
+    this.commandService = this.client.getService<InteractionCommandServiceClient>(
+      INTERACTION_COMMAND_SERVICE_NAME,
+    );
     this.queryService = this.client.getService<InteractionQueryServiceClient>(
       INTERACTION_QUERY_SERVICE_NAME,
     );
@@ -56,9 +40,7 @@ export class InteractionController implements OnModuleInit {
   @ApiParam({ name: 'userId', example: 'uuid-user-123' })
   @ApiParam({ name: 'postId', example: 'uuid-post-123' })
   @ApiResponse({ status: 201, type: ActionSuccessResponseDTO })
-  @CustomApiError(() =>
-    SOCIAL_RELATIONSHIP_ALREADY_EXISTS('userId', 'postId', 'LIKE'),
-  )
+  @CustomApiError(() => SOCIAL_RELATIONSHIP_ALREADY_EXISTS('userId', 'postId', 'LIKE'))
   @CustomApiError(() => DATABASE_ERROR('creating like', 'details'))
   likePost(@Param('userId') userId: string, @Param('postId') postId: string) {
     return this.commandService
@@ -71,9 +53,7 @@ export class InteractionController implements OnModuleInit {
   @ApiParam({ name: 'userId', example: 'uuid-user-123' })
   @ApiParam({ name: 'postId', example: 'uuid-post-123' })
   @ApiResponse({ status: 200, type: ActionSuccessResponseDTO })
-  @CustomApiError(() =>
-    SOCIAL_RELATIONSHIP_NOT_FOUND('userId', 'postId', 'LIKE'),
-  )
+  @CustomApiError(() => SOCIAL_RELATIONSHIP_NOT_FOUND('userId', 'postId', 'LIKE'))
   @CustomApiError(() => DATABASE_ERROR('deleting like', 'details'))
   unlikePost(@Param('userId') userId: string, @Param('postId') postId: string) {
     return this.commandService
@@ -86,10 +66,7 @@ export class InteractionController implements OnModuleInit {
   @ApiParam({ name: 'userId', example: 'uuid-user-123' })
   @ApiResponse({ status: 200, type: IdsListResponseDTO })
   @CustomApiError(() => DATABASE_ERROR('fetching user likes', 'details'))
-  getUserLikes(
-    @Param('userId') userId: string,
-    @Query() query: GetUserLikesRequestDTO,
-  ) {
+  getUserLikes(@Param('userId') userId: string, @Query() query: GetUserLikesRequestDTO) {
     query.userId = userId;
     return this.queryService.getUserLikes(query.toQuery());
   }
@@ -99,10 +76,7 @@ export class InteractionController implements OnModuleInit {
   @ApiParam({ name: 'postId', example: 'uuid-post-123' })
   @ApiResponse({ status: 200, type: IdsListResponseDTO })
   @CustomApiError(() => DATABASE_ERROR('fetching post likers', 'details'))
-  getPostLikers(
-    @Param('postId') postId: string,
-    @Query() query: GetPostLikersRequestDTO,
-  ) {
+  getPostLikers(@Param('postId') postId: string, @Query() query: GetPostLikersRequestDTO) {
     query.postId = postId;
     return this.queryService.getPostLikers(query.toQuery());
   }

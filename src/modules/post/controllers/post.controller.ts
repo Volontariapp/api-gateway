@@ -11,13 +11,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { Logger } from '@volontariapp/logger';
-import {
-  ApiOperation,
-  ApiParam,
-  ApiTags,
-  ApiResponse,
-  ApiExtraModels,
-} from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiTags, ApiResponse, ApiExtraModels } from '@nestjs/swagger';
 import {
   ApiForbiddenResponse,
   ApiInternalServerErrorResponse,
@@ -38,10 +32,7 @@ import {
   UpdatePostRequestDTO,
   ListPostsRequestDTO,
 } from '../dto/request/index.js';
-import {
-  PostResponseDTO,
-  ListPostsResponseDTO,
-} from '../dto/response/index.js';
+import { PostResponseDTO, ListPostsResponseDTO } from '../dto/response/index.js';
 import { ActionSuccessResponseDTO } from '../../event/dto/response/index.js';
 
 @ApiTags('Posts')
@@ -57,8 +48,7 @@ export class PostController implements OnModuleInit {
   constructor(@Inject(POST_PACKAGE) private client: ClientGrpc) {}
 
   onModuleInit() {
-    this.postService =
-      this.client.getService<PostServiceClient>(POST_SERVICE_NAME);
+    this.postService = this.client.getService<PostServiceClient>(POST_SERVICE_NAME);
   }
 
   @ApiOperation({ summary: 'List all posts' })

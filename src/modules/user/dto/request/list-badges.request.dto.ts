@@ -1,13 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { ListUsersRequest } from '@volontariapp/contracts';
-import { ListUsersQuery } from '@volontariapp/contracts-nest';
-import { PaginationRequestDTO } from '../../../../common/dto/request/index.js';
+import { ListBadgesRequest } from '@volontariapp/contracts';
+import { ListBadgesQuery } from '@volontariapp/contracts-nest';
+import { PaginationRequestDTO } from '../../../../common/dto/index.js';
 
-export class ListUsersRequestDTO implements ListUsersRequest {
+export class ListBadgesRequestDTO implements ListBadgesRequest {
   @ApiProperty({ type: PaginationRequestDTO, required: false })
   pagination?: PaginationRequestDTO;
 
-  toQuery(): ListUsersQuery {
+  toQuery(): ListBadgesQuery {
     return {
       pagination: this.pagination
         ? { limit: this.pagination.limit, page: this.pagination.page }

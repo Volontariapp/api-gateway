@@ -1,8 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { User } from '@volontariapp/contracts-nest';
+import { BadgeDTO } from './badge.dto.js';
 
-import { User, Badge } from '@volontariapp/contracts';
+export class OrganisationInfoDTO {
+  @ApiProperty({ example: 'W123456789' })
+  rna!: string;
+}
 
-export class UserDTO implements User {
+export class UserDTO {
   @ApiProperty({ example: 'uuid-123' })
   id!: string;
 
@@ -18,12 +23,29 @@ export class UserDTO implements User {
   @ApiProperty({ example: 100 })
   totalImpactScore!: number;
 
-  @ApiProperty({ example: [] })
-  badges!: Badge[];
+  @ApiProperty({ type: [BadgeDTO] })
+  badges!: BadgeDTO[];
 
-  @ApiProperty({ example: 'My bio', required: false })
+  @ApiProperty({ required: false, example: 'My bio' })
   bio?: string;
 
-  @ApiProperty({ example: '/path/to/logo', required: false })
+  @ApiProperty({ required: false, example: '/path/to/logo' })
   logoPath?: string;
+
+  @ApiProperty({ required: false, type: OrganisationInfoDTO })
+  organisationInfo?: OrganisationInfoDTO;
+
+  static fromUser(user: User): UserDTO {
+    const dto = new UserDTO();
+    dto.id = user.id;
+    dto.email = user.email;
+    dto.pseudo = user.pseudo;
+    dto.role = user.role;
+    dto.totalImpactScore = user.totalImpactScore;
+    dto.bio = user.bio;
+    dto.logoPath = user.logoPath;
+    dto.organisationInfo = user.organisationInfo;
+    dto.badges = user.badges.map((b) => BadgeDTO.fromBadge(b));
+    return dto;
+  }
 }

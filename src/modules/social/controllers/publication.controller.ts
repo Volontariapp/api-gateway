@@ -1,13 +1,4 @@
-import {
-  Controller,
-  Post,
-  Get,
-  Delete,
-  Param,
-  Inject,
-  OnModuleInit,
-  Query,
-} from '@nestjs/common';
+import { Controller, Post, Get, Delete, Param, Inject, OnModuleInit, Query } from '@nestjs/common';
 import { map } from 'rxjs';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import type { ClientGrpc } from '@nestjs/microservices';
@@ -23,10 +14,7 @@ import {
   ExistsResponseDTO,
   IdsListResponseDTO,
 } from '../dto/response/index.js';
-import {
-  GetFeedRequestDTO,
-  GetUserPostsRequestDTO,
-} from '../dto/request/index.js';
+import { GetFeedRequestDTO, GetUserPostsRequestDTO } from '../dto/request/index.js';
 import {
   CustomApiError,
   SOCIAL_POST_ALREADY_EXISTS,
@@ -43,10 +31,9 @@ export class PublicationController implements OnModuleInit {
   constructor(@Inject(SOCIAL_PACKAGE) private client: ClientGrpc) {}
 
   onModuleInit() {
-    this.commandService =
-      this.client.getService<PublicationCommandServiceClient>(
-        PUBLICATION_COMMAND_SERVICE_NAME,
-      );
+    this.commandService = this.client.getService<PublicationCommandServiceClient>(
+      PUBLICATION_COMMAND_SERVICE_NAME,
+    );
     this.queryService = this.client.getService<PublicationQueryServiceClient>(
       PUBLICATION_QUERY_SERVICE_NAME,
     );
@@ -68,9 +55,7 @@ export class PublicationController implements OnModuleInit {
   @ApiOperation({ summary: 'Check if post node exists' })
   @ApiParam({ name: 'postId', example: 'uuid-post-123' })
   @ApiResponse({ status: 200, type: ExistsResponseDTO })
-  @CustomApiError(() =>
-    DATABASE_ERROR('checking social post existence', 'details'),
-  )
+  @CustomApiError(() => DATABASE_ERROR('checking social post existence', 'details'))
   getPostNode(@Param('postId') postId: string) {
     return this.queryService.getPostNode({ postId });
   }
@@ -116,10 +101,7 @@ export class PublicationController implements OnModuleInit {
   @ApiParam({ name: 'userId', example: 'uuid-user-123' })
   @ApiResponse({ status: 200, type: IdsListResponseDTO })
   @CustomApiError(() => DATABASE_ERROR('fetching user posts', 'details'))
-  getUserPosts(
-    @Param('userId') userId: string,
-    @Query() query: GetUserPostsRequestDTO,
-  ) {
+  getUserPosts(@Param('userId') userId: string, @Query() query: GetUserPostsRequestDTO) {
     query.userId = userId;
     return this.queryService.getUserPosts(query.toQuery());
   }

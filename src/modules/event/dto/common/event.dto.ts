@@ -1,10 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  Event,
-  EventType,
-  EventState,
-  GrpcDateMapper,
-} from '@volontariapp/contracts-nest';
+import { Event, EventType, EventState, GrpcDateMapper } from '@volontariapp/contracts-nest';
 import { EventDTO as IEventDTO } from '@volontariapp/contracts';
 import { TagDTO, RequirementDTO } from './common.dto.js';
 import { PointDTO } from '../../../../common/dto/common/point.dto.js';
