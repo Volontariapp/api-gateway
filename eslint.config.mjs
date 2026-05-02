@@ -26,12 +26,6 @@ export default tseslint.config(
   },
   prettierConfig,
   {
-    ignores: [
-      'dist/**',
-      'node_modules/**',
-      'eslint.config.mjs',
-      'swagger-static/**',
-      'scripts/**',
-    ],
+    ignores: ['dist/**', 'node_modules/**', 'eslint.config.mjs', 'swagger-static/**', 'scripts/**'],
   },
 );
