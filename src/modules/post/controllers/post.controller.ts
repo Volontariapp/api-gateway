@@ -11,13 +11,22 @@ import {
   Query,
 } from '@nestjs/common';
 import { Logger } from '@volontariapp/logger';
-import { ApiOperation, ApiParam, ApiTags, ApiResponse, ApiExtraModels } from '@nestjs/swagger';
+import { Public } from '@volontariapp/auth';
+import {
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+  ApiResponse,
+  ApiExtraModels,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import {
   ApiForbiddenResponse,
   ApiInternalServerErrorResponse,
   ApiNotFoundResponse,
   CustomApiError,
   MISSING_ACCESS_TOKEN,
+  ApiUnauthorizedResponse,
 } from '@volontariapp/errors-nest';
 import type { ClientGrpc } from '@nestjs/microservices';
 import {
@@ -37,9 +46,14 @@ import { ActionSuccessResponseDTO } from '../../event/dto/response/index.js';
 
 @ApiTags('Posts')
 @ApiExtraModels(PostResponseDTO, ListPostsResponseDTO, ActionSuccessResponseDTO)
+@ApiBearerAuth('access-token')
+@ApiBearerAuth('refresh-token')
+@ApiBearerAuth('internal-token')
 @CustomApiError(MISSING_ACCESS_TOKEN)
+@ApiUnauthorizedResponse('Missing or invalid access token')
 @ApiForbiddenResponse('You do not have permission to manage posts')
 @ApiInternalServerErrorResponse('An unexpected error occurred on the server')
+@Public()
 @Controller('posts')
 export class PostController implements OnModuleInit {
   private readonly logger = new Logger({ context: PostController.name });

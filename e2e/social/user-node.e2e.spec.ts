@@ -1,9 +1,7 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import type { TestingModule } from '@nestjs/testing';
 import { Test } from '@nestjs/testing';
 import type { INestApplication } from '@nestjs/common';
 import { ValidationPipe } from '@nestjs/common';
-import request from 'supertest';
 import { AppModule } from '../../src/app.module.js';
 import { GlobalExceptionFilter } from '@volontariapp/errors-nest';
 import { randomUUID } from 'node:crypto';
@@ -11,6 +9,8 @@ import { loadConfig } from '@volontariapp/config';
 import { CustomConfig } from '../../src/config/base-config.js';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { setupAuth } from '../helpers/auth-helper.js';
+import { createTestClient } from '../helpers/test-client.helper.js';
 
 describe('Social User Node (E2E)', () => {
   let app: INestApplication;
@@ -29,6 +29,7 @@ describe('Social User Node (E2E)', () => {
     app.setGlobalPrefix('api/v1');
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     app.useGlobalFilters(new GlobalExceptionFilter());
+    setupAuth(app);
     await app.init();
   });
 
@@ -37,29 +38,22 @@ describe('Social User Node (E2E)', () => {
   });
 
   it('should create, check existence, and delete a social user node', async () => {
+    const client = await createTestClient(app).login({ id: randomUUID(), role: 'admin' });
     const userId = randomUUID();
 
-    const createResponse = await request(app.getHttpServer())
-      .post(`/api/v1/social/users/${userId}`)
-      .expect(201);
+    const createResponse = await client.post(`/api/v1/social/users/${userId}`).expect(201);
 
     expect(createResponse.body).toHaveProperty('success', true);
 
-    const getResponse = await request(app.getHttpServer())
-      .get(`/api/v1/social/users/${userId}`)
-      .expect(200);
+    const getResponse = await client.get(`/api/v1/social/users/${userId}`).expect(200);
 
     expect(getResponse.body).toHaveProperty('exists', true);
 
-    const deleteResponse = await request(app.getHttpServer())
-      .delete(`/api/v1/social/users/${userId}`)
-      .expect(200);
+    const deleteResponse = await client.delete(`/api/v1/social/users/${userId}`).expect(200);
 
     expect(deleteResponse.body).toHaveProperty('success', true);
 
-    const finalGetResponse = await request(app.getHttpServer())
-      .get(`/api/v1/social/users/${userId}`)
-      .expect(200);
+    const finalGetResponse = await client.get(`/api/v1/social/users/${userId}`).expect(200);
 
     expect(finalGetResponse.body).toHaveProperty('exists', false);
   });

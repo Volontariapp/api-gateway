@@ -1,7 +1,19 @@
-import { Controller, Post, Get, Delete, Param, Inject, OnModuleInit, Query } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Delete,
+  Param,
+  Inject,
+  OnModuleInit,
+  Query,
+  Req,
+} from '@nestjs/common';
 import { map } from 'rxjs';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
 import type { ClientGrpc } from '@nestjs/microservices';
+import type { Metadata } from '@grpc/grpc-js';
+import { WithMetadata } from '../../../common/types/grpc.types.js';
 import { SOCIAL_PACKAGE } from '../../../grpc/grpc-packages.js';
 import {
   INTERACTION_COMMAND_SERVICE_NAME,
@@ -16,13 +28,20 @@ import {
   SOCIAL_RELATIONSHIP_ALREADY_EXISTS,
   SOCIAL_RELATIONSHIP_NOT_FOUND,
   DATABASE_ERROR,
+  ApiUnauthorizedResponse,
+  ApiForbiddenResponse,
 } from '@volontariapp/errors-nest';
 
 @ApiTags('Social - Interactions')
+@ApiBearerAuth('access-token')
+@ApiBearerAuth('refresh-token')
+@ApiBearerAuth('internal-token')
+@ApiUnauthorizedResponse('Missing or invalid access token')
+@ApiForbiddenResponse('You do not have permission to access this resource')
 @Controller('social')
 export class InteractionController implements OnModuleInit {
-  private commandService!: InteractionCommandServiceClient;
-  private queryService!: InteractionQueryServiceClient;
+  private commandService!: WithMetadata<InteractionCommandServiceClient>;
+  private queryService!: WithMetadata<InteractionQueryServiceClient>;
 
   constructor(@Inject(SOCIAL_PACKAGE) private client: ClientGrpc) {}
 
@@ -42,9 +61,14 @@ export class InteractionController implements OnModuleInit {
   @ApiResponse({ status: 201, type: ActionSuccessResponseDTO })
   @CustomApiError(() => SOCIAL_RELATIONSHIP_ALREADY_EXISTS('userId', 'postId', 'LIKE'))
   @CustomApiError(() => DATABASE_ERROR('creating like', 'details'))
-  likePost(@Param('userId') userId: string, @Param('postId') postId: string) {
+  likePost(
+    @Param('userId') userId: string,
+    @Param('postId') postId: string,
+    @Req() req: Record<string, unknown>,
+  ) {
+    const metadata = req['internalMetadata'] as Metadata;
     return this.commandService
-      .postLikePost({ userId, postId })
+      .postLikePost({ userId, postId }, metadata)
       .pipe(map(() => ({ success: true, message: 'Post liked' })));
   }
 
@@ -55,9 +79,14 @@ export class InteractionController implements OnModuleInit {
   @ApiResponse({ status: 200, type: ActionSuccessResponseDTO })
   @CustomApiError(() => SOCIAL_RELATIONSHIP_NOT_FOUND('userId', 'postId', 'LIKE'))
   @CustomApiError(() => DATABASE_ERROR('deleting like', 'details'))
-  unlikePost(@Param('userId') userId: string, @Param('postId') postId: string) {
+  unlikePost(
+    @Param('userId') userId: string,
+    @Param('postId') postId: string,
+    @Req() req: Record<string, unknown>,
+  ) {
+    const metadata = req['internalMetadata'] as Metadata;
     return this.commandService
-      .deleteLikePost({ userId, postId })
+      .deleteLikePost({ userId, postId }, metadata)
       .pipe(map(() => ({ success: true, message: 'Post unliked' })));
   }
 
@@ -66,9 +95,14 @@ export class InteractionController implements OnModuleInit {
   @ApiParam({ name: 'userId', example: 'uuid-user-123' })
   @ApiResponse({ status: 200, type: IdsListResponseDTO })
   @CustomApiError(() => DATABASE_ERROR('fetching user likes', 'details'))
-  getUserLikes(@Param('userId') userId: string, @Query() query: GetUserLikesRequestDTO) {
+  getUserLikes(
+    @Param('userId') userId: string,
+    @Query() query: GetUserLikesRequestDTO,
+    @Req() req: Record<string, unknown>,
+  ) {
     query.userId = userId;
-    return this.queryService.getUserLikes(query.toQuery());
+    const metadata = req['internalMetadata'] as Metadata;
+    return this.queryService.getUserLikes(query.toQuery(), metadata);
   }
 
   @Get('posts/:postId/likers')
@@ -76,8 +110,13 @@ export class InteractionController implements OnModuleInit {
   @ApiParam({ name: 'postId', example: 'uuid-post-123' })
   @ApiResponse({ status: 200, type: IdsListResponseDTO })
   @CustomApiError(() => DATABASE_ERROR('fetching post likers', 'details'))
-  getPostLikers(@Param('postId') postId: string, @Query() query: GetPostLikersRequestDTO) {
+  getPostLikers(
+    @Param('postId') postId: string,
+    @Query() query: GetPostLikersRequestDTO,
+    @Req() req: Record<string, unknown>,
+  ) {
     query.postId = postId;
-    return this.queryService.getPostLikers(query.toQuery());
+    const metadata = req['internalMetadata'] as Metadata;
+    return this.queryService.getPostLikers(query.toQuery(), metadata);
   }
 }

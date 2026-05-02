@@ -6,9 +6,7 @@ import type {
   UpdateUserRequestDTO,
 } from '../../src/modules/user/dto/request/index.js';
 
-export const signUpRequestFactory = (
-  overrides?: Partial<SignUpRequestDTO>,
-): SignUpRequestDTO => {
+export const signUpRequestFactory = (overrides?: Partial<SignUpRequestDTO>): SignUpRequestDTO => {
   const dto = {
     email: `user-${randomUUID()}@example.com`,
     pseudo: `user_${randomUUID().slice(0, 8)}`,
@@ -20,9 +18,7 @@ export const signUpRequestFactory = (
   return dto as SignUpRequestDTO;
 };
 
-export const loginRequestFactory = (
-  overrides?: Partial<LoginRequestDTO>,
-): LoginRequestDTO => {
+export const loginRequestFactory = (overrides?: Partial<LoginRequestDTO>): LoginRequestDTO => {
   const dto = {
     email: 'test@example.com',
     password: 'StrongPassword123!',
@@ -55,3 +51,11 @@ export const updateUserRequestFactory = (
   };
   return dto as UpdateUserRequestDTO;
 };
+
+export interface RefreshTokenPayload {
+  refreshToken: string;
+}
+
+export const refreshTokenRequestFactory = (refreshToken: string): RefreshTokenPayload => ({
+  refreshToken,
+});

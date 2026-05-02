@@ -1,7 +1,19 @@
-import { Controller, Post, Get, Delete, Param, Inject, OnModuleInit, Query } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Delete,
+  Param,
+  Inject,
+  OnModuleInit,
+  Query,
+  Req,
+} from '@nestjs/common';
 import { map } from 'rxjs';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
 import type { ClientGrpc } from '@nestjs/microservices';
+import type { Metadata } from '@grpc/grpc-js';
+import { WithMetadata } from '../../../common/types/grpc.types.js';
 import { SOCIAL_PACKAGE } from '../../../grpc/grpc-packages.js';
 import {
   PUBLICATION_COMMAND_SERVICE_NAME,
@@ -20,13 +32,20 @@ import {
   SOCIAL_POST_ALREADY_EXISTS,
   SOCIAL_POST_NOT_FOUND,
   DATABASE_ERROR,
+  ApiUnauthorizedResponse,
+  ApiForbiddenResponse,
 } from '@volontariapp/errors-nest';
 
 @ApiTags('Social - Publications')
+@ApiBearerAuth('access-token')
+@ApiBearerAuth('refresh-token')
+@ApiBearerAuth('internal-token')
+@ApiUnauthorizedResponse('Missing or invalid access token')
+@ApiForbiddenResponse('You do not have permission to access this resource')
 @Controller('social')
 export class PublicationController implements OnModuleInit {
-  private commandService!: PublicationCommandServiceClient;
-  private queryService!: PublicationQueryServiceClient;
+  private commandService!: WithMetadata<PublicationCommandServiceClient>;
+  private queryService!: WithMetadata<PublicationQueryServiceClient>;
 
   constructor(@Inject(SOCIAL_PACKAGE) private client: ClientGrpc) {}
 
@@ -45,9 +64,10 @@ export class PublicationController implements OnModuleInit {
   @ApiResponse({ status: 201, type: ActionSuccessResponseDTO })
   @CustomApiError(() => SOCIAL_POST_ALREADY_EXISTS('postId'))
   @CustomApiError(() => DATABASE_ERROR('creating social post node', 'details'))
-  createPostNode(@Param('postId') postId: string) {
+  createPostNode(@Param('postId') postId: string, @Req() req: Record<string, unknown>) {
+    const metadata = req['internalMetadata'] as Metadata;
     return this.commandService
-      .createPostNode({ postId })
+      .createPostNode({ postId }, metadata)
       .pipe(map(() => ({ success: true, message: 'Post node created' })));
   }
 
@@ -56,8 +76,9 @@ export class PublicationController implements OnModuleInit {
   @ApiParam({ name: 'postId', example: 'uuid-post-123' })
   @ApiResponse({ status: 200, type: ExistsResponseDTO })
   @CustomApiError(() => DATABASE_ERROR('checking social post existence', 'details'))
-  getPostNode(@Param('postId') postId: string) {
-    return this.queryService.getPostNode({ postId });
+  getPostNode(@Param('postId') postId: string, @Req() req: Record<string, unknown>) {
+    const metadata = req['internalMetadata'] as Metadata;
+    return this.queryService.getPostNode({ postId }, metadata);
   }
 
   @Delete('posts/:postId')
@@ -66,9 +87,10 @@ export class PublicationController implements OnModuleInit {
   @ApiResponse({ status: 200, type: ActionSuccessResponseDTO })
   @CustomApiError(() => SOCIAL_POST_NOT_FOUND('postId'))
   @CustomApiError(() => DATABASE_ERROR('deleting social post node', 'details'))
-  deletePostNode(@Param('postId') postId: string) {
+  deletePostNode(@Param('postId') postId: string, @Req() req: Record<string, unknown>) {
+    const metadata = req['internalMetadata'] as Metadata;
     return this.commandService
-      .deletePostNode({ postId })
+      .deletePostNode({ postId }, metadata)
       .pipe(map(() => ({ success: true, message: 'Post node deleted' })));
   }
 

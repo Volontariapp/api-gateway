@@ -1,7 +1,19 @@
-import { Controller, Post, Get, Delete, Param, Inject, OnModuleInit, Query } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Delete,
+  Param,
+  Inject,
+  OnModuleInit,
+  Query,
+  Req,
+} from '@nestjs/common';
 import { map } from 'rxjs';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
 import type { ClientGrpc } from '@nestjs/microservices';
+import type { Metadata } from '@grpc/grpc-js';
+import { WithMetadata } from '../../../common/types/grpc.types.js';
 import { SOCIAL_PACKAGE } from '../../../grpc/grpc-packages.js';
 import {
   EVENT_POST_LINK_COMMAND_SERVICE_NAME,
@@ -15,13 +27,23 @@ import {
   EventIdResponseDTO,
 } from '../dto/response/index.js';
 import { GetEventPostsRequestDTO } from '../dto/request/index.js';
-import { CustomApiError, DATABASE_ERROR } from '@volontariapp/errors-nest';
+import {
+  CustomApiError,
+  DATABASE_ERROR,
+  ApiUnauthorizedResponse,
+  ApiForbiddenResponse,
+} from '@volontariapp/errors-nest';
 
 @ApiTags('Social - Event-Post Links')
+@ApiBearerAuth('access-token')
+@ApiBearerAuth('refresh-token')
+@ApiBearerAuth('internal-token')
+@ApiUnauthorizedResponse('Missing or invalid access token')
+@ApiForbiddenResponse('You do not have permission to access this resource')
 @Controller('social')
 export class EventPostLinkController implements OnModuleInit {
-  private commandService!: EventPostLinkCommandServiceClient;
-  private queryService!: EventPostLinkQueryServiceClient;
+  private commandService!: WithMetadata<EventPostLinkCommandServiceClient>;
+  private queryService!: WithMetadata<EventPostLinkQueryServiceClient>;
 
   constructor(@Inject(SOCIAL_PACKAGE) private client: ClientGrpc) {}
 
@@ -40,9 +62,14 @@ export class EventPostLinkController implements OnModuleInit {
   @ApiParam({ name: 'postId', example: 'uuid-post-123' })
   @ApiResponse({ status: 201, type: ActionSuccessResponseDTO })
   @CustomApiError(() => DATABASE_ERROR('linking post to event', 'details'))
-  linkPostToEvent(@Param('eventId') eventId: string, @Param('postId') postId: string) {
+  linkPostToEvent(
+    @Param('eventId') eventId: string,
+    @Param('postId') postId: string,
+    @Req() req: Record<string, unknown>,
+  ) {
+    const metadata = req['internalMetadata'] as Metadata;
     return this.commandService
-      .linkPostToEvent({ eventId, postId })
+      .linkPostToEvent({ eventId, postId }, metadata)
       .pipe(map(() => ({ success: true, message: 'Post linked to event' })));
   }
 
@@ -52,9 +79,14 @@ export class EventPostLinkController implements OnModuleInit {
   @ApiParam({ name: 'postId', example: 'uuid-post-123' })
   @ApiResponse({ status: 200, type: ActionSuccessResponseDTO })
   @CustomApiError(() => DATABASE_ERROR('unlinking post from event', 'details'))
-  unlinkPostFromEvent(@Param('eventId') eventId: string, @Param('postId') postId: string) {
+  unlinkPostFromEvent(
+    @Param('eventId') eventId: string,
+    @Param('postId') postId: string,
+    @Req() req: Record<string, unknown>,
+  ) {
+    const metadata = req['internalMetadata'] as Metadata;
     return this.commandService
-      .unlinkPostFromEvent({ eventId, postId })
+      .unlinkPostFromEvent({ eventId, postId }, metadata)
       .pipe(map(() => ({ success: true, message: 'Post unlinked from event' })));
   }
 
@@ -63,8 +95,9 @@ export class EventPostLinkController implements OnModuleInit {
   @ApiParam({ name: 'postId', example: 'uuid-post-123' })
   @ApiResponse({ status: 200, type: EventIdResponseDTO })
   @CustomApiError(() => DATABASE_ERROR('fetching event related to post', 'details'))
-  getEventRelatedToPost(@Param('postId') postId: string) {
-    return this.queryService.getEventRelatedToPost({ postId });
+  getEventRelatedToPost(@Param('postId') postId: string, @Req() req: Record<string, unknown>) {
+    const metadata = req['internalMetadata'] as Metadata;
+    return this.queryService.getEventRelatedToPost({ postId }, metadata);
   }
 
   @Get('events/:eventId/related-posts')
@@ -72,8 +105,13 @@ export class EventPostLinkController implements OnModuleInit {
   @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
   @ApiResponse({ status: 200, type: IdsListResponseDTO })
   @CustomApiError(() => DATABASE_ERROR('fetching event posts', 'details'))
-  getEventPosts(@Param('eventId') eventId: string, @Query() query: GetEventPostsRequestDTO) {
+  getEventPosts(
+    @Param('eventId') eventId: string,
+    @Query() query: GetEventPostsRequestDTO,
+    @Req() req: Record<string, unknown>,
+  ) {
     query.eventId = eventId;
-    return this.queryService.getEventPosts(query.toQuery());
+    const metadata = req['internalMetadata'] as Metadata;
+    return this.queryService.getEventPosts(query.toQuery(), metadata);
   }
 }

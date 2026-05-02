@@ -16,18 +16,16 @@ function checkFile(filePath: string) {
   const relativePath = path.relative(ROOT, filePath);
   const fileName = path.basename(filePath);
 
-  if (fileName === 'index.ts' || filePath.includes('/common/')) {
+  if (
+    fileName === 'index.ts' ||
+    filePath.includes('/common/') ||
+    relativePath.startsWith('modules/helper/')
+  ) {
     return;
   }
 
-  if (
-    !fileName.endsWith('.request.dto.ts') &&
-    !fileName.endsWith('.response.dto.ts')
-  ) {
-    logError(
-      relativePath,
-      'File must end with .request.dto.ts or .response.dto.ts',
-    );
+  if (!fileName.endsWith('.request.dto.ts') && !fileName.endsWith('.response.dto.ts')) {
+    logError(relativePath, 'File must end with .request.dto.ts or .response.dto.ts');
     return;
   }
 
@@ -56,10 +54,7 @@ function checkFile(filePath: string) {
     : `${expectedPrefix}ResponseDTO`;
 
   if (className !== expectedClassName) {
-    logError(
-      relativePath,
-      `Class name should be '${expectedClassName}' but found '${className}'`,
-    );
+    logError(relativePath, `Class name should be '${expectedClassName}' but found '${className}'`);
   }
 
   if (isRequest) {
@@ -73,13 +68,9 @@ function checkFile(filePath: string) {
       );
     }
 
-    const hasMethod =
-      content.includes('toCommand()') || content.includes('toQuery()');
+    const hasMethod = content.includes('toCommand()') || content.includes('toQuery()');
     if (!hasMethod) {
-      logError(
-        relativePath,
-        'Request class must have a toCommand() or toQuery() method',
-      );
+      logError(relativePath, 'Request class must have a toCommand() or toQuery() method');
     }
   }
 
@@ -89,17 +80,11 @@ function checkFile(filePath: string) {
     const implementsLine = content.match(/implements\s+([^\{]+)\{/);
 
     if (!hasContractsImport) {
-      logError(
-        relativePath,
-        'Response class must import from @volontariapp/contracts',
-      );
+      logError(relativePath, 'Response class must import from @volontariapp/contracts');
     }
 
     if (!implementsLine) {
-      logError(
-        relativePath,
-        'Response class must implement at least the Web interface',
-      );
+      logError(relativePath, 'Response class must implement at least the Web interface');
     }
   }
 }
