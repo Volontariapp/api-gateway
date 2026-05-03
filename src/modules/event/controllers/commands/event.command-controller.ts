@@ -29,8 +29,13 @@ import {
   AddRequirementRequestDTO,
   RemoveRequirementRequestDTO,
 } from '../../dto/request/index.js';
-import { GetEventResponseDTO, ActionSuccessResponseDTO } from '../../dto/response/index.js';
-import { DeleteEventCommand } from '@volontariapp/contracts-nest';
+import {
+  CreateEventResponseDTO,
+  UpdateEventResponseDTO,
+  ChangeEventStateResponseDTO,
+  GetEventResponseDTO,
+  ActionSuccessResponseDTO,
+} from '../../dto/response/index.js';
 import { BaseEventGrpcController } from '../base-grpc.controller.js';
 
 @ApiTags('Events')
@@ -65,7 +70,7 @@ export class EventCommandController extends BaseEventGrpcController {
     const metadata = req['internalMetadata'] as Metadata;
     return this.commandService
       .createEvent(request.toCommand(), metadata)
-      .pipe(map((res) => GetEventResponseDTO.fromResponse(res)));
+      .pipe(map((res) => CreateEventResponseDTO.fromResponse(res)));
   }
 
   @ApiOperation({
@@ -93,7 +98,7 @@ export class EventCommandController extends BaseEventGrpcController {
     const metadata = req['internalMetadata'] as Metadata;
     return this.commandService
       .updateEvent(request.toCommand(), metadata)
-      .pipe(map((res) => GetEventResponseDTO.fromResponse(res)));
+      .pipe(map((res) => UpdateEventResponseDTO.fromResponse(res)));
   }
 
   @ApiOperation({
@@ -119,7 +124,7 @@ export class EventCommandController extends BaseEventGrpcController {
     const metadata = req['internalMetadata'] as Metadata;
     return this.commandService
       .changeEventState(request.toCommand(), metadata)
-      .pipe(map((res) => GetEventResponseDTO.fromResponse(res)));
+      .pipe(map((res) => ChangeEventStateResponseDTO.fromResponse(res)));
   }
 
   @ApiOperation({
@@ -182,8 +187,7 @@ export class EventCommandController extends BaseEventGrpcController {
   @Delete(':id')
   deleteEvent(@Param('id') id: string, @Req() req: Record<string, unknown>) {
     this.logger.log(`Deleting event with id: ${id}`);
-    const command: DeleteEventCommand = { id };
     const metadata = req['internalMetadata'] as Metadata;
-    return this.commandService.deleteEvent(command, metadata);
+    return this.commandService.deleteEvent({ id }, metadata);
   }
 }

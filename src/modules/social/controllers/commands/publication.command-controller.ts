@@ -1,12 +1,15 @@
 import { map } from 'rxjs';
 import { Controller, Delete, Param, Post, Req } from '@nestjs/common';
 
-import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiResponse, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import {
   CustomApiError,
   SOCIAL_POST_ALREADY_EXISTS,
   SOCIAL_POST_NOT_FOUND,
   DATABASE_ERROR,
+  ApiForbiddenResponse,
+  ApiUnauthorizedResponse,
+  MISSING_ACCESS_TOKEN,
 } from '@volontariapp/errors-nest';
 import type { Metadata } from '@grpc/grpc-js';
 import { Roles } from '../../../../common/decorators/roles.decorator.js';
@@ -14,7 +17,13 @@ import { UserRoles } from '@volontariapp/shared';
 import { BasePublicationGrpcController } from '../base-grpc.controller.js';
 import { ActionSuccessResponseDTO } from '../../dto/response/index.js';
 
-@ApiTags('Social - Publications - Commands')
+@ApiTags('Social - Publications - Admin')
+@ApiBearerAuth('access-token')
+@ApiBearerAuth('refresh-token')
+@ApiBearerAuth('internal-token')
+@CustomApiError(MISSING_ACCESS_TOKEN)
+@ApiUnauthorizedResponse('Missing or invalid access token')
+@ApiForbiddenResponse('Required role: ADMIN — your token does not grant this access')
 @Controller('social')
 export class PublicationCommandController extends BasePublicationGrpcController {
   @Post('posts/:postId')
@@ -45,7 +54,11 @@ export class PublicationCommandController extends BasePublicationGrpcController 
 
   @Post('users/:userId/posts/:postId/own')
   @Roles(UserRoles.ADMIN)
-  @ApiOperation({ summary: 'Link a user as owner of a post' })
+  @ApiOperation({
+    summary: 'Link a user as owner of a post',
+    description:
+      '🔐 **Required Role:** `ADMIN`\n\nManually assign post ownership to a user. Useful for correcting ownership or migrating posts.',
+  })
   @ApiParam({ name: 'userId', example: 'uuid-user-123' })
   @ApiParam({ name: 'postId', example: 'uuid-post-123' })
   @ApiResponse({ status: 201, type: ActionSuccessResponseDTO })
@@ -58,7 +71,11 @@ export class PublicationCommandController extends BasePublicationGrpcController 
 
   @Delete('users/:userId/posts/:postId/own')
   @Roles(UserRoles.ADMIN)
-  @ApiOperation({ summary: 'Unlink a user from owning a post' })
+  @ApiOperation({
+    summary: 'Unlink a user from owning a post',
+    description:
+      '🔐 **Required Role:** `ADMIN`\n\nRevoke post ownership from a user. The post will remain but will have no owner.',
+  })
   @ApiParam({ name: 'userId', example: 'uuid-user-123' })
   @ApiParam({ name: 'postId', example: 'uuid-post-123' })
   @ApiResponse({ status: 200, type: ActionSuccessResponseDTO })

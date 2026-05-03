@@ -17,8 +17,11 @@ import {
 } from '@volontariapp/errors-nest';
 import type { Metadata } from '@grpc/grpc-js';
 import { BaseBadgeGrpcController } from '../base-badge-grpc.controller.js';
-import { GetBadgeQuery } from '@volontariapp/contracts-nest';
-import { ListBadgesRequestDTO } from '../../dto/request/list-badges.request.dto.js';
+import {
+  ListBadgesRequestDTO,
+  GetBadgeRequestDTO,
+  GetBadgeBySlugRequestDTO,
+} from '../../dto/request/index.js';
 import { BadgeResponseDTO, ListBadgesResponseDTO } from '../../dto/response/index.js';
 
 @ApiTags('Badges')
@@ -50,9 +53,11 @@ export class BadgeQueryController extends BaseBadgeGrpcController {
   @Get(`slug/:slug`)
   getBadgeBySlug(@Param('slug') slug: string, @Req() req: Record<string, unknown>) {
     this.logger.log(`Fetching badge with slug: ${slug}`);
+    const dto = new GetBadgeBySlugRequestDTO();
+    dto.slug = slug;
     const metadata = req['internalMetadata'] as Metadata;
     return this.badgeService
-      .getBadgeBySlug({ slug }, metadata)
+      .getBadgeBySlug(dto.toQuery(), metadata)
       .pipe(map((res) => BadgeResponseDTO.fromResponse(res)));
   }
 
@@ -62,10 +67,11 @@ export class BadgeQueryController extends BaseBadgeGrpcController {
   @Get(':id')
   getBadge(@Param('id') id: string, @Req() req: Record<string, unknown>) {
     this.logger.log(`Fetching badge with id: ${id}`);
-    const query: GetBadgeQuery = { badgeId: id };
+    const dto = new GetBadgeRequestDTO();
+    dto.badgeId = id;
     const metadata = req['internalMetadata'] as Metadata;
     return this.badgeService
-      .getBadge(query, metadata)
+      .getBadge(dto.toQuery(), metadata)
       .pipe(map((res) => BadgeResponseDTO.fromResponse(res)));
   }
 }

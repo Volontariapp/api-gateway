@@ -12,9 +12,6 @@ export class CreatePostRequestDTO implements CreatePostRequest {
   @ApiProperty({ example: 'uuid-user-123' })
   authorId!: string;
 
-  @ApiProperty({ example: ['uuid-tag-1'], isArray: true, required: false })
-  tagIds!: string[];
-
   toCommand(): CreatePostCommand {
     return {
       title: this.title,

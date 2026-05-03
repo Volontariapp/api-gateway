@@ -16,10 +16,10 @@ import type { Metadata } from '@grpc/grpc-js';
 import { Roles } from '../../../../common/decorators/roles.decorator.js';
 import { UserRoles } from '@volontariapp/shared';
 import { BaseUserGrpcController } from '../base-user-grpc.controller.js';
-import { RemoveBadgeFromUserCommand } from '@volontariapp/contracts-nest';
 import {
   AddBadgeToUserRequestDTO,
   IncrementImpactScoreRequestDTO,
+  RemoveBadgeFromUserRequestDTO,
 } from '../../dto/request/index.js';
 
 @ApiTags('Users - Admin')
@@ -28,12 +28,16 @@ import {
 @ApiBearerAuth('internal-token')
 @CustomApiError(MISSING_ACCESS_TOKEN)
 @ApiUnauthorizedResponse('Missing or invalid access token')
-@ApiForbiddenResponse('You do not have permission to manage users')
+@ApiForbiddenResponse('Required role: ADMIN — your token does not grant this access')
 @Controller('users')
 export class UserAdminCommandController extends BaseUserGrpcController {
   private readonly logger = new Logger({ context: UserAdminCommandController.name });
 
-  @ApiOperation({ summary: 'Add a badge to a user' })
+  @ApiOperation({
+    summary: 'Add a badge to a user',
+    description:
+      '🔐 **Required Role:** `ADMIN`\n\nAssign a badge to a user. Requires the user and badge to exist. User cannot already have this badge.',
+  })
   @ApiParam({ name: 'id', example: 'uuid-123' })
   @ApiResponse({ status: 201 })
   @CustomApiError(() => USER_NOT_FOUND(''))
@@ -52,7 +56,11 @@ export class UserAdminCommandController extends BaseUserGrpcController {
     return this.userService.addBadgeToUser(request.toCommand(), metadata);
   }
 
-  @ApiOperation({ summary: 'Remove a badge from a user' })
+  @ApiOperation({
+    summary: 'Remove a badge from a user',
+    description:
+      '🔐 **Required Role:** `ADMIN`\n\nRevoke a badge from a user. The user must have the badge assigned.',
+  })
   @ApiParam({ name: 'id', example: 'uuid-123' })
   @ApiParam({ name: 'badgeId', example: 'uuid-badge-123' })
   @ApiResponse({ status: 200 })
@@ -66,12 +74,18 @@ export class UserAdminCommandController extends BaseUserGrpcController {
     @Req() req: Record<string, unknown>,
   ) {
     this.logger.log(`Removing badge ${badgeId} from user ${userId}`);
-    const command: RemoveBadgeFromUserCommand = { userId, badgeId };
+    const dto = new RemoveBadgeFromUserRequestDTO();
+    dto.userId = userId;
+    dto.badgeId = badgeId;
     const metadata = req['internalMetadata'] as Metadata;
-    return this.userService.removeBadgeFromUser(command, metadata);
+    return this.userService.removeBadgeFromUser(dto.toCommand(), metadata);
   }
 
-  @ApiOperation({ summary: 'Increment impact score for a user' })
+  @ApiOperation({
+    summary: 'Increment impact score for a user',
+    description:
+      '🔐 **Required Role:** `ADMIN`\n\nIncrease or decrease the impact score for a user. Useful for rewarding participation or correcting scores. The increment value must be non-zero.',
+  })
   @ApiParam({ name: 'id', example: 'uuid-123' })
   @ApiResponse({ status: 200 })
   @CustomApiError(() => USER_NOT_FOUND(''))

@@ -19,8 +19,11 @@ import type { Metadata } from '@grpc/grpc-js';
 import { Roles } from '../../../../common/decorators/roles.decorator.js';
 import { UserRoles } from '@volontariapp/shared';
 import { BaseBadgeGrpcController } from '../base-badge-grpc.controller.js';
-import { DeleteBadgeCommand } from '@volontariapp/contracts-nest';
-import { CreateBadgeRequestDTO, UpdateBadgeRequestDTO } from '../../dto/request/index.js';
+import {
+  CreateBadgeRequestDTO,
+  UpdateBadgeRequestDTO,
+  DeleteBadgeRequestDTO,
+} from '../../dto/request/index.js';
 import { BadgeResponseDTO } from '../../dto/response/index.js';
 
 @ApiTags('Badges - Admin')
@@ -30,12 +33,16 @@ import { BadgeResponseDTO } from '../../dto/response/index.js';
 @ApiBearerAuth('internal-token')
 @CustomApiError(MISSING_ACCESS_TOKEN)
 @ApiUnauthorizedResponse('Missing or invalid access token')
-@ApiForbiddenResponse('You do not have permission to manage badges')
+@ApiForbiddenResponse('Required role: ADMIN — your token does not grant this access')
 @Controller('badges')
 export class BadgeAdminCommandController extends BaseBadgeGrpcController {
   private readonly logger = new Logger({ context: BadgeAdminCommandController.name });
 
-  @ApiOperation({ summary: 'Create a new badge' })
+  @ApiOperation({
+    summary: 'Create a new badge',
+    description:
+      '🔐 **Required Role:** `ADMIN`\n\nCreate a new badge that can be assigned to users. Each badge must have a unique slug identifier.',
+  })
   @ApiResponse({ status: 201, type: BadgeResponseDTO })
   @Roles(UserRoles.ADMIN)
   @Post()
@@ -47,7 +54,11 @@ export class BadgeAdminCommandController extends BaseBadgeGrpcController {
       .pipe(map((res) => BadgeResponseDTO.fromResponse(res)));
   }
 
-  @ApiOperation({ summary: 'Update a badge by ID' })
+  @ApiOperation({
+    summary: 'Update a badge by ID',
+    description:
+      '🔐 **Required Role:** `ADMIN`\n\nModify badge properties such as name, description, or slug.',
+  })
   @ApiParam({ name: 'id', example: 'uuid-badge-123' })
   @ApiResponse({ status: 200, type: BadgeResponseDTO })
   @Roles(UserRoles.ADMIN)
@@ -63,15 +74,20 @@ export class BadgeAdminCommandController extends BaseBadgeGrpcController {
     return this.badgeService.updateBadge(request.toCommand(), metadata);
   }
 
-  @ApiOperation({ summary: 'Delete a badge by ID' })
+  @ApiOperation({
+    summary: 'Delete a badge by ID',
+    description:
+      '🔐 **Required Role:** `ADMIN`\n\nRemove a badge definition from the system. Users previously assigned this badge will no longer have it.',
+  })
   @ApiParam({ name: 'id', example: 'uuid-badge-123' })
   @ApiResponse({ status: 200 })
   @Roles(UserRoles.ADMIN)
   @Delete(':id')
   deleteBadge(@Param('id') id: string, @Req() req: Record<string, unknown>) {
     this.logger.log(`Deleting badge with id: ${id}`);
-    const command: DeleteBadgeCommand = { badgeId: id };
+    const dto = new DeleteBadgeRequestDTO();
+    dto.badgeId = id;
     const metadata = req['internalMetadata'] as Metadata;
-    return this.badgeService.deleteBadge(command, metadata);
+    return this.badgeService.deleteBadge(dto.toCommand(), metadata);
   }
 }

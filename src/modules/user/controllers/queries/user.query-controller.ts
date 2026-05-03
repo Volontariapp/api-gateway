@@ -12,7 +12,7 @@ import {
 import type { Metadata } from '@grpc/grpc-js';
 import { IsCurrentUserOrAdminGuard } from '../../../../common/guards/is-current-user-or-admin.guard.js';
 import { BaseUserGrpcController } from '../base-user-grpc.controller.js';
-import { GetUserQuery } from '@volontariapp/contracts-nest';
+import { GetUserRequestDTO } from '../../dto/request/index.js';
 import { UserResponseDTO } from '../../dto/response/index.js';
 
 @ApiTags('Users - Queries')
@@ -34,10 +34,11 @@ export class UserQueryController extends BaseUserGrpcController {
   @Get(':id')
   getUser(@Param('id') id: string, @Req() req: Record<string, unknown>) {
     this.logger.log(`Fetching user profile: ${id}`);
-    const query: GetUserQuery = { userId: id };
+    const dto = new GetUserRequestDTO();
+    dto.userId = id;
     const metadata = req['internalMetadata'] as Metadata;
     return this.userService
-      .getUser(query, metadata)
+      .getUser(dto.toQuery(), metadata)
       .pipe(map((res) => UserResponseDTO.fromResponse(res)));
   }
 }

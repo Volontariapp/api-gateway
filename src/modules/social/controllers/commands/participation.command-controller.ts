@@ -1,7 +1,7 @@
 import { map } from 'rxjs';
 import { Controller, Delete, Param, Post, Req, UseGuards } from '@nestjs/common';
 
-import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiResponse, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import {
   CustomApiError,
   SOCIAL_EVENT_NOT_FOUND,
@@ -11,6 +11,9 @@ import {
   SOCIAL_WISH_ALREADY_EXISTS,
   SOCIAL_WISH_NOT_FOUND,
   DATABASE_ERROR,
+  ApiForbiddenResponse,
+  ApiUnauthorizedResponse,
+  MISSING_ACCESS_TOKEN,
 } from '@volontariapp/errors-nest';
 import type { Metadata } from '@grpc/grpc-js';
 import { CurrentUser } from '../../../../common/decorators/current-user.decorator.js';
@@ -21,7 +24,13 @@ import { IsCurrentUserOrAdminGuard } from '../../../../common/guards/is-current-
 import { BaseParticipationGrpcController } from '../base-grpc.controller.js';
 import { ActionSuccessResponseDTO } from '../../dto/response/index.js';
 
-@ApiTags('Social - Participation - Commands')
+@ApiTags('Social - Participation - Admin')
+@ApiBearerAuth('access-token')
+@ApiBearerAuth('refresh-token')
+@ApiBearerAuth('internal-token')
+@CustomApiError(MISSING_ACCESS_TOKEN)
+@ApiUnauthorizedResponse('Missing or invalid access token')
+@ApiForbiddenResponse('Required role: ADMIN — your token does not grant this access')
 @Controller('social')
 export class ParticipationCommandController extends BaseParticipationGrpcController {
   @Post('events/:eventId')
@@ -52,7 +61,11 @@ export class ParticipationCommandController extends BaseParticipationGrpcControl
 
   @Post('users/:userId/events/:eventId/own')
   @Roles(UserRoles.ADMIN)
-  @ApiOperation({ summary: 'Link a user as creator of an event' })
+  @ApiOperation({
+    summary: 'Link a user as creator of an event',
+    description:
+      '🔐 **Required Role:** `ADMIN`\n\nManually assign event creation to a user. Useful for correcting creator information or migrating events.',
+  })
   @ApiParam({ name: 'userId', example: 'uuid-user-123' })
   @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
   @ApiResponse({ status: 201, type: ActionSuccessResponseDTO })
@@ -71,7 +84,11 @@ export class ParticipationCommandController extends BaseParticipationGrpcControl
 
   @Delete('users/:userId/events/:eventId/own')
   @Roles(UserRoles.ADMIN)
-  @ApiOperation({ summary: 'Unlink a user from event creation' })
+  @ApiOperation({
+    summary: 'Unlink a user from event creation',
+    description:
+      '🔐 **Required Role:** `ADMIN`\n\nRevoke event creator status from a user. The event will remain but will have no creator.',
+  })
   @ApiParam({ name: 'userId', example: 'uuid-user-123' })
   @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
   @ApiResponse({ status: 200, type: ActionSuccessResponseDTO })

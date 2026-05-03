@@ -21,12 +21,16 @@ import { ListUsersResponseDTO } from '../../dto/response/index.js';
 @ApiBearerAuth('internal-token')
 @CustomApiError(MISSING_ACCESS_TOKEN)
 @ApiUnauthorizedResponse('Missing or invalid access token')
-@ApiForbiddenResponse('You do not have permission to manage users')
+@ApiForbiddenResponse('Required role: ADMIN — your token does not grant this access')
 @Controller('users')
 export class UserAdminQueryController extends BaseUserGrpcController {
   private readonly logger = new Logger({ context: UserAdminQueryController.name });
 
-  @ApiOperation({ summary: 'List all users' })
+  @ApiOperation({
+    summary: 'List all users',
+    description:
+      '🔐 **Required Role:** `ADMIN`\n\nFetch a paginated list of all users in the system. Requires a valid **access-token** JWT with the `admin` role.',
+  })
   @ApiResponse({ status: 200, type: ListUsersResponseDTO })
   @Roles(UserRoles.ADMIN)
   @Get()
