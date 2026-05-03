@@ -16,7 +16,6 @@ export class CreatePostRequestDTO implements CreatePostRequest {
     return {
       title: this.title,
       content: this.content,
-      authorId: this.authorId,
     };
   }
 }
