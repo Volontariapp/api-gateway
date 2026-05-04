@@ -9,12 +9,7 @@ export class GetUserWishesRequestDTO implements GetUserWishEventWebRequest {
   @Type(() => PaginationRequestDTO)
   pagination?: PaginationRequestDTO;
 
-  userId!: string;
-
   toQuery(): GetUserWishEventQuery {
-    return {
-      userId: this.userId,
-      pagination: this.pagination,
-    };
+    return { pagination: this.pagination };
   }
 }

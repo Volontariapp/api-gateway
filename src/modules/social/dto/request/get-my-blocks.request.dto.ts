@@ -9,12 +9,7 @@ export class GetMyBlocksRequestDTO implements GetMyBlocksWebRequest {
   @Type(() => PaginationRequestDTO)
   pagination?: PaginationRequestDTO;
 
-  userId!: string;
-
   toQuery(): GetMyBlocksQuery {
-    return {
-      userId: this.userId,
-      pagination: this.pagination,
-    };
+    return { pagination: this.pagination };
   }
 }

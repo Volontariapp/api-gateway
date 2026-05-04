@@ -18,6 +18,7 @@ import {
   AccessTokenMiddleware,
   RefreshTokenMiddleware,
   JwtService,
+  RolesGuard,
 } from '@volontariapp/auth';
 import { Reflector } from '@nestjs/core';
 
@@ -57,7 +58,7 @@ async function bootstrap() {
 
   const reflector = app.get(Reflector);
   const jwtService = app.get(JwtService);
-  app.useGlobalGuards(new AccessTokenGuard(jwtService, reflector));
+  app.useGlobalGuards(new AccessTokenGuard(jwtService, reflector), new RolesGuard(reflector));
   app.use(new AccessTokenMiddleware().use);
   app.use(new RefreshTokenMiddleware().use);
   const port = configService.config.port;
@@ -68,6 +69,10 @@ async function bootstrap() {
   logger.log(`DOCUMENTATION (Posts):  http://localhost:${port.toString()}/docs/post`);
   logger.log(`DOCUMENTATION (Users):  http://localhost:${port.toString()}/docs/user`);
   logger.log(`DOCUMENTATION (Social): http://localhost:${port.toString()}/docs/social`);
+  logger.log(`DOCUMENTATION (Admin Hub):    http://localhost:${port.toString()}/docs/admin`);
+  logger.log(`DOCUMENTATION (Admin Users):  http://localhost:${port.toString()}/docs/admin/users`);
+  logger.log(`DOCUMENTATION (Admin Events): http://localhost:${port.toString()}/docs/admin/events`);
+  logger.log(`DOCUMENTATION (Admin Social): http://localhost:${port.toString()}/docs/admin/social`);
   if (appConfig.nodeEnv !== NodeEnv.PRODUCTION) {
     logger.log(`DOCUMENTATION (Helper): http://localhost:${port.toString()}/docs/helpers`);
   }

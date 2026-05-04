@@ -31,9 +31,9 @@ export class ManageRequirementRequestDTO implements ManageRequirementRequest {
       return {
         eventId: this.eventId,
         add: {
-          name: this.name as string,
-          description: this.description as string,
-          neededQuantity: this.neededQuantity as number,
+          name: this.name ?? '',
+          description: this.description ?? '',
+          neededQuantity: this.neededQuantity ?? 0,
         },
       };
     }
@@ -41,7 +41,7 @@ export class ManageRequirementRequestDTO implements ManageRequirementRequest {
     return {
       eventId: this.eventId,
       remove: {
-        requirementId: this.requirementId as string,
+        requirementId: this.requirementId ?? '',
       },
     };
   }

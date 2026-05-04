@@ -9,11 +9,8 @@ export class GetUserLikesRequestDTO implements GetUserLikesWebRequest {
   @Type(() => PaginationRequestDTO)
   pagination?: PaginationRequestDTO;
 
-  userId!: string;
-
   toQuery(): GetUserLikesQuery {
     return {
-      userId: this.userId,
       pagination: this.pagination,
     };
   }

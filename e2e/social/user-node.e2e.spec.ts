@@ -11,6 +11,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { setupAuth } from '../helpers/auth-helper.js';
 import { createTestClient } from '../helpers/test-client.helper.js';
+import { UserRoles } from '@volontariapp/shared';
 
 describe('Social User Node (E2E)', () => {
   let app: INestApplication;
@@ -38,7 +39,7 @@ describe('Social User Node (E2E)', () => {
   });
 
   it('should create, check existence, and delete a social user node', async () => {
-    const client = await createTestClient(app).login({ id: randomUUID(), role: 'admin' });
+    const client = await createTestClient(app).login({ id: randomUUID(), role: UserRoles.ADMIN });
     const userId = randomUUID();
 
     const createResponse = await client.post(`/api/v1/social/users/${userId}`).expect(201);

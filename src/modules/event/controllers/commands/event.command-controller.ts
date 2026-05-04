@@ -1,16 +1,4 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Inject,
-  Get,
-  OnModuleInit,
-  Param,
-  Patch,
-  Post,
-  Query,
-  Req,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
 import { map } from 'rxjs';
 import { Logger } from '@volontariapp/logger';
 import {
@@ -30,107 +18,43 @@ import {
   INVALID_EVENT_STATE_TRANSITION,
   DATABASE_ERROR,
   MISSING_ACCESS_TOKEN,
-  INSUFFICIENT_PERMISSIONS,
+  ApiUnauthorizedResponse,
+  ApiForbiddenResponse,
 } from '@volontariapp/errors-nest';
-import type { ClientGrpc } from '@nestjs/microservices';
-import {
-  EVENT_COMMAND_SERVICE_NAME,
-  EventCommandServiceClient,
-  EVENT_QUERY_SERVICE_NAME,
-  EventQueryServiceClient,
-  DeleteEventCommand,
-} from '@volontariapp/contracts-nest';
-import { EVENT_PACKAGE } from '../../../grpc/grpc-packages.js';
+import type { Metadata } from '@grpc/grpc-js';
+import type { UUID } from 'crypto';
+import { AccessTokenGuard } from '@volontariapp/auth';
 import {
   CreateEventRequestDTO,
   UpdateEventRequestDTO,
-  SearchEventsRequestDTO,
-  GetEventRequestDTO,
   ChangeEventStateRequestDTO,
   AddRequirementRequestDTO,
   RemoveRequirementRequestDTO,
-} from '../dto/request/index.js';
+} from '../../dto/request/index.js';
 import {
+  CreateEventResponseDTO,
+  UpdateEventResponseDTO,
+  ChangeEventStateResponseDTO,
   GetEventResponseDTO,
-  SearchEventsResponseDTO,
   ActionSuccessResponseDTO,
-  ListRequirementsResponseDTO,
-} from '../dto/response/index.js';
-import type { UUID } from 'crypto';
-import { WithMetadata } from '../../../common/types/grpc.types.js';
-import type { Metadata } from '@grpc/grpc-js';
+} from '../../dto/response/index.js';
+import { BaseEventGrpcController } from '../base-grpc.controller.js';
 
 @ApiTags('Events')
-@ApiExtraModels(
-  GetEventResponseDTO,
-  SearchEventsResponseDTO,
-  ListRequirementsResponseDTO,
-  ActionSuccessResponseDTO,
-)
+@ApiExtraModels(GetEventResponseDTO, ActionSuccessResponseDTO)
 @ApiBearerAuth('access-token')
 @ApiBearerAuth('refresh-token')
 @ApiBearerAuth('internal-token')
 @CustomApiError(MISSING_ACCESS_TOKEN)
-@CustomApiError(INSUFFICIENT_PERMISSIONS)
+@ApiUnauthorizedResponse('Missing or invalid access token')
+@ApiForbiddenResponse('Access denied')
 @ApiInternalServerErrorResponse('An unexpected error occurred on the server')
 @Controller('events')
-export class EventController implements OnModuleInit {
+@UseGuards(AccessTokenGuard)
+export class EventCommandController extends BaseEventGrpcController {
   private readonly logger = new Logger({
-    context: EventController.name,
+    context: EventCommandController.name,
   });
-  private commandService!: WithMetadata<EventCommandServiceClient>;
-  private queryService!: WithMetadata<EventQueryServiceClient>;
-
-  constructor(@Inject(EVENT_PACKAGE) private client: ClientGrpc) {}
-
-  onModuleInit() {
-    this.commandService = this.client.getService<EventCommandServiceClient>(
-      EVENT_COMMAND_SERVICE_NAME,
-    );
-    this.queryService = this.client.getService<EventQueryServiceClient>(EVENT_QUERY_SERVICE_NAME);
-  }
-
-  @ApiOperation({
-    summary: 'Search events with filters',
-    description: 'Returns a paginated list of events matching search criteria.',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Search results successfully retrieved',
-    type: SearchEventsResponseDTO,
-  })
-  @CustomApiError(() => DATABASE_ERROR('searching events', 'details'))
-  @Get()
-  searchEvents(@Query() request: SearchEventsRequestDTO, @Req() req: Record<string, unknown>) {
-    this.logger.log(`Searching events with filters: ${JSON.stringify(request)}`);
-    const metadata = req['internalMetadata'] as Metadata;
-    return this.queryService
-      .searchEvents(request.toQuery(), metadata)
-      .pipe(map((res) => SearchEventsResponseDTO.fromResponse(res)));
-  }
-
-  @ApiOperation({
-    summary: 'Get an event by ID',
-    description: 'Retrieves full details of a specific event.',
-  })
-  @ApiParam({ name: 'id', example: '' })
-  @ApiResponse({
-    status: 200,
-    description: 'Event details successfully retrieved',
-    type: GetEventResponseDTO,
-  })
-  @CustomApiError(() => EVENT_NOT_FOUND('id'))
-  @CustomApiError(() => DATABASE_ERROR('finding event', 'details'))
-  @Get(':id')
-  getEvent(@Param('id') id: string, @Req() req: Record<string, unknown>) {
-    this.logger.log(`Fetching event with id: ${id}`);
-    const request = new GetEventRequestDTO();
-    request.id = id;
-    const metadata = req['internalMetadata'] as Metadata;
-    return this.queryService
-      .getEvent(request.toQuery(), metadata)
-      .pipe(map((res) => GetEventResponseDTO.fromResponse(res)));
-  }
 
   @ApiOperation({
     summary: 'Create a new event',
@@ -150,7 +74,7 @@ export class EventController implements OnModuleInit {
     const metadata = req['internalMetadata'] as Metadata;
     return this.commandService
       .createEvent(request.toCommand(), metadata)
-      .pipe(map((res) => GetEventResponseDTO.fromResponse(res)));
+      .pipe(map((res) => CreateEventResponseDTO.fromResponse(res)));
   }
 
   @ApiOperation({
@@ -178,7 +102,7 @@ export class EventController implements OnModuleInit {
     const metadata = req['internalMetadata'] as Metadata;
     return this.commandService
       .updateEvent(request.toCommand(), metadata)
-      .pipe(map((res) => GetEventResponseDTO.fromResponse(res)));
+      .pipe(map((res) => UpdateEventResponseDTO.fromResponse(res)));
   }
 
   @ApiOperation({
@@ -204,7 +128,7 @@ export class EventController implements OnModuleInit {
     const metadata = req['internalMetadata'] as Metadata;
     return this.commandService
       .changeEventState(request.toCommand(), metadata)
-      .pipe(map((res) => GetEventResponseDTO.fromResponse(res)));
+      .pipe(map((res) => ChangeEventStateResponseDTO.fromResponse(res)));
   }
 
   @ApiOperation({
@@ -255,23 +179,6 @@ export class EventController implements OnModuleInit {
   }
 
   @ApiOperation({
-    summary: 'List requirements for an event',
-  })
-  @ApiParam({ name: 'id', example: 'uuid-123' })
-  @ApiResponse({
-    status: 200,
-    type: ListRequirementsResponseDTO,
-  })
-  @CustomApiError(() => EVENT_NOT_FOUND('id'))
-  @CustomApiError(() => DATABASE_ERROR('listing requirements', 'details'))
-  @Get(':id/requirements')
-  listRequirements(@Param('id') id: string, @Req() req: Record<string, unknown>) {
-    this.logger.log(`Listing requirements for event with id: ${id}`);
-    const metadata = req['internalMetadata'] as Metadata;
-    return this.queryService.listRequirements({ eventId: id }, metadata);
-  }
-
-  @ApiOperation({
     summary: 'Delete an event by ID',
   })
   @ApiParam({ name: 'id', example: 'uuid-123' })
@@ -284,8 +191,7 @@ export class EventController implements OnModuleInit {
   @Delete(':id')
   deleteEvent(@Param('id') id: string, @Req() req: Record<string, unknown>) {
     this.logger.log(`Deleting event with id: ${id}`);
-    const command: DeleteEventCommand = { id };
     const metadata = req['internalMetadata'] as Metadata;
-    return this.commandService.deleteEvent(command, metadata);
+    return this.commandService.deleteEvent({ id }, metadata);
   }
 }

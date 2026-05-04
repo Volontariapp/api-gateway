@@ -21,7 +21,6 @@ export class UpdateEventRequestDTO
 
     if (startAt !== undefined) {
       const ts = GrpcDateMapper.toTimestamp(startAt);
-      console.log(startAt, endAt);
 
       if (!ts) {
         throw INVALID_DATE_PARAMETERS('startAt is invalid');
@@ -43,7 +42,6 @@ export class UpdateEventRequestDTO
       event.tags = tagIds.map((tagId) => ({ id: tagId }) as unknown as Event['tags'][number]);
       updateMask.push('tags');
     }
-    console.log(event);
 
     return {
       id,

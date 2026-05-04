@@ -16,6 +16,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { setupAuth } from '../helpers/auth-helper.js';
 import { createTestClient } from '../helpers/test-client.helper.js';
+import { UserRoles } from '@volontariapp/shared';
 
 describe('Social Relations & Interactions (E2E)', () => {
   let app: INestApplication;
@@ -43,7 +44,7 @@ describe('Social Relations & Interactions (E2E)', () => {
   });
 
   it('should handle complex user relations: follow, post ownership, and likes', async () => {
-    const client = await createTestClient(app).login({ id: randomUUID(), role: 'admin' });
+    const client = await createTestClient(app).login({ id: randomUUID(), role: UserRoles.ADMIN });
     const followerId = randomUUID();
     const followedId = randomUUID();
     const postId = randomUUID();
@@ -103,7 +104,7 @@ describe('Social Relations & Interactions (E2E)', () => {
   });
 
   it('should handle error cases and non-existent nodes', async () => {
-    const client = await createTestClient(app).login({ id: randomUUID(), role: 'admin' });
+    const client = await createTestClient(app).login({ id: randomUUID(), role: UserRoles.ADMIN });
     const userId = randomUUID();
     const fakeId = randomUUID();
 
@@ -126,7 +127,7 @@ describe('Social Relations & Interactions (E2E)', () => {
   });
 
   it('should handle complete flows: interaction between users, events, and posts', async () => {
-    const client = await createTestClient(app).login({ id: randomUUID(), role: 'admin' });
+    const client = await createTestClient(app).login({ id: randomUUID(), role: UserRoles.ADMIN });
     const userAId = randomUUID();
     const userBId = randomUUID();
     const eventId = randomUUID();
@@ -175,7 +176,7 @@ describe('Social Relations & Interactions (E2E)', () => {
   });
 
   it('should cover additional social routes: blocks, feeds, and ownerships', async () => {
-    const client = await createTestClient(app).login({ id: randomUUID(), role: 'admin' });
+    const client = await createTestClient(app).login({ id: randomUUID(), role: UserRoles.ADMIN });
     const userAId = randomUUID();
     const userBId = randomUUID();
     const eventId = randomUUID();
@@ -251,7 +252,7 @@ describe('Social Relations & Interactions (E2E)', () => {
   });
 
   it('should map domain errors from all social services (Conflict & NotFound)', async () => {
-    const client = await createTestClient(app).login({ id: randomUUID(), role: 'admin' });
+    const client = await createTestClient(app).login({ id: randomUUID(), role: UserRoles.ADMIN });
     const userAId = randomUUID();
     const userBId = randomUUID();
     const postId = randomUUID();
@@ -287,7 +288,7 @@ describe('Social Relations & Interactions (E2E)', () => {
   });
 
   it('should handle wish event lifecycle: create, list, conflict, delete, and not found', async () => {
-    const client = await createTestClient(app).login({ id: randomUUID(), role: 'admin' });
+    const client = await createTestClient(app).login({ id: randomUUID(), role: UserRoles.ADMIN });
     const userId = randomUUID();
     const eventId = randomUUID();
 
