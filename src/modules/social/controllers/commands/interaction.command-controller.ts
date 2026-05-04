@@ -1,22 +1,31 @@
 import { map } from 'rxjs';
 import { Controller, Delete, Param, Post, Req, UseGuards } from '@nestjs/common';
 
-import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiResponse, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import {
   CustomApiError,
   SOCIAL_RELATIONSHIP_ALREADY_EXISTS,
   SOCIAL_RELATIONSHIP_NOT_FOUND,
   DATABASE_ERROR,
+  ApiForbiddenResponse,
+  ApiUnauthorizedResponse,
+  MISSING_ACCESS_TOKEN,
 } from '@volontariapp/errors-nest';
 import type { Metadata } from '@grpc/grpc-js';
-import { CurrentUser } from '../../../../common/decorators/current-user.decorator.js';
-import type { AuthUser } from '@volontariapp/auth';
+import { AccessTokenGuard } from '@volontariapp/auth';
 import { IsCurrentUserOrAdminGuard } from '../../../../common/guards/is-current-user-or-admin.guard.js';
 import { BaseInteractionGrpcController } from '../base-grpc.controller.js';
 import { ActionSuccessResponseDTO } from '../../dto/response/index.js';
 
 @ApiTags('Social - Interactions - Commands')
+@ApiBearerAuth('access-token')
+@ApiBearerAuth('refresh-token')
+@ApiBearerAuth('internal-token')
+@CustomApiError(MISSING_ACCESS_TOKEN)
+@ApiUnauthorizedResponse('Missing or invalid access token')
+@ApiForbiddenResponse('Access denied')
 @Controller('social')
+@UseGuards(AccessTokenGuard)
 export class InteractionCommandController extends BaseInteractionGrpcController {
   @Post('users/:userId/likes/:postId')
   @UseGuards(IsCurrentUserOrAdminGuard)
@@ -33,7 +42,7 @@ export class InteractionCommandController extends BaseInteractionGrpcController 
   ) {
     const metadata = req['internalMetadata'] as Metadata;
     return this.commandService
-      .postLikePost({ userId, postId }, metadata)
+      .adminPostLikePost({ userId, postId }, metadata)
       .pipe(map(() => ({ success: true, message: 'Post liked' })));
   }
 
@@ -52,7 +61,7 @@ export class InteractionCommandController extends BaseInteractionGrpcController 
   ) {
     const metadata = req['internalMetadata'] as Metadata;
     return this.commandService
-      .deleteLikePost({ userId, postId }, metadata)
+      .adminDeleteLikePost({ userId, postId }, metadata)
       .pipe(map(() => ({ success: true, message: 'Post unliked' })));
   }
 
@@ -61,14 +70,10 @@ export class InteractionCommandController extends BaseInteractionGrpcController 
   @ApiParam({ name: 'postId', example: 'uuid-post-123' })
   @ApiResponse({ status: 201, type: ActionSuccessResponseDTO })
   @CustomApiError(() => DATABASE_ERROR('creating like', 'details'))
-  likePostSelf(
-    @Param('postId') postId: string,
-    @CurrentUser() user: AuthUser,
-    @Req() req: Record<string, unknown>,
-  ) {
+  likePostSelf(@Param('postId') postId: string, @Req() req: Record<string, unknown>) {
     const metadata = req['internalMetadata'] as Metadata;
     return this.commandService
-      .postLikePost({ userId: user.id, postId }, metadata)
+      .postLikePost({ postId }, metadata)
       .pipe(map(() => ({ success: true, message: 'Post liked' })));
   }
 
@@ -77,14 +82,10 @@ export class InteractionCommandController extends BaseInteractionGrpcController 
   @ApiParam({ name: 'postId', example: 'uuid-post-123' })
   @ApiResponse({ status: 200, type: ActionSuccessResponseDTO })
   @CustomApiError(() => DATABASE_ERROR('deleting like', 'details'))
-  unlikePostSelf(
-    @Param('postId') postId: string,
-    @CurrentUser() user: AuthUser,
-    @Req() req: Record<string, unknown>,
-  ) {
+  unlikePostSelf(@Param('postId') postId: string, @Req() req: Record<string, unknown>) {
     const metadata = req['internalMetadata'] as Metadata;
     return this.commandService
-      .deleteLikePost({ userId: user.id, postId }, metadata)
+      .deleteLikePost({ postId }, metadata)
       .pipe(map(() => ({ success: true, message: 'Post unliked' })));
   }
 }

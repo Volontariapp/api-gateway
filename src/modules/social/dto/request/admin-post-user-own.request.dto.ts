@@ -1,11 +1,10 @@
-import type { AdminPostUserOwnCommand } from '@volontariapp/contracts';
-import type { AdminPostUserOwnCommand as AdminPostUserOwnCommandType } from '@volontariapp/contracts-nest';
+import type { AdminPostUserOwnCommand, AdminPostUserOwnWebRequest } from '@volontariapp/contracts';
 
-export class AdminPostUserOwnRequestDTO implements AdminPostUserOwnCommand {
+export class AdminPostUserOwnRequestDTO implements AdminPostUserOwnWebRequest {
   userId!: string;
   postId!: string;
 
-  toCommand(): AdminPostUserOwnCommandType {
+  toCommand(): AdminPostUserOwnCommand {
     return { userId: this.userId, postId: this.postId };
   }
 }

@@ -1,10 +1,9 @@
-import type { CreateFollowCommand } from '@volontariapp/contracts';
-import type { CreateFollowCommand as CreateFollowCommandType } from '@volontariapp/contracts-nest';
+import type { PostFollowUserWebRequest, PostFollowUserCommand } from '@volontariapp/contracts';
 
-export class PostFollowUserRequestDTO implements CreateFollowCommand {
+export class PostFollowUserRequestDTO implements PostFollowUserWebRequest {
   followedId!: string;
 
-  toCommand(): CreateFollowCommandType {
+  toCommand(): PostFollowUserCommand {
     return { followedId: this.followedId };
   }
 }

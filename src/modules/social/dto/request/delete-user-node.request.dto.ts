@@ -1,10 +1,9 @@
-import type { DeleteSocialUserCommand } from '@volontariapp/contracts';
-import type { DeleteSocialUserCommand as DeleteSocialUserCommandType } from '@volontariapp/contracts-nest';
+import type { DeleteSocialUserCommand, DeleteSocialUserWebRequest } from '@volontariapp/contracts';
 
-export class DeleteUserNodeRequestDTO implements DeleteSocialUserCommand {
+export class DeleteUserNodeRequestDTO implements DeleteSocialUserWebRequest {
   userId!: string;
 
-  toCommand(): DeleteSocialUserCommandType {
+  toCommand(): DeleteSocialUserCommand {
     return { userId: this.userId };
   }
 }

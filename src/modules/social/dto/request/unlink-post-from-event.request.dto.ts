@@ -1,11 +1,13 @@
-import type { UnlinkPostFromEventCommand } from '@volontariapp/contracts';
-import type { UnlinkPostFromEventCommand as UnlinkPostFromEventCommandType } from '@volontariapp/contracts-nest';
+import type {
+  UnlinkPostFromEventCommand,
+  UnlinkPostFromEventWebRequest,
+} from '@volontariapp/contracts';
 
-export class UnlinkPostFromEventRequestDTO implements UnlinkPostFromEventCommand {
+export class UnlinkPostFromEventRequestDTO implements UnlinkPostFromEventWebRequest {
   postId!: string;
   eventId!: string;
 
-  toCommand(): UnlinkPostFromEventCommandType {
+  toCommand(): UnlinkPostFromEventCommand {
     return { postId: this.postId, eventId: this.eventId };
   }
 }

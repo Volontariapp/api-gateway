@@ -1,10 +1,12 @@
-import type { DeleteUserWishEventCommand } from '@volontariapp/contracts';
-import type { DeleteUserWishEventCommand as DeleteUserWishEventCommandType } from '@volontariapp/contracts-nest';
+import type {
+  DeleteUserWishEventCommand,
+  DeleteUserWishEventWebRequest,
+} from '@volontariapp/contracts';
 
-export class DeleteUserWishEventRequestDTO implements DeleteUserWishEventCommand {
+export class DeleteUserWishEventRequestDTO implements DeleteUserWishEventWebRequest {
   eventId!: string;
 
-  toCommand(): DeleteUserWishEventCommandType {
+  toCommand(): DeleteUserWishEventCommand {
     return { eventId: this.eventId };
   }
 }

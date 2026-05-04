@@ -1,11 +1,13 @@
-import type { AdminCreateBlockCommand } from '@volontariapp/contracts';
-import type { AdminCreateBlockCommand as AdminCreateBlockCommandType } from '@volontariapp/contracts-nest';
+import type {
+  AdminPostBlockUserWebRequest,
+  AdminPostBlockUserCommand,
+} from '@volontariapp/contracts';
 
-export class AdminPostBlockUserRequestDTO implements AdminCreateBlockCommand {
+export class AdminPostBlockUserRequestDTO implements AdminPostBlockUserWebRequest {
   blockerId!: string;
   blockedId!: string;
 
-  toCommand(): AdminCreateBlockCommandType {
+  toCommand(): AdminPostBlockUserCommand {
     return { blockerId: this.blockerId, blockedId: this.blockedId };
   }
 }

@@ -1,10 +1,9 @@
-import type { CreateSocialPostCommand } from '@volontariapp/contracts';
-import type { CreateSocialPostCommand as CreateSocialPostCommandType } from '@volontariapp/contracts-nest';
+import type { CreateSocialPostCommand, CreateSocialPostWebRequest } from '@volontariapp/contracts';
 
-export class CreatePostNodeRequestDTO implements CreateSocialPostCommand {
+export class CreatePostNodeRequestDTO implements CreateSocialPostWebRequest {
   postId!: string;
 
-  toCommand(): CreateSocialPostCommandType {
+  toCommand(): CreateSocialPostCommand {
     return { postId: this.postId };
   }
 }

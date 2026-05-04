@@ -1,10 +1,9 @@
-import type { DeleteBlockCommand } from '@volontariapp/contracts';
-import type { DeleteBlockCommand as DeleteBlockCommandType } from '@volontariapp/contracts-nest';
+import type { DeleteBlockUserCommand, DeleteBlockUserWebRequest } from '@volontariapp/contracts';
 
-export class DeleteBlockUserRequestDTO implements DeleteBlockCommand {
+export class DeleteBlockUserRequestDTO implements DeleteBlockUserWebRequest {
   blockedId!: string;
 
-  toCommand(): DeleteBlockCommandType {
+  toCommand(): DeleteBlockUserCommand {
     return { blockedId: this.blockedId };
   }
 }

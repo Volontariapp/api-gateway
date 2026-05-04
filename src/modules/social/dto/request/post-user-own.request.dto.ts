@@ -1,10 +1,9 @@
-import type { PostUserOwnCommand } from '@volontariapp/contracts';
-import type { PostUserOwnCommand as PostUserOwnCommandType } from '@volontariapp/contracts-nest';
+import type { PostUserOwnCommand, PostUserOwnWebRequest } from '@volontariapp/contracts';
 
-export class PostUserOwnRequestDTO implements PostUserOwnCommand {
+export class PostUserOwnRequestDTO implements PostUserOwnWebRequest {
   postId!: string;
 
-  toCommand(): PostUserOwnCommandType {
+  toCommand(): PostUserOwnCommand {
     return { postId: this.postId };
   }
 }

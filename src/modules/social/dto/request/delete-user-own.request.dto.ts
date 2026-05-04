@@ -1,10 +1,9 @@
-import type { DeleteUserOwnCommand } from '@volontariapp/contracts';
-import type { DeleteUserOwnCommand as DeleteUserOwnCommandType } from '@volontariapp/contracts-nest';
+import type { DeleteUserOwnCommand, DeleteUserOwnWebRequest } from '@volontariapp/contracts';
 
-export class DeleteUserOwnRequestDTO implements DeleteUserOwnCommand {
+export class DeleteUserOwnRequestDTO implements DeleteUserOwnWebRequest {
   postId!: string;
 
-  toCommand(): DeleteUserOwnCommandType {
+  toCommand(): DeleteUserOwnCommand {
     return { postId: this.postId };
   }
 }

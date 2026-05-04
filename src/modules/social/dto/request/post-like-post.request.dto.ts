@@ -1,10 +1,9 @@
-import type { PostLikePostCommand } from '@volontariapp/contracts';
-import type { PostLikePostCommand as PostLikePostCommandType } from '@volontariapp/contracts-nest';
+import type { PostLikePostCommand, PostLikePostWebRequest } from '@volontariapp/contracts';
 
-export class PostLikePostRequestDTO implements PostLikePostCommand {
+export class PostLikePostRequestDTO implements PostLikePostWebRequest {
   postId!: string;
 
-  toCommand(): PostLikePostCommandType {
+  toCommand(): PostLikePostCommand {
     return { postId: this.postId };
   }
 }

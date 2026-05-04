@@ -1,10 +1,15 @@
 import { Controller, Get, Param, Query, Req, UseGuards } from '@nestjs/common';
 
-import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { CustomApiError, DATABASE_ERROR } from '@volontariapp/errors-nest';
+import { ApiOperation, ApiParam, ApiResponse, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  CustomApiError,
+  DATABASE_ERROR,
+  ApiUnauthorizedResponse,
+  ApiForbiddenResponse,
+  MISSING_ACCESS_TOKEN,
+} from '@volontariapp/errors-nest';
 import type { Metadata } from '@grpc/grpc-js';
-import { CurrentUser } from '../../../../common/decorators/current-user.decorator.js';
-import type { AuthUser } from '@volontariapp/auth';
+import { AccessTokenGuard } from '@volontariapp/auth';
 import { IsCurrentUserOrAdminGuard } from '../../../../common/guards/is-current-user-or-admin.guard.js';
 import { BaseRelationshipGrpcController } from '../base-grpc.controller.js';
 import {
@@ -16,7 +21,14 @@ import {
 import { IdsListResponseDTO } from '../../dto/response/index.js';
 
 @ApiTags('Social - Relationships - Queries')
+@ApiBearerAuth('access-token')
+@ApiBearerAuth('refresh-token')
+@ApiBearerAuth('internal-token')
+@CustomApiError(MISSING_ACCESS_TOKEN)
+@ApiUnauthorizedResponse('Missing or invalid access token')
+@ApiForbiddenResponse('Access denied')
 @Controller('social')
+@UseGuards(AccessTokenGuard)
 export class RelationshipQueryController extends BaseRelationshipGrpcController {
   @Get('users/:userId/follows')
   @UseGuards(IsCurrentUserOrAdminGuard)
@@ -29,9 +41,9 @@ export class RelationshipQueryController extends BaseRelationshipGrpcController 
     @Query() query: GetMyFollowsRequestDTO,
     @Req() req: Record<string, unknown>,
   ) {
-    query.userId = userId;
     const metadata = req['internalMetadata'] as Metadata;
-    return this.queryService.getMyFollows(query.toQuery(), metadata);
+    const { pagination } = query;
+    return this.queryService.adminGetMyFollows({ userId, pagination }, metadata);
   }
 
   @Get('users/:userId/followers')
@@ -45,9 +57,9 @@ export class RelationshipQueryController extends BaseRelationshipGrpcController 
     @Query() query: GetMyFollowersRequestDTO,
     @Req() req: Record<string, unknown>,
   ) {
-    query.userId = userId;
     const metadata = req['internalMetadata'] as Metadata;
-    return this.queryService.getMyFollowers(query.toQuery(), metadata);
+    const { pagination } = query;
+    return this.queryService.adminGetMyFollowers({ userId, pagination }, metadata);
   }
 
   @Get('users/:userId/blocks')
@@ -61,9 +73,9 @@ export class RelationshipQueryController extends BaseRelationshipGrpcController 
     @Query() query: GetMyBlocksRequestDTO,
     @Req() req: Record<string, unknown>,
   ) {
-    query.userId = userId;
     const metadata = req['internalMetadata'] as Metadata;
-    return this.queryService.getMyBlocks(query.toQuery(), metadata);
+    const { pagination } = query;
+    return this.queryService.adminGetMyBlocks({ userId, pagination }, metadata);
   }
 
   @Get('users/:userId/who-blocked-me')
@@ -77,51 +89,39 @@ export class RelationshipQueryController extends BaseRelationshipGrpcController 
     @Query() query: GetWhoBlockedMeRequestDTO,
     @Req() req: Record<string, unknown>,
   ) {
-    query.userId = userId;
     const metadata = req['internalMetadata'] as Metadata;
-    return this.queryService.getWhoBlockedMe(query.toQuery(), metadata);
+    const { pagination } = query;
+    return this.queryService.adminGetWhoBlockedMe({ userId, pagination }, metadata);
   }
 
   @Get('follows')
   @ApiOperation({ summary: 'Get list of users followed by current user' })
   @ApiResponse({ status: 200, type: IdsListResponseDTO })
   @CustomApiError(() => DATABASE_ERROR('fetching follows', 'details'))
-  getFollowsSelf(
-    @Query() query: GetMyFollowsRequestDTO,
-    @CurrentUser() user: AuthUser,
-    @Req() req: Record<string, unknown>,
-  ) {
-    query.userId = user.id;
+  getFollowsSelf(@Query() query: GetMyFollowsRequestDTO, @Req() req: Record<string, unknown>) {
     const metadata = req['internalMetadata'] as Metadata;
-    return this.queryService.getMyFollows(query.toQuery(), metadata);
+    const { pagination } = query;
+    return this.queryService.getMyFollows({ pagination }, metadata);
   }
 
   @Get('followers')
   @ApiOperation({ summary: 'Get list of users following current user' })
   @ApiResponse({ status: 200, type: IdsListResponseDTO })
   @CustomApiError(() => DATABASE_ERROR('fetching followers', 'details'))
-  getFollowersSelf(
-    @Query() query: GetMyFollowersRequestDTO,
-    @CurrentUser() user: AuthUser,
-    @Req() req: Record<string, unknown>,
-  ) {
-    query.userId = user.id;
+  getFollowersSelf(@Query() query: GetMyFollowersRequestDTO, @Req() req: Record<string, unknown>) {
     const metadata = req['internalMetadata'] as Metadata;
-    return this.queryService.getMyFollowers(query.toQuery(), metadata);
+    const { pagination } = query;
+    return this.queryService.getMyFollowers({ pagination }, metadata);
   }
 
   @Get('blocks')
   @ApiOperation({ summary: 'Get list of blocked users by current user' })
   @ApiResponse({ status: 200, type: IdsListResponseDTO })
   @CustomApiError(() => DATABASE_ERROR('fetching blocks', 'details'))
-  getBlocksSelf(
-    @Query() query: GetMyBlocksRequestDTO,
-    @CurrentUser() user: AuthUser,
-    @Req() req: Record<string, unknown>,
-  ) {
-    query.userId = user.id;
+  getBlocksSelf(@Query() query: GetMyBlocksRequestDTO, @Req() req: Record<string, unknown>) {
     const metadata = req['internalMetadata'] as Metadata;
-    return this.queryService.getMyBlocks(query.toQuery(), metadata);
+    const { pagination } = query;
+    return this.queryService.getMyBlocks({ pagination }, metadata);
   }
 
   @Get('who-blocked-me')
@@ -130,11 +130,10 @@ export class RelationshipQueryController extends BaseRelationshipGrpcController 
   @CustomApiError(() => DATABASE_ERROR('fetching who blocked me', 'details'))
   getWhoBlockedMeSelf(
     @Query() query: GetWhoBlockedMeRequestDTO,
-    @CurrentUser() user: AuthUser,
     @Req() req: Record<string, unknown>,
   ) {
-    query.userId = user.id;
     const metadata = req['internalMetadata'] as Metadata;
-    return this.queryService.getWhoBlockedMe(query.toQuery(), metadata);
+    const { pagination } = query;
+    return this.queryService.getWhoBlockedMe({ pagination }, metadata);
   }
 }

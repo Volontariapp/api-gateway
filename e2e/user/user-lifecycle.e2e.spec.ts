@@ -15,6 +15,7 @@ import {
   updateUserRequestFactory,
   refreshTokenRequestFactory,
 } from './user-test.factory.js';
+import { UserRoles } from '@volontariapp/shared';
 
 describe('User Lifecycle (E2E)', () => {
   let app: INestApplication;
@@ -22,7 +23,7 @@ describe('User Lifecycle (E2E)', () => {
 
   beforeAll(async () => {
     app = await createApp();
-    client = await createTestClient(app).login({ id: randomUUID(), role: 'admin' });
+    client = await createTestClient(app).login({ id: randomUUID(), role: UserRoles.ADMIN });
   });
 
   afterAll(async () => {

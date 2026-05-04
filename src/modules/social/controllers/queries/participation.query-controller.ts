@@ -1,9 +1,14 @@
 import { Controller, Get, Param, Query, Req, UseGuards } from '@nestjs/common';
-import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { CustomApiError, DATABASE_ERROR } from '@volontariapp/errors-nest';
+import { ApiOperation, ApiParam, ApiResponse, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  CustomApiError,
+  DATABASE_ERROR,
+  ApiUnauthorizedResponse,
+  ApiForbiddenResponse,
+  MISSING_ACCESS_TOKEN,
+} from '@volontariapp/errors-nest';
 import type { Metadata } from '@grpc/grpc-js';
-import { CurrentUser } from '../../../../common/decorators/current-user.decorator.js';
-import type { AuthUser } from '@volontariapp/auth';
+import { AccessTokenGuard } from '@volontariapp/auth';
 import { IsCurrentUserOrAdminGuard } from '../../../../common/guards/is-current-user-or-admin.guard.js';
 import { BaseParticipationGrpcController } from '../base-grpc.controller.js';
 import {
@@ -15,8 +20,54 @@ import {
 import { ExistsResponseDTO, IdsListResponseDTO } from '../../dto/response/index.js';
 
 @ApiTags('Social - Participation - Queries')
+@ApiBearerAuth('access-token')
+@ApiBearerAuth('refresh-token')
+@ApiBearerAuth('internal-token')
+@CustomApiError(MISSING_ACCESS_TOKEN)
+@ApiUnauthorizedResponse('Missing or invalid access token')
+@ApiForbiddenResponse('Access denied')
 @Controller('social')
+@UseGuards(AccessTokenGuard)
 export class ParticipationQueryController extends BaseParticipationGrpcController {
+  @Get('events/created')
+  @ApiOperation({ summary: 'Get events created by current user' })
+  @ApiResponse({ status: 200, type: IdsListResponseDTO })
+  @CustomApiError(() => DATABASE_ERROR('fetching user created events', 'details'))
+  getUserCreatedEventsSelf(
+    @Query() query: GetUserEventsRequestDTO,
+    @Req() req: Record<string, unknown>,
+  ) {
+    const metadata = req['internalMetadata'] as Metadata;
+    const { pagination } = query;
+    return this.queryService.getUserEvent({ pagination }, metadata);
+  }
+
+  @Get('events/participated')
+  @ApiOperation({ summary: 'Get events current user participates in' })
+  @ApiResponse({ status: 200, type: IdsListResponseDTO })
+  @CustomApiError(() => DATABASE_ERROR('fetching user participations', 'details'))
+  getUserParticipatedEventsSelf(
+    @Query() query: GetUserParticipationsRequestDTO,
+    @Req() req: Record<string, unknown>,
+  ) {
+    const metadata = req['internalMetadata'] as Metadata;
+    const { pagination } = query;
+    return this.queryService.getUserParticipateEvent({ pagination }, metadata);
+  }
+
+  @Get('events/wished')
+  @ApiOperation({ summary: 'Get events wished by current user' })
+  @ApiResponse({ status: 200, type: IdsListResponseDTO })
+  @CustomApiError(() => DATABASE_ERROR('fetching user wished events', 'details'))
+  getUserWishedEventsSelf(
+    @Query() query: GetUserWishesRequestDTO,
+    @Req() req: Record<string, unknown>,
+  ) {
+    const metadata = req['internalMetadata'] as Metadata;
+    const { pagination } = query;
+    return this.queryService.getUserWishEvent({ pagination }, metadata);
+  }
+
   @Get('events/:eventId')
   @ApiOperation({ summary: 'Check if event node exists' })
   @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
@@ -38,9 +89,9 @@ export class ParticipationQueryController extends BaseParticipationGrpcControlle
     @Query() query: GetUserEventsRequestDTO,
     @Req() req: Record<string, unknown>,
   ) {
-    query.userId = userId;
     const metadata = req['internalMetadata'] as Metadata;
-    return this.queryService.getUserEvent(query.toQuery(), metadata);
+    const { pagination } = query;
+    return this.queryService.adminGetUserEvent({ userId, pagination }, metadata);
   }
 
   @Get('users/:userId/events/participated')
@@ -54,9 +105,9 @@ export class ParticipationQueryController extends BaseParticipationGrpcControlle
     @Query() query: GetUserParticipationsRequestDTO,
     @Req() req: Record<string, unknown>,
   ) {
-    query.userId = userId;
     const metadata = req['internalMetadata'] as Metadata;
-    return this.queryService.getUserParticipateEvent(query.toQuery(), metadata);
+    const { pagination } = query;
+    return this.queryService.adminGetUserParticipateEvent({ userId, pagination }, metadata);
   }
 
   @Get('events/:eventId/participants')
@@ -69,9 +120,9 @@ export class ParticipationQueryController extends BaseParticipationGrpcControlle
     @Query() query: GetEventParticipantsRequestDTO,
     @Req() req: Record<string, unknown>,
   ) {
-    query.eventId = eventId;
     const metadata = req['internalMetadata'] as Metadata;
-    return this.queryService.getEventParticipants(query.toQuery(), metadata);
+    const { pagination } = query;
+    return this.queryService.getEventParticipants({ eventId, pagination }, metadata);
   }
 
   @Get('users/:userId/events/wished')
@@ -85,50 +136,8 @@ export class ParticipationQueryController extends BaseParticipationGrpcControlle
     @Query() query: GetUserWishesRequestDTO,
     @Req() req: Record<string, unknown>,
   ) {
-    query.userId = userId;
     const metadata = req['internalMetadata'] as Metadata;
-    return this.queryService.getUserWishEvent(query.toQuery(), metadata);
-  }
-
-  @Get('events/created')
-  @ApiOperation({ summary: 'Get events created by current user' })
-  @ApiResponse({ status: 200, type: IdsListResponseDTO })
-  @CustomApiError(() => DATABASE_ERROR('fetching user created events', 'details'))
-  getUserCreatedEventsSelf(
-    @Query() query: GetUserEventsRequestDTO,
-    @CurrentUser() user: AuthUser,
-    @Req() req: Record<string, unknown>,
-  ) {
-    query.userId = user.id;
-    const metadata = req['internalMetadata'] as Metadata;
-    return this.queryService.getUserEvent(query.toQuery(), metadata);
-  }
-
-  @Get('events/participated')
-  @ApiOperation({ summary: 'Get events current user participates in' })
-  @ApiResponse({ status: 200, type: IdsListResponseDTO })
-  @CustomApiError(() => DATABASE_ERROR('fetching user participations', 'details'))
-  getUserParticipatedEventsSelf(
-    @Query() query: GetUserParticipationsRequestDTO,
-    @CurrentUser() user: AuthUser,
-    @Req() req: Record<string, unknown>,
-  ) {
-    query.userId = user.id;
-    const metadata = req['internalMetadata'] as Metadata;
-    return this.queryService.getUserParticipateEvent(query.toQuery(), metadata);
-  }
-
-  @Get('events/wished')
-  @ApiOperation({ summary: 'Get events wished by current user' })
-  @ApiResponse({ status: 200, type: IdsListResponseDTO })
-  @CustomApiError(() => DATABASE_ERROR('fetching user wished events', 'details'))
-  getUserWishedEventsSelf(
-    @Query() query: GetUserWishesRequestDTO,
-    @CurrentUser() user: AuthUser,
-    @Req() req: Record<string, unknown>,
-  ) {
-    query.userId = user.id;
-    const metadata = req['internalMetadata'] as Metadata;
-    return this.queryService.getUserWishEvent(query.toQuery(), metadata);
+    const { pagination } = query;
+    return this.queryService.adminGetUserWishEvent({ userId, pagination }, metadata);
   }
 }

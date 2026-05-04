@@ -1,22 +1,31 @@
 import { map } from 'rxjs';
 import { Controller, Delete, Param, Post, Req, UseGuards } from '@nestjs/common';
 
-import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiResponse, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import {
   CustomApiError,
   SOCIAL_RELATIONSHIP_ALREADY_EXISTS,
   SOCIAL_RELATIONSHIP_NOT_FOUND,
   DATABASE_ERROR,
+  ApiForbiddenResponse,
+  ApiUnauthorizedResponse,
+  MISSING_ACCESS_TOKEN,
 } from '@volontariapp/errors-nest';
 import type { Metadata } from '@grpc/grpc-js';
-import { CurrentUser } from '../../../../common/decorators/current-user.decorator.js';
-import type { AuthUser } from '@volontariapp/auth';
+import { AccessTokenGuard } from '@volontariapp/auth';
 import { IsCurrentUserOrAdminGuard } from '../../../../common/guards/is-current-user-or-admin.guard.js';
 import { BaseRelationshipGrpcController } from '../base-grpc.controller.js';
 import { ActionSuccessResponseDTO } from '../../dto/response/index.js';
 
 @ApiTags('Social - Relationships - Commands')
+@ApiBearerAuth('access-token')
+@ApiBearerAuth('refresh-token')
+@ApiBearerAuth('internal-token')
+@CustomApiError(MISSING_ACCESS_TOKEN)
+@ApiUnauthorizedResponse('Missing or invalid access token')
+@ApiForbiddenResponse('Access denied')
 @Controller('social')
+@UseGuards(AccessTokenGuard)
 export class RelationshipCommandController extends BaseRelationshipGrpcController {
   @Post('users/:userId/follow/:followedId')
   @UseGuards(IsCurrentUserOrAdminGuard)
@@ -33,7 +42,7 @@ export class RelationshipCommandController extends BaseRelationshipGrpcControlle
   ) {
     const metadata = req['internalMetadata'] as Metadata;
     return this.commandService
-      .postFollowUser({ followerId: userId, followedId }, metadata)
+      .adminPostFollowUser({ followerId: userId, followedId }, metadata)
       .pipe(map(() => ({ success: true, message: 'Followed successfully' })));
   }
 
@@ -52,7 +61,7 @@ export class RelationshipCommandController extends BaseRelationshipGrpcControlle
   ) {
     const metadata = req['internalMetadata'] as Metadata;
     return this.commandService
-      .deleteFollowUser({ followerId: userId, followedId }, metadata)
+      .adminDeleteFollowUser({ followerId: userId, followedId }, metadata)
       .pipe(map(() => ({ success: true, message: 'Unfollowed successfully' })));
   }
 
@@ -71,7 +80,7 @@ export class RelationshipCommandController extends BaseRelationshipGrpcControlle
   ) {
     const metadata = req['internalMetadata'] as Metadata;
     return this.commandService
-      .postBlockUser({ blockerId: userId, blockedId }, metadata)
+      .adminPostBlockUser({ blockerId: userId, blockedId }, metadata)
       .pipe(map(() => ({ success: true, message: 'Blocked successfully' })));
   }
 
@@ -90,7 +99,7 @@ export class RelationshipCommandController extends BaseRelationshipGrpcControlle
   ) {
     const metadata = req['internalMetadata'] as Metadata;
     return this.commandService
-      .deleteBlockUser({ blockerId: userId, blockedId }, metadata)
+      .adminDeleteBlockUser({ blockerId: userId, blockedId }, metadata)
       .pipe(map(() => ({ success: true, message: 'Unblocked successfully' })));
   }
 
@@ -100,14 +109,10 @@ export class RelationshipCommandController extends BaseRelationshipGrpcControlle
   @ApiResponse({ status: 201, type: ActionSuccessResponseDTO })
   @CustomApiError(() => SOCIAL_RELATIONSHIP_ALREADY_EXISTS('userId', 'followedId', 'FOLLOW'))
   @CustomApiError(() => DATABASE_ERROR('creating follow relationship', 'details'))
-  followSelf(
-    @Param('followedId') followedId: string,
-    @CurrentUser() user: AuthUser,
-    @Req() req: Record<string, unknown>,
-  ) {
+  followSelf(@Param('followedId') followedId: string, @Req() req: Record<string, unknown>) {
     const metadata = req['internalMetadata'] as Metadata;
     return this.commandService
-      .postFollowUser({ followerId: user.id, followedId }, metadata)
+      .postFollowUser({ followedId }, metadata)
       .pipe(map(() => ({ success: true, message: 'Followed successfully' })));
   }
 
@@ -117,14 +122,10 @@ export class RelationshipCommandController extends BaseRelationshipGrpcControlle
   @ApiResponse({ status: 200, type: ActionSuccessResponseDTO })
   @CustomApiError(() => SOCIAL_RELATIONSHIP_NOT_FOUND('userId', 'followedId', 'FOLLOW'))
   @CustomApiError(() => DATABASE_ERROR('deleting follow relationship', 'details'))
-  unfollowSelf(
-    @Param('followedId') followedId: string,
-    @CurrentUser() user: AuthUser,
-    @Req() req: Record<string, unknown>,
-  ) {
+  unfollowSelf(@Param('followedId') followedId: string, @Req() req: Record<string, unknown>) {
     const metadata = req['internalMetadata'] as Metadata;
     return this.commandService
-      .deleteFollowUser({ followerId: user.id, followedId }, metadata)
+      .deleteFollowUser({ followedId }, metadata)
       .pipe(map(() => ({ success: true, message: 'Unfollowed successfully' })));
   }
 
@@ -134,14 +135,10 @@ export class RelationshipCommandController extends BaseRelationshipGrpcControlle
   @ApiResponse({ status: 201, type: ActionSuccessResponseDTO })
   @CustomApiError(() => SOCIAL_RELATIONSHIP_ALREADY_EXISTS('userId', 'blockedId', 'BLOCK'))
   @CustomApiError(() => DATABASE_ERROR('creating block relationship', 'details'))
-  blockSelf(
-    @Param('blockedId') blockedId: string,
-    @CurrentUser() user: AuthUser,
-    @Req() req: Record<string, unknown>,
-  ) {
+  blockSelf(@Param('blockedId') blockedId: string, @Req() req: Record<string, unknown>) {
     const metadata = req['internalMetadata'] as Metadata;
     return this.commandService
-      .postBlockUser({ blockerId: user.id, blockedId }, metadata)
+      .postBlockUser({ blockedId }, metadata)
       .pipe(map(() => ({ success: true, message: 'Blocked successfully' })));
   }
 
@@ -151,14 +148,10 @@ export class RelationshipCommandController extends BaseRelationshipGrpcControlle
   @ApiResponse({ status: 200, type: ActionSuccessResponseDTO })
   @CustomApiError(() => SOCIAL_RELATIONSHIP_NOT_FOUND('userId', 'blockedId', 'BLOCK'))
   @CustomApiError(() => DATABASE_ERROR('deleting block relationship', 'details'))
-  unblockSelf(
-    @Param('blockedId') blockedId: string,
-    @CurrentUser() user: AuthUser,
-    @Req() req: Record<string, unknown>,
-  ) {
+  unblockSelf(@Param('blockedId') blockedId: string, @Req() req: Record<string, unknown>) {
     const metadata = req['internalMetadata'] as Metadata;
     return this.commandService
-      .deleteBlockUser({ blockerId: user.id, blockedId }, metadata)
+      .deleteBlockUser({ blockedId }, metadata)
       .pipe(map(() => ({ success: true, message: 'Unblocked successfully' })));
   }
 }

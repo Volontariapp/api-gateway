@@ -1,16 +1,28 @@
 import { Controller, Get, Param, Query, Req, UseGuards } from '@nestjs/common';
-import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { CustomApiError, DATABASE_ERROR } from '@volontariapp/errors-nest';
+import { ApiOperation, ApiParam, ApiResponse, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  CustomApiError,
+  DATABASE_ERROR,
+  ApiUnauthorizedResponse,
+  ApiForbiddenResponse,
+  MISSING_ACCESS_TOKEN,
+} from '@volontariapp/errors-nest';
 import type { Metadata } from '@grpc/grpc-js';
-import { CurrentUser } from '../../../../common/decorators/current-user.decorator.js';
-import type { AuthUser } from '@volontariapp/auth';
+import { AccessTokenGuard } from '@volontariapp/auth';
 import { IsCurrentUserOrAdminGuard } from '../../../../common/guards/is-current-user-or-admin.guard.js';
 import { BaseInteractionGrpcController } from '../base-grpc.controller.js';
 import { GetUserLikesRequestDTO } from '../../dto/request/index.js';
 import { IdsListResponseDTO } from '../../dto/response/index.js';
 
 @ApiTags('Social - Interactions - Queries')
+@ApiBearerAuth('access-token')
+@ApiBearerAuth('refresh-token')
+@ApiBearerAuth('internal-token')
+@CustomApiError(MISSING_ACCESS_TOKEN)
+@ApiUnauthorizedResponse('Missing or invalid access token')
+@ApiForbiddenResponse('Access denied')
 @Controller('social')
+@UseGuards(AccessTokenGuard)
 export class InteractionQueryController extends BaseInteractionGrpcController {
   @Get('users/:userId/likes')
   @UseGuards(IsCurrentUserOrAdminGuard)
@@ -23,22 +35,33 @@ export class InteractionQueryController extends BaseInteractionGrpcController {
     @Query() query: GetUserLikesRequestDTO,
     @Req() req: Record<string, unknown>,
   ) {
-    query.userId = userId;
     const metadata = req['internalMetadata'] as Metadata;
-    return this.queryService.getUserLikes(query.toQuery(), metadata);
+    const { pagination } = query;
+    return this.queryService.adminGetUserLikes({ userId, pagination }, metadata);
   }
 
   @Get('likes')
   @ApiOperation({ summary: 'Get list of posts liked by current user' })
   @ApiResponse({ status: 200, type: IdsListResponseDTO })
   @CustomApiError(() => DATABASE_ERROR('fetching user likes', 'details'))
-  getUserLikesSelf(
+  getUserLikesSelf(@Query() query: GetUserLikesRequestDTO, @Req() req: Record<string, unknown>) {
+    const metadata = req['internalMetadata'] as Metadata;
+    const { pagination } = query;
+    return this.queryService.getUserLikes({ pagination }, metadata);
+  }
+
+  @Get('posts/:postId/likers')
+  @ApiOperation({ summary: 'Get list of users who liked a post' })
+  @ApiParam({ name: 'postId', example: 'uuid-post-123' })
+  @ApiResponse({ status: 200, type: IdsListResponseDTO })
+  @CustomApiError(() => DATABASE_ERROR('fetching post likers', 'details'))
+  getPostLikers(
+    @Param('postId') postId: string,
     @Query() query: GetUserLikesRequestDTO,
-    @CurrentUser() user: AuthUser,
     @Req() req: Record<string, unknown>,
   ) {
-    query.userId = user.id;
     const metadata = req['internalMetadata'] as Metadata;
-    return this.queryService.getUserLikes(query.toQuery(), metadata);
+    const { pagination } = query;
+    return this.queryService.getPostLikers({ postId, pagination }, metadata);
   }
 }

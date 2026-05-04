@@ -32,7 +32,6 @@ export class UpdateUserRequestDTO implements UpdateUserRequest {
 
   toCommand(): UpdateUserCommand {
     return {
-      userId: this.id,
       email: this.email,
       pseudo: this.pseudo,
       bio: this.bio,

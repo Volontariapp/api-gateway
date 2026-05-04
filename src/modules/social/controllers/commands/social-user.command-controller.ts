@@ -1,8 +1,8 @@
 import { map } from 'rxjs';
-import { Controller, Delete, Param, Post, Req } from '@nestjs/common';
+import { Controller, Delete, Param, Post, Req, UseGuards } from '@nestjs/common';
 
 import { ApiOperation, ApiParam, ApiResponse, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
-import { Roles } from '../../../../common/decorators/roles.decorator.js';
+import { Roles, AccessTokenGuard, RolesGuard } from '@volontariapp/auth';
 import { UserRoles } from '@volontariapp/shared';
 import type { Metadata } from '@grpc/grpc-js';
 import { BaseSocialUserGrpcController } from '../base-grpc.controller.js';
@@ -25,6 +25,7 @@ import {
 @ApiUnauthorizedResponse('Missing or invalid access token')
 @ApiForbiddenResponse('Required role: ADMIN — your token does not grant this access')
 @Controller('social/users')
+@UseGuards(AccessTokenGuard, RolesGuard)
 export class SocialUserCommandController extends BaseSocialUserGrpcController {
   @Post(':userId')
   @Roles(UserRoles.ADMIN)

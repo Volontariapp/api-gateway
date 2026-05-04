@@ -1,10 +1,9 @@
-import type { CreateSocialUserCommand } from '@volontariapp/contracts';
-import type { CreateSocialUserCommand as CreateSocialUserCommandType } from '@volontariapp/contracts-nest';
+import type { CreateSocialUserCommand, CreateSocialUserWebRequest } from '@volontariapp/contracts';
 
-export class CreateUserNodeRequestDTO implements CreateSocialUserCommand {
+export class CreateUserNodeRequestDTO implements CreateSocialUserWebRequest {
   userId!: string;
 
-  toCommand(): CreateSocialUserCommandType {
+  toCommand(): CreateSocialUserCommand {
     return { userId: this.userId };
   }
 }

@@ -1,10 +1,9 @@
-import type { DeleteFollowCommand } from '@volontariapp/contracts';
-import type { DeleteFollowCommand as DeleteFollowCommandType } from '@volontariapp/contracts-nest';
+import type { DeleteFollowUserCommand, DeleteFollowUserWebRequest } from '@volontariapp/contracts';
 
-export class DeleteFollowUserRequestDTO implements DeleteFollowCommand {
+export class DeleteFollowUserRequestDTO implements DeleteFollowUserWebRequest {
   followedId!: string;
 
-  toCommand(): DeleteFollowCommandType {
+  toCommand(): DeleteFollowUserCommand {
     return { followedId: this.followedId };
   }
 }

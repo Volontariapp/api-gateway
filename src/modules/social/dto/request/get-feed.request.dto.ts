@@ -9,11 +9,8 @@ export class GetFeedRequestDTO implements GetFeedWebRequest {
   @Type(() => PaginationRequestDTO)
   pagination?: PaginationRequestDTO;
 
-  userId!: string;
-
   toQuery(): GetFeedQuery {
     return {
-      userId: this.userId,
       pagination: this.pagination,
     };
   }

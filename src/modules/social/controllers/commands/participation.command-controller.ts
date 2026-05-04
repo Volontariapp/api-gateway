@@ -16,9 +16,7 @@ import {
   MISSING_ACCESS_TOKEN,
 } from '@volontariapp/errors-nest';
 import type { Metadata } from '@grpc/grpc-js';
-import { CurrentUser } from '../../../../common/decorators/current-user.decorator.js';
-import type { AuthUser } from '@volontariapp/auth';
-import { Roles } from '../../../../common/decorators/roles.decorator.js';
+import { Roles, AccessTokenGuard, RolesGuard } from '@volontariapp/auth';
 import { UserRoles } from '@volontariapp/shared';
 import { IsCurrentUserOrAdminGuard } from '../../../../common/guards/is-current-user-or-admin.guard.js';
 import { BaseParticipationGrpcController } from '../base-grpc.controller.js';
@@ -32,8 +30,10 @@ import { ActionSuccessResponseDTO } from '../../dto/response/index.js';
 @ApiUnauthorizedResponse('Missing or invalid access token')
 @ApiForbiddenResponse('Required role: ADMIN — your token does not grant this access')
 @Controller('social')
+@UseGuards(AccessTokenGuard, RolesGuard)
 export class ParticipationCommandController extends BaseParticipationGrpcController {
   @Post('events/:eventId')
+  @Roles(UserRoles.ADMIN)
   @ApiOperation({ summary: 'Create a social event node' })
   @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
   @ApiResponse({ status: 201, type: ActionSuccessResponseDTO })
@@ -47,6 +47,7 @@ export class ParticipationCommandController extends BaseParticipationGrpcControl
   }
 
   @Delete('events/:eventId')
+  @Roles(UserRoles.ADMIN)
   @ApiOperation({ summary: 'Delete a social event node' })
   @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
   @ApiResponse({ status: 200, type: ActionSuccessResponseDTO })
@@ -121,7 +122,7 @@ export class ParticipationCommandController extends BaseParticipationGrpcControl
   ) {
     const metadata = req['internalMetadata'] as Metadata;
     return this.commandService
-      .postUserParticipateEvent({ userId, eventId }, metadata)
+      .adminPostUserParticipateEvent({ userId, eventId }, metadata)
       .pipe(map(() => ({ success: true, message: 'Participation linked' })));
   }
 
@@ -141,7 +142,7 @@ export class ParticipationCommandController extends BaseParticipationGrpcControl
   ) {
     const metadata = req['internalMetadata'] as Metadata;
     return this.commandService
-      .deleteUserParticipateEvent({ userId, eventId }, metadata)
+      .adminDeleteUserParticipateEvent({ userId, eventId }, metadata)
       .pipe(map(() => ({ success: true, message: 'Participation unlinked' })));
   }
 
@@ -161,7 +162,7 @@ export class ParticipationCommandController extends BaseParticipationGrpcControl
   ) {
     const metadata = req['internalMetadata'] as Metadata;
     return this.commandService
-      .postUserWishEvent({ userId, eventId }, metadata)
+      .adminPostUserWishEvent({ userId, eventId }, metadata)
       .pipe(map(() => ({ success: true, message: 'Event added to wishes' })));
   }
 
@@ -181,7 +182,7 @@ export class ParticipationCommandController extends BaseParticipationGrpcControl
   ) {
     const metadata = req['internalMetadata'] as Metadata;
     return this.commandService
-      .deleteUserWishEvent({ userId, eventId }, metadata)
+      .adminDeleteUserWishEvent({ userId, eventId }, metadata)
       .pipe(map(() => ({ success: true, message: 'Event removed from wishes' })));
   }
 
@@ -192,14 +193,10 @@ export class ParticipationCommandController extends BaseParticipationGrpcControl
   @CustomApiError(() => SOCIAL_EVENT_NOT_FOUND('eventId'))
   @CustomApiError(() => SOCIAL_PARTICIPATION_ALREADY_EXISTS('userId', 'eventId'))
   @CustomApiError(() => DATABASE_ERROR('creating event participation', 'details'))
-  participateSelf(
-    @Param('eventId') eventId: string,
-    @CurrentUser() user: AuthUser,
-    @Req() req: Record<string, unknown>,
-  ) {
+  participateSelf(@Param('eventId') eventId: string, @Req() req: Record<string, unknown>) {
     const metadata = req['internalMetadata'] as Metadata;
     return this.commandService
-      .postUserParticipateEvent({ userId: user.id, eventId }, metadata)
+      .postUserParticipateEvent({ eventId }, metadata)
       .pipe(map(() => ({ success: true, message: 'Participation linked' })));
   }
 
@@ -210,14 +207,10 @@ export class ParticipationCommandController extends BaseParticipationGrpcControl
   @CustomApiError(() => SOCIAL_EVENT_NOT_FOUND('eventId'))
   @CustomApiError(() => SOCIAL_PARTICIPATION_NOT_FOUND('userId', 'eventId'))
   @CustomApiError(() => DATABASE_ERROR('deleting event participation', 'details'))
-  unparticipateSelf(
-    @Param('eventId') eventId: string,
-    @CurrentUser() user: AuthUser,
-    @Req() req: Record<string, unknown>,
-  ) {
+  unparticipateSelf(@Param('eventId') eventId: string, @Req() req: Record<string, unknown>) {
     const metadata = req['internalMetadata'] as Metadata;
     return this.commandService
-      .deleteUserParticipateEvent({ userId: user.id, eventId }, metadata)
+      .deleteUserParticipateEvent({ eventId }, metadata)
       .pipe(map(() => ({ success: true, message: 'Participation unlinked' })));
   }
 
@@ -228,14 +221,10 @@ export class ParticipationCommandController extends BaseParticipationGrpcControl
   @CustomApiError(() => SOCIAL_EVENT_NOT_FOUND('eventId'))
   @CustomApiError(() => SOCIAL_WISH_ALREADY_EXISTS('userId', 'eventId'))
   @CustomApiError(() => DATABASE_ERROR('creating event wish', 'details'))
-  wishEventSelf(
-    @Param('eventId') eventId: string,
-    @CurrentUser() user: AuthUser,
-    @Req() req: Record<string, unknown>,
-  ) {
+  wishEventSelf(@Param('eventId') eventId: string, @Req() req: Record<string, unknown>) {
     const metadata = req['internalMetadata'] as Metadata;
     return this.commandService
-      .postUserWishEvent({ userId: user.id, eventId }, metadata)
+      .postUserWishEvent({ eventId }, metadata)
       .pipe(map(() => ({ success: true, message: 'Event added to wishes' })));
   }
 
@@ -246,14 +235,10 @@ export class ParticipationCommandController extends BaseParticipationGrpcControl
   @CustomApiError(() => SOCIAL_EVENT_NOT_FOUND('eventId'))
   @CustomApiError(() => SOCIAL_WISH_NOT_FOUND('userId', 'eventId'))
   @CustomApiError(() => DATABASE_ERROR('deleting event wish', 'details'))
-  unwishEventSelf(
-    @Param('eventId') eventId: string,
-    @CurrentUser() user: AuthUser,
-    @Req() req: Record<string, unknown>,
-  ) {
+  unwishEventSelf(@Param('eventId') eventId: string, @Req() req: Record<string, unknown>) {
     const metadata = req['internalMetadata'] as Metadata;
     return this.commandService
-      .deleteUserWishEvent({ userId: user.id, eventId }, metadata)
+      .deleteUserWishEvent({ eventId }, metadata)
       .pipe(map(() => ({ success: true, message: 'Event removed from wishes' })));
   }
 }

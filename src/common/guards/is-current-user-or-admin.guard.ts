@@ -1,6 +1,7 @@
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
 import type { Request } from 'express';
 import type { AuthUser } from '@volontariapp/auth';
+import { UserRoles } from '@volontariapp/shared';
 
 @Injectable()
 export class IsCurrentUserOrAdminGuard implements CanActivate {
@@ -13,7 +14,7 @@ export class IsCurrentUserOrAdminGuard implements CanActivate {
       throw new ForbiddenException('User not authenticated');
     }
 
-    if (user.role === 'admin') {
+    if (user.role === UserRoles.ADMIN.toString()) {
       return true;
     }
 

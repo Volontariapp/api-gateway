@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query, Req } from '@nestjs/common';
+import { Controller, Get, Param, Query, Req, UseGuards } from '@nestjs/common';
 import { map } from 'rxjs';
 import { Logger } from '@volontariapp/logger';
 import {
@@ -15,9 +15,11 @@ import {
   EVENT_NOT_FOUND,
   DATABASE_ERROR,
   MISSING_ACCESS_TOKEN,
-  INSUFFICIENT_PERMISSIONS,
+  ApiUnauthorizedResponse,
+  ApiForbiddenResponse,
 } from '@volontariapp/errors-nest';
 import type { Metadata } from '@grpc/grpc-js';
+import { AccessTokenGuard } from '@volontariapp/auth';
 import { SearchEventsRequestDTO, GetEventRequestDTO } from '../../dto/request/index.js';
 import {
   GetEventResponseDTO,
@@ -32,9 +34,11 @@ import { BaseEventGrpcController } from '../base-grpc.controller.js';
 @ApiBearerAuth('refresh-token')
 @ApiBearerAuth('internal-token')
 @CustomApiError(MISSING_ACCESS_TOKEN)
-@CustomApiError(INSUFFICIENT_PERMISSIONS)
+@ApiUnauthorizedResponse('Missing or invalid access token')
+@ApiForbiddenResponse('Access denied')
 @ApiInternalServerErrorResponse('An unexpected error occurred on the server')
 @Controller('events')
+@UseGuards(AccessTokenGuard)
 export class EventQueryController extends BaseEventGrpcController {
   private readonly logger = new Logger({
     context: EventQueryController.name,
@@ -63,7 +67,7 @@ export class EventQueryController extends BaseEventGrpcController {
     summary: 'Get an event by ID',
     description: 'Retrieves full details of a specific event.',
   })
-  @ApiParam({ name: 'id', example: '' })
+  @ApiParam({ name: 'id', example: 'uuid-123' })
   @ApiResponse({
     status: 200,
     description: 'Event details successfully retrieved',

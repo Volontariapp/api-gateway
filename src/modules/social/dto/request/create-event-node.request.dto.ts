@@ -1,10 +1,12 @@
-import type { CreateSocialEventCommand } from '@volontariapp/contracts';
-import type { CreateSocialEventCommand as CreateSocialEventCommandType } from '@volontariapp/contracts-nest';
+import type {
+  CreateSocialEventCommand,
+  CreateSocialEventWebRequest,
+} from '@volontariapp/contracts';
 
-export class CreateEventNodeRequestDTO implements CreateSocialEventCommand {
+export class CreateEventNodeRequestDTO implements CreateSocialEventWebRequest {
   eventId!: string;
 
-  toCommand(): CreateSocialEventCommandType {
+  toCommand(): CreateSocialEventCommand {
     return { eventId: this.eventId };
   }
 }

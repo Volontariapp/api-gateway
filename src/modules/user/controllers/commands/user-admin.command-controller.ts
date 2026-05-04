@@ -1,4 +1,5 @@
-import { Body, Controller, Delete, Param, Post, Req } from '@nestjs/common';
+import { Body, Controller, Delete, Param, Patch, Post, Req } from '@nestjs/common';
+import { map, switchMap } from 'rxjs';
 import { Logger } from '@volontariapp/logger';
 import { ApiOperation, ApiParam, ApiResponse, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import {
@@ -11,16 +12,25 @@ import {
   USER_ALREADY_HAS_BADGE,
   USER_BADGE_NOT_FOUND,
   INVALID_SCORE_INCREMENT,
+  INVALID_RNA,
 } from '@volontariapp/errors-nest';
 import type { Metadata } from '@grpc/grpc-js';
-import { Roles } from '../../../../common/decorators/roles.decorator.js';
+import { Roles, AccessTokenGuard, RolesGuard } from '@volontariapp/auth';
 import { UserRoles } from '@volontariapp/shared';
+import { UseGuards } from '@nestjs/common';
 import { BaseUserGrpcController } from '../base-user-grpc.controller.js';
 import {
   AddBadgeToUserRequestDTO,
   IncrementImpactScoreRequestDTO,
   RemoveBadgeFromUserRequestDTO,
+  UpdateUserRequestDTO,
 } from '../../dto/request/index.js';
+import { UserResponseDTO } from '../../dto/response/index.js';
+import {
+  AdminUpdateUserCommand,
+  AdminDeleteUserCommand,
+  AdminGetUserQuery,
+} from '@volontariapp/contracts-nest';
 
 @ApiTags('Users - Admin')
 @ApiBearerAuth('access-token')
@@ -30,8 +40,55 @@ import {
 @ApiUnauthorizedResponse('Missing or invalid access token')
 @ApiForbiddenResponse('Required role: ADMIN — your token does not grant this access')
 @Controller('users')
+@UseGuards(AccessTokenGuard, RolesGuard)
 export class UserAdminCommandController extends BaseUserGrpcController {
   private readonly logger = new Logger({ context: UserAdminCommandController.name });
+
+  @ApiOperation({
+    summary: 'Update a user by ID (Admin)',
+    description: '🔐 **Required Role:** `ADMIN`\n\nUpdate any user profile information.',
+  })
+  @ApiParam({ name: 'id', example: 'uuid-123' })
+  @ApiResponse({ status: 200 })
+  @CustomApiError(() => USER_NOT_FOUND(''))
+  @CustomApiError(() => INVALID_RNA(''))
+  @Roles(UserRoles.ADMIN)
+  @Patch(':id')
+  updateUser(
+    @Param('id') userId: string,
+    @Body() request: UpdateUserRequestDTO,
+    @Req() req: Record<string, unknown>,
+  ) {
+    this.logger.log(`Admin updating user profile: ${userId}`);
+    const command: AdminUpdateUserCommand = {
+      userId,
+      ...request.toCommand(),
+    };
+    const metadata = req['internalMetadata'] as Metadata;
+    return this.userService.adminUpdateUser(command, metadata).pipe(
+      switchMap(() => {
+        const query: AdminGetUserQuery = { userId };
+        return this.userService.adminGetUser(query, metadata);
+      }),
+      map((res) => UserResponseDTO.fromResponse(res)),
+    );
+  }
+
+  @ApiOperation({
+    summary: 'Delete a user by ID (Admin)',
+    description: '🔐 **Required Role:** `ADMIN`\n\nPermanently delete a user account.',
+  })
+  @ApiParam({ name: 'id', example: 'uuid-123' })
+  @ApiResponse({ status: 200 })
+  @CustomApiError(() => USER_NOT_FOUND(''))
+  @Roles(UserRoles.ADMIN)
+  @Delete(':id')
+  deleteUser(@Param('id') userId: string, @Req() req: Record<string, unknown>) {
+    this.logger.log(`Admin deleting user account: ${userId}`);
+    const command: AdminDeleteUserCommand = { userId };
+    const metadata = req['internalMetadata'] as Metadata;
+    return this.userService.adminDeleteUser(command, metadata);
+  }
 
   @ApiOperation({
     summary: 'Add a badge to a user',

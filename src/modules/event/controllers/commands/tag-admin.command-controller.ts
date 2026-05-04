@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Param, Patch, Post, Req } from '@nestjs/common';
+import { Body, Controller, Delete, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
 import { Logger } from '@volontariapp/logger';
 import type { Metadata } from '@grpc/grpc-js';
 import {
@@ -17,7 +17,7 @@ import {
   ApiForbiddenResponse,
   ApiUnauthorizedResponse,
 } from '@volontariapp/errors-nest';
-import { Roles } from '../../../../common/decorators/roles.decorator.js';
+import { AccessTokenGuard, RolesGuard, Roles } from '@volontariapp/auth';
 import { UserRoles } from '@volontariapp/shared';
 import { CreateTagRequestDTO, UpdateTagRequestDTO } from '../../dto/request/index.js';
 import {
@@ -38,6 +38,7 @@ import { BaseTagGrpcController } from '../base-grpc.controller.js';
 @ApiForbiddenResponse('Required role: ADMIN — your token does not grant this access')
 @ApiInternalServerErrorResponse('An unexpected error occurred on the server')
 @Controller('tags')
+@UseGuards(AccessTokenGuard, RolesGuard)
 export class TagAdminCommandController extends BaseTagGrpcController {
   private readonly logger = new Logger({
     context: TagAdminCommandController.name,

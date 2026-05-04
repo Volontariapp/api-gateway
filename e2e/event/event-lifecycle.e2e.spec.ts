@@ -8,7 +8,7 @@ import { randomUUID } from 'node:crypto';
 import { loadConfig } from '@volontariapp/config';
 import { CustomConfig } from '../../src/config/base-config.js';
 import { EventState } from '@volontariapp/contracts-nest';
-import { TagsNames } from '@volontariapp/shared';
+import { TagsNames, UserRoles } from '@volontariapp/shared';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type {
@@ -53,7 +53,7 @@ describe('Event Lifecycle (E2E)', () => {
   });
 
   it('should cover tag lifecycle: create, get, update, conflict, and delete', async () => {
-    const client = await createTestClient(app).login({ id: randomUUID(), role: 'admin' });
+    const client = await createTestClient(app).login({ id: randomUUID(), role: UserRoles.ADMIN });
     const createDto = createTagRequestFactory();
 
     const createRes = await client.post('/api/v1/tags').send(createDto).expect(201);
@@ -86,7 +86,7 @@ describe('Event Lifecycle (E2E)', () => {
   });
 
   it('should cover event lifecycle: create, search, update, state, requirements, and delete', async () => {
-    const client = await createTestClient(app).login({ id: randomUUID(), role: 'admin' });
+    const client = await createTestClient(app).login({ id: randomUUID(), role: UserRoles.ADMIN });
     const tagRes = await client
       .post('/api/v1/tags')
       .send(createTagRequestFactory({ balise: TagsNames.BENEVOLAT }))
@@ -142,7 +142,7 @@ describe('Event Lifecycle (E2E)', () => {
   });
 
   it('should handle event date validation errors', async () => {
-    const client = await createTestClient(app).login({ id: randomUUID(), role: 'admin' });
+    const client = await createTestClient(app).login({ id: randomUUID(), role: UserRoles.ADMIN });
     const invalidEvent = createEventRequestFactory({
       startAt: new Date(Date.now() + 172800000),
       endAt: new Date(Date.now() + 86400000),

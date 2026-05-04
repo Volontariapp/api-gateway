@@ -9,12 +9,7 @@ export class GetWhoBlockedMeRequestDTO implements GetWhoBlockedMeWebRequest {
   @Type(() => PaginationRequestDTO)
   pagination?: PaginationRequestDTO;
 
-  userId!: string;
-
   toQuery(): GetWhoBlockedMeQuery {
-    return {
-      userId: this.userId,
-      pagination: this.pagination,
-    };
+    return { pagination: this.pagination };
   }
 }

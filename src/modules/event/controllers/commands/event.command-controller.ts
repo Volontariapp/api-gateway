@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Param, Patch, Post, Req } from '@nestjs/common';
+import { Body, Controller, Delete, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
 import { map } from 'rxjs';
 import { Logger } from '@volontariapp/logger';
 import {
@@ -18,10 +18,12 @@ import {
   INVALID_EVENT_STATE_TRANSITION,
   DATABASE_ERROR,
   MISSING_ACCESS_TOKEN,
-  INSUFFICIENT_PERMISSIONS,
+  ApiUnauthorizedResponse,
+  ApiForbiddenResponse,
 } from '@volontariapp/errors-nest';
 import type { Metadata } from '@grpc/grpc-js';
 import type { UUID } from 'crypto';
+import { AccessTokenGuard } from '@volontariapp/auth';
 import {
   CreateEventRequestDTO,
   UpdateEventRequestDTO,
@@ -44,9 +46,11 @@ import { BaseEventGrpcController } from '../base-grpc.controller.js';
 @ApiBearerAuth('refresh-token')
 @ApiBearerAuth('internal-token')
 @CustomApiError(MISSING_ACCESS_TOKEN)
-@CustomApiError(INSUFFICIENT_PERMISSIONS)
+@ApiUnauthorizedResponse('Missing or invalid access token')
+@ApiForbiddenResponse('Access denied')
 @ApiInternalServerErrorResponse('An unexpected error occurred on the server')
 @Controller('events')
+@UseGuards(AccessTokenGuard)
 export class EventCommandController extends BaseEventGrpcController {
   private readonly logger = new Logger({
     context: EventCommandController.name,

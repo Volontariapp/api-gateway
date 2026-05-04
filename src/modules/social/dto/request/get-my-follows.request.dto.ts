@@ -9,12 +9,7 @@ export class GetMyFollowsRequestDTO implements GetMyFollowsWebRequest {
   @Type(() => PaginationRequestDTO)
   pagination?: PaginationRequestDTO;
 
-  userId!: string;
-
   toQuery(): GetMyFollowsQuery {
-    return {
-      userId: this.userId,
-      pagination: this.pagination,
-    };
+    return { pagination: this.pagination };
   }
 }

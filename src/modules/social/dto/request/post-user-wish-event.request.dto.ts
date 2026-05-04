@@ -1,10 +1,12 @@
-import type { PostUserWishEventCommand } from '@volontariapp/contracts';
-import type { PostUserWishEventCommand as PostUserWishEventCommandType } from '@volontariapp/contracts-nest';
+import type {
+  PostUserWishEventCommand,
+  PostUserWishEventWebRequest,
+} from '@volontariapp/contracts';
 
-export class PostUserWishEventRequestDTO implements PostUserWishEventCommand {
+export class PostUserWishEventRequestDTO implements PostUserWishEventWebRequest {
   eventId!: string;
 
-  toCommand(): PostUserWishEventCommandType {
+  toCommand(): PostUserWishEventCommand {
     return { eventId: this.eventId };
   }
 }

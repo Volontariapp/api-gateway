@@ -1,10 +1,9 @@
-import type { DeleteLikePostCommand } from '@volontariapp/contracts';
-import type { DeleteLikePostCommand as DeleteLikePostCommandType } from '@volontariapp/contracts-nest';
+import type { DeleteLikePostCommand, DeleteLikePostWebRequest } from '@volontariapp/contracts';
 
-export class DeleteLikePostRequestDTO implements DeleteLikePostCommand {
+export class DeleteLikePostRequestDTO implements DeleteLikePostWebRequest {
   postId!: string;
 
-  toCommand(): DeleteLikePostCommandType {
+  toCommand(): DeleteLikePostCommand {
     return { postId: this.postId };
   }
 }

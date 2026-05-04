@@ -1,10 +1,12 @@
-import type { DeleteSocialEventCommand } from '@volontariapp/contracts';
-import type { DeleteSocialEventCommand as DeleteSocialEventCommandType } from '@volontariapp/contracts-nest';
+import type {
+  DeleteSocialEventCommand,
+  DeleteSocialEventWebRequest,
+} from '@volontariapp/contracts';
 
-export class DeleteEventNodeRequestDTO implements DeleteSocialEventCommand {
+export class DeleteEventNodeRequestDTO implements DeleteSocialEventWebRequest {
   eventId!: string;
 
-  toCommand(): DeleteSocialEventCommandType {
+  toCommand(): DeleteSocialEventCommand {
     return { eventId: this.eventId };
   }
 }

@@ -1,10 +1,9 @@
-import type { DeleteSocialPostCommand } from '@volontariapp/contracts';
-import type { DeleteSocialPostCommand as DeleteSocialPostCommandType } from '@volontariapp/contracts-nest';
+import type { DeleteSocialPostCommand, DeleteSocialPostWebRequest } from '@volontariapp/contracts';
 
-export class DeletePostNodeRequestDTO implements DeleteSocialPostCommand {
+export class DeletePostNodeRequestDTO implements DeleteSocialPostWebRequest {
   postId!: string;
 
-  toCommand(): DeleteSocialPostCommandType {
+  toCommand(): DeleteSocialPostCommand {
     return { postId: this.postId };
   }
 }

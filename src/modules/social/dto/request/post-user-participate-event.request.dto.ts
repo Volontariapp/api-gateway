@@ -1,10 +1,12 @@
-import type { PostUserParticipateEventCommand } from '@volontariapp/contracts';
-import type { PostUserParticipateEventCommand as PostUserParticipateEventCommandType } from '@volontariapp/contracts-nest';
+import type {
+  PostUserParticipateEventCommand,
+  PostUserParticipateEventWebRequest,
+} from '@volontariapp/contracts';
 
-export class PostUserParticipateEventRequestDTO implements PostUserParticipateEventCommand {
+export class PostUserParticipateEventRequestDTO implements PostUserParticipateEventWebRequest {
   eventId!: string;
 
-  toCommand(): PostUserParticipateEventCommandType {
+  toCommand(): PostUserParticipateEventCommand {
     return { eventId: this.eventId };
   }
 }

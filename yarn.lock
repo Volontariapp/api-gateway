@@ -3908,9 +3908,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@volontariapp/auth@npm:3.1.0":
-  version: 3.1.0
-  resolution: "@volontariapp/auth@npm:3.1.0"
+"@volontariapp/auth@npm:3.2.1":
+  version: 3.2.1
+  resolution: "@volontariapp/auth@npm:3.2.1"
   dependencies:
     "@volontariapp/errors": "npm:0.5.0"
     "@volontariapp/errors-nest": "npm:0.10.2"
@@ -3924,7 +3924,7 @@ __metadata:
     "@nestjs/common": ^10.0.0 || ^11.0.0
     "@nestjs/core": ^10.0.0 || ^11.0.0
     "@nestjs/microservices": ^10.0.0 || ^11.0.0
-  checksum: 10c0/d6067236ae0aae287e4f792285aeaa1e0330a28438eddb978eefe6d0a8711b5b63d2ed2a0f2eef5b3c1596351c17ee65c4de921f5fd26fbc660891ca07a5a5f4
+  checksum: 10c0/ea213ec259070a606981eddac9e88f8efd92d51c3916b11489c0bd725cc8705d0c67a531a114315fcda2fdcb710fe66e91e161a847994a3ad2188135669d7968
   languageName: node
   linkType: hard
 
@@ -3998,9 +3998,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@volontariapp/contracts-nest@npm:3.0.7":
-  version: 3.0.7
-  resolution: "@volontariapp/contracts-nest@npm:3.0.7"
+"@volontariapp/contracts-nest@npm:3.1.0":
+  version: 3.1.0
+  resolution: "@volontariapp/contracts-nest@npm:3.1.0"
   dependencies:
     "@volontariapp/logger": "npm:0.2.3"
     protobufjs: "npm:7.5.3"
@@ -4009,7 +4009,7 @@ __metadata:
     "@nestjs/core": ^11.0.0
     "@nestjs/microservices": ^11.0.0
     rxjs: ^7.0.0
-  checksum: 10c0/013231410413444848d0e94033d7ff39085e95a0319324198f24ef43985086ca1c582ecb466f6fe1d254f49d10336f1c1b863f3ff9189f50cce6c62ce610fbb9
+  checksum: 10c0/f3e4cda58b6718c1ffe768a60cea8a2654bd7a492f18f8558adb0d54235fa7088665527c815f98f3b89bddf4006ee69839c9dd0a40bdfa78ecd7c911eac9ddc1
   languageName: node
   linkType: hard
 
@@ -4551,11 +4551,11 @@ __metadata:
     "@types/jest": "npm:^30.0.0"
     "@types/node": "npm:^22.10.7"
     "@types/supertest": "npm:^6.0.2"
-    "@volontariapp/auth": "npm:3.1.0"
+    "@volontariapp/auth": "npm:3.2.1"
     "@volontariapp/bridge-nest": "npm:0.3.11"
     "@volontariapp/config": "npm:2.1.0"
     "@volontariapp/contracts": "npm:4.0.8"
-    "@volontariapp/contracts-nest": "npm:3.0.7"
+    "@volontariapp/contracts-nest": "npm:3.1.0"
     "@volontariapp/errors": "npm:0.5.0"
     "@volontariapp/errors-nest": "npm:0.10.2"
     "@volontariapp/eslint-config": "npm:2.2.3"

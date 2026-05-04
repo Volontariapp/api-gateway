@@ -9,12 +9,7 @@ export class GetUserParticipationsRequestDTO implements GetUserParticipateEventW
   @Type(() => PaginationRequestDTO)
   pagination?: PaginationRequestDTO;
 
-  userId!: string;
-
   toQuery(): GetUserParticipateEventQuery {
-    return {
-      userId: this.userId,
-      pagination: this.pagination,
-    };
+    return { pagination: this.pagination };
   }
 }

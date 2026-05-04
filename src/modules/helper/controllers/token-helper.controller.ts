@@ -4,6 +4,7 @@ import { ApiTags, ApiOperation, ApiQuery, ApiOkResponse } from '@nestjs/swagger'
 import { TokenResponseDTO } from '../dto/response/token-response.dto.js';
 import { AppConfigService } from '../../../config/app-config.service.js';
 import { Logger } from '@volontariapp/logger';
+import { UserRoles } from '@volontariapp/shared';
 import fs from 'node:fs';
 
 @ApiTags('Tokens Helper')
@@ -54,17 +55,31 @@ export class TokenHelperController implements OnModuleInit {
   })
   @ApiQuery({
     name: 'role',
-    example: 'user',
+    enum: UserRoles,
+    example: UserRoles.VOLUNTEER,
     required: false,
-    description: 'User role (default: user)',
+    description: 'User role (default: VOLUNTEER)',
   })
   @ApiOkResponse({ type: TokenResponseDTO })
   async generateAccessToken(
     @Query('userId') userId: string,
-    @Query('role') role = 'user',
+    @Query('role') role: UserRoles = UserRoles.VOLUNTEER,
   ): Promise<TokenResponseDTO> {
     this.logger.log(`Generating Access Token for user: ${userId} (role: ${role})`);
     const token = await this.jwtService.signAccessToken({ id: userId, role });
+    return { token };
+  }
+
+  @Get('admin-token')
+  @ApiOperation({
+    summary: 'Generate an Admin Access Token',
+    description: 'Shortcut to create a signed access token with the ADMIN role for testing.',
+  })
+  @ApiOkResponse({ type: TokenResponseDTO })
+  async generateAdminToken(): Promise<TokenResponseDTO> {
+    const adminId = '00000000-0000-0000-0000-000000000000';
+    this.logger.log('Generating Admin Access Token (Shortcut)');
+    const token = await this.jwtService.signAccessToken({ id: adminId, role: UserRoles.ADMIN });
     return { token };
   }
 
@@ -78,7 +93,7 @@ export class TokenHelperController implements OnModuleInit {
   @ApiOkResponse({ type: TokenResponseDTO })
   async generateRefreshToken(
     @Query('userId') userId: string,
-    @Query('role') role = 'user',
+    @Query('role') role: UserRoles = UserRoles.VOLUNTEER,
   ): Promise<TokenResponseDTO> {
     this.logger.log(`Generating Refresh Token for user: ${userId}`);
     const token = await this.jwtService.signRefreshToken({ id: userId, role });
@@ -95,7 +110,7 @@ export class TokenHelperController implements OnModuleInit {
   @ApiOkResponse({ type: TokenResponseDTO })
   async generateInternalToken(
     @Query('userId') userId: string,
-    @Query('role') role = 'user',
+    @Query('role') role: UserRoles = UserRoles.VOLUNTEER,
   ): Promise<TokenResponseDTO> {
     this.logger.log(`Generating Internal Token for user: ${userId}`);
     const token = await this.jwtService.signInternal({ id: userId, role });

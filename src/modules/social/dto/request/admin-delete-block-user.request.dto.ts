@@ -1,11 +1,13 @@
-import type { AdminDeleteBlockCommand } from '@volontariapp/contracts';
-import type { AdminDeleteBlockCommand as AdminDeleteBlockCommandType } from '@volontariapp/contracts-nest';
+import type {
+  AdminDeleteBlockUserWebRequest,
+  AdminDeleteBlockUserCommand,
+} from '@volontariapp/contracts';
 
-export class AdminDeleteBlockUserRequestDTO implements AdminDeleteBlockCommand {
+export class AdminDeleteBlockUserRequestDTO implements AdminDeleteBlockUserWebRequest {
   blockerId!: string;
   blockedId!: string;
 
-  toCommand(): AdminDeleteBlockCommandType {
+  toCommand(): AdminDeleteBlockUserCommand {
     return { blockerId: this.blockerId, blockedId: this.blockedId };
   }
 }

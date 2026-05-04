@@ -9,11 +9,8 @@ export class GetUserEventsRequestDTO implements GetUserEventWebRequest {
   @Type(() => PaginationRequestDTO)
   pagination?: PaginationRequestDTO;
 
-  userId!: string;
-
   toQuery(): GetUserEventQuery {
     return {
-      userId: this.userId,
       pagination: this.pagination,
     };
   }

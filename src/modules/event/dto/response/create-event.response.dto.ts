@@ -6,7 +6,9 @@ import { EventDTO } from '../common/event.dto.js';
 export class CreateEventResponseDTO implements EventWebResponse {
   static fromResponse(response: CreateEventResponse): CreateEventResponseDTO {
     const dto = new CreateEventResponseDTO();
-    dto.event = response.event ? EventDTO.fromResponse(response.event) : undefined;
+    if (response.event) {
+      dto.event = EventDTO.fromResponse(response.event);
+    }
     return dto;
   }
 

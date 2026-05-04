@@ -8,6 +8,7 @@ import {
   OnModuleInit,
   Query,
   Req,
+  UseGuards,
 } from '@nestjs/common';
 import { map } from 'rxjs';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
@@ -21,6 +22,8 @@ import {
   EVENT_POST_LINK_QUERY_SERVICE_NAME,
   EventPostLinkQueryServiceClient,
 } from '@volontariapp/contracts-nest';
+import { AccessTokenGuard, RolesGuard, Roles } from '@volontariapp/auth';
+import { UserRoles } from '@volontariapp/shared';
 import {
   ActionSuccessResponseDTO,
   IdsListResponseDTO,
@@ -41,6 +44,7 @@ import {
 @ApiUnauthorizedResponse('Missing or invalid access token')
 @ApiForbiddenResponse('You do not have permission to access this resource')
 @Controller('social')
+@UseGuards(AccessTokenGuard, RolesGuard)
 export class EventPostLinkController implements OnModuleInit {
   private commandService!: WithMetadata<EventPostLinkCommandServiceClient>;
   private queryService!: WithMetadata<EventPostLinkQueryServiceClient>;
@@ -57,6 +61,7 @@ export class EventPostLinkController implements OnModuleInit {
   }
 
   @Post('events/:eventId/posts/:postId')
+  @Roles(UserRoles.ADMIN)
   @ApiOperation({ summary: 'Link a post to an event' })
   @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
   @ApiParam({ name: 'postId', example: 'uuid-post-123' })
@@ -74,6 +79,7 @@ export class EventPostLinkController implements OnModuleInit {
   }
 
   @Delete('events/:eventId/posts/:postId')
+  @Roles(UserRoles.ADMIN)
   @ApiOperation({ summary: 'Unlink a post from an event' })
   @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
   @ApiParam({ name: 'postId', example: 'uuid-post-123' })

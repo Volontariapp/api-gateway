@@ -1,7 +1,7 @@
-import { Controller, Get, Param, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Req } from '@nestjs/common';
 import { map } from 'rxjs';
 import { Logger } from '@volontariapp/logger';
-import { ApiOperation, ApiParam, ApiResponse, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import {
   ApiForbiddenResponse,
   ApiUnauthorizedResponse,
@@ -10,7 +10,9 @@ import {
   USER_NOT_FOUND,
 } from '@volontariapp/errors-nest';
 import type { Metadata } from '@grpc/grpc-js';
-import { IsCurrentUserOrAdminGuard } from '../../../../common/guards/is-current-user-or-admin.guard.js';
+import { CurrentUser, AccessTokenGuard } from '@volontariapp/auth';
+import type { AuthUser } from '@volontariapp/auth';
+import { UseGuards } from '@nestjs/common';
 import { BaseUserGrpcController } from '../base-user-grpc.controller.js';
 import { GetUserRequestDTO } from '../../dto/request/index.js';
 import { UserResponseDTO } from '../../dto/response/index.js';
@@ -23,19 +25,18 @@ import { UserResponseDTO } from '../../dto/response/index.js';
 @ApiUnauthorizedResponse('Missing or invalid access token')
 @ApiForbiddenResponse('You do not have permission to access this resource')
 @Controller('users')
+@UseGuards(AccessTokenGuard)
 export class UserQueryController extends BaseUserGrpcController {
   private readonly logger = new Logger({ context: UserQueryController.name });
 
-  @ApiOperation({ summary: 'Get a user by ID' })
-  @ApiParam({ name: 'id', example: 'uuid-123' })
+  @ApiOperation({ summary: 'Get current user profile' })
   @ApiResponse({ status: 200, type: UserResponseDTO })
   @CustomApiError(() => USER_NOT_FOUND(''))
-  @UseGuards(IsCurrentUserOrAdminGuard)
-  @Get(':id')
-  getUser(@Param('id') id: string, @Req() req: Record<string, unknown>) {
-    this.logger.log(`Fetching user profile: ${id}`);
+  @Get('me')
+  getMe(@CurrentUser() user: AuthUser, @Req() req: Record<string, unknown>) {
+    this.logger.log(`Fetching current user profile: ${user.id}`);
     const dto = new GetUserRequestDTO();
-    dto.userId = id;
+    dto.userId = user.id;
     const metadata = req['internalMetadata'] as Metadata;
     return this.userService
       .getUser(dto.toQuery(), metadata)
