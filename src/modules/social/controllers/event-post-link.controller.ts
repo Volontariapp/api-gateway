@@ -8,10 +8,9 @@ import {
   OnModuleInit,
   Query,
   Req,
-  UseGuards,
 } from '@nestjs/common';
 import { map } from 'rxjs';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import type { ClientGrpc } from '@nestjs/microservices';
 import type { Metadata } from '@grpc/grpc-js';
 import { WithMetadata } from '../../../common/types/grpc.types.js';
@@ -22,7 +21,8 @@ import {
   EVENT_POST_LINK_QUERY_SERVICE_NAME,
   EventPostLinkQueryServiceClient,
 } from '@volontariapp/contracts-nest';
-import { AccessTokenGuard, RolesGuard, Roles } from '@volontariapp/auth';
+import { Roles } from '@volontariapp/auth';
+import { GatewayController } from '../../../common/decorators/gateway-controller.decorator.js';
 import { UserRoles } from '@volontariapp/shared';
 import {
   ActionSuccessResponseDTO,
@@ -30,21 +30,13 @@ import {
   EventIdResponseDTO,
 } from '../dto/response/index.js';
 import { GetEventPostsRequestDTO } from '../dto/request/index.js';
-import {
-  CustomApiError,
-  DATABASE_ERROR,
-  ApiUnauthorizedResponse,
-  ApiForbiddenResponse,
-} from '@volontariapp/errors-nest';
+import { CustomApiError, DATABASE_ERROR } from '@volontariapp/errors-nest';
 
-@ApiTags('Social - Event-Post Links')
-@ApiBearerAuth('access-token')
-@ApiBearerAuth('refresh-token')
-@ApiBearerAuth('internal-token')
-@ApiUnauthorizedResponse('Missing or invalid access token')
-@ApiForbiddenResponse('You do not have permission to access this resource')
+@GatewayController('Social - Event-Post Links', {
+  admin: true,
+  forbiddenMessage: 'You do not have permission to access this resource',
+})
 @Controller('social')
-@UseGuards(AccessTokenGuard, RolesGuard)
 export class EventPostLinkController implements OnModuleInit {
   private commandService!: WithMetadata<EventPostLinkCommandServiceClient>;
   private queryService!: WithMetadata<EventPostLinkQueryServiceClient>;

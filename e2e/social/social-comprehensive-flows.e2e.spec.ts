@@ -209,8 +209,8 @@ describe('Social Comprehensive User Flows (E2E)', () => {
       role: UserRoles.VOLUNTEER,
     });
 
-    // User A accessing User A's explicit routes (allowed by guard)
-    await userAClient.get(`/api/v1/social/users/${userAId}/likes`).expect(200);
+    // User A accessing User A's explicit routes (forbidden 403 - regular users must use /social/likes)
+    await userAClient.get(`/api/v1/social/users/${userAId}/likes`).expect(403);
 
     // User A accessing User B's explicit routes (forbidden 403)
     await userAClient.get(`/api/v1/social/users/${userBId}/likes`).expect(403);

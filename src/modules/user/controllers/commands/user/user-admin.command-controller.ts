@@ -1,12 +1,9 @@
 import { Body, Controller, Delete, Param, Patch, Post, Req } from '@nestjs/common';
 import { map, switchMap } from 'rxjs';
 import { Logger } from '@volontariapp/logger';
-import { ApiOperation, ApiParam, ApiResponse, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import {
-  ApiForbiddenResponse,
-  ApiUnauthorizedResponse,
   CustomApiError,
-  MISSING_ACCESS_TOKEN,
   USER_NOT_FOUND,
   BADGE_NOT_FOUND,
   USER_ALREADY_HAS_BADGE,
@@ -15,32 +12,27 @@ import {
   INVALID_RNA,
 } from '@volontariapp/errors-nest';
 import type { Metadata } from '@grpc/grpc-js';
-import { Roles, AccessTokenGuard, RolesGuard } from '@volontariapp/auth';
-import { UserRoles } from '@volontariapp/shared';
-import { UseGuards } from '@nestjs/common';
-import { BaseUserGrpcController } from '../base-user-grpc.controller.js';
+import { Roles } from '@volontariapp/auth';
+import { GatewayController } from '../../../../../common/decorators/gateway-controller.decorator.js';
+import { BaseUserGrpcController } from '../../base-user-grpc.controller.js';
 import {
   AddBadgeToUserRequestDTO,
   IncrementImpactScoreRequestDTO,
   RemoveBadgeFromUserRequestDTO,
   UpdateUserRequestDTO,
-} from '../../dto/request/index.js';
-import { UserResponseDTO } from '../../dto/response/index.js';
+} from '../../../dto/request/index.js';
+import { UserResponseDTO } from '../../../dto/response/index.js';
 import {
   AdminUpdateUserCommand,
   AdminDeleteUserCommand,
   AdminGetUserQuery,
 } from '@volontariapp/contracts-nest';
+import { UserRoles } from '@volontariapp/shared';
 
-@ApiTags('Users - Admin')
-@ApiBearerAuth('access-token')
-@ApiBearerAuth('refresh-token')
-@ApiBearerAuth('internal-token')
-@CustomApiError(MISSING_ACCESS_TOKEN)
-@ApiUnauthorizedResponse('Missing or invalid access token')
-@ApiForbiddenResponse('Required role: ADMIN — your token does not grant this access')
+@GatewayController('Users - Admin', {
+  admin: true,
+})
 @Controller('users')
-@UseGuards(AccessTokenGuard, RolesGuard)
 export class UserAdminCommandController extends BaseUserGrpcController {
   private readonly logger = new Logger({ context: UserAdminCommandController.name });
 
@@ -49,7 +41,7 @@ export class UserAdminCommandController extends BaseUserGrpcController {
     description: '🔐 **Required Role:** `ADMIN`\n\nUpdate any user profile information.',
   })
   @ApiParam({ name: 'id', example: 'uuid-123' })
-  @ApiResponse({ status: 200 })
+  @ApiResponse({ status: 200, type: UserResponseDTO })
   @CustomApiError(() => USER_NOT_FOUND(''))
   @CustomApiError(() => INVALID_RNA(''))
   @Roles(UserRoles.ADMIN)

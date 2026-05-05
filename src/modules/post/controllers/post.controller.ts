@@ -33,7 +33,7 @@ import {
   POST_SERVICE_NAME,
   PostServiceClient,
   DeletePostCommand,
-  PostQuery,
+  GetPostQuery,
 } from '@volontariapp/contracts-nest';
 import { POST_PACKAGE } from '../../../grpc/grpc-packages.js';
 import {
@@ -80,7 +80,7 @@ export class PostController implements OnModuleInit {
   @Get(':id')
   getPost(@Param('id') id: string) {
     this.logger.log(`Fetching post: ${id}`);
-    const query: PostQuery = { id };
+    const query: GetPostQuery = { id };
     return this.postService.getPost(query);
   }
 

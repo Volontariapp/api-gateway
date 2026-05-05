@@ -1,39 +1,23 @@
 import { Body, Controller, Delete, Param, Patch, Post, Req } from '@nestjs/common';
 import { map } from 'rxjs';
 import { Logger } from '@volontariapp/logger';
-import {
-  ApiOperation,
-  ApiParam,
-  ApiResponse,
-  ApiTags,
-  ApiBearerAuth,
-  ApiExtraModels,
-} from '@nestjs/swagger';
-import {
-  ApiForbiddenResponse,
-  ApiUnauthorizedResponse,
-  CustomApiError,
-  MISSING_ACCESS_TOKEN,
-} from '@volontariapp/errors-nest';
+import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import type { Metadata } from '@grpc/grpc-js';
-import { Roles } from '../../../../common/decorators/roles.decorator.js';
+import { Roles } from '@volontariapp/auth';
+import { GatewayController } from '../../../../../common/decorators/gateway-controller.decorator.js';
 import { UserRoles } from '@volontariapp/shared';
-import { BaseBadgeGrpcController } from '../base-badge-grpc.controller.js';
+import { BaseBadgeGrpcController } from '../../base-badge-grpc.controller.js';
 import {
   CreateBadgeRequestDTO,
   UpdateBadgeRequestDTO,
   DeleteBadgeRequestDTO,
-} from '../../dto/request/index.js';
-import { BadgeResponseDTO } from '../../dto/response/index.js';
+} from '../../../dto/request/index.js';
+import { BadgeResponseDTO } from '../../../dto/response/index.js';
 
-@ApiTags('Badges - Admin')
-@ApiExtraModels(BadgeResponseDTO)
-@ApiBearerAuth('access-token')
-@ApiBearerAuth('refresh-token')
-@ApiBearerAuth('internal-token')
-@CustomApiError(MISSING_ACCESS_TOKEN)
-@ApiUnauthorizedResponse('Missing or invalid access token')
-@ApiForbiddenResponse('Required role: ADMIN — your token does not grant this access')
+@GatewayController('Badges - Admin', {
+  admin: true,
+  extraModels: [BadgeResponseDTO],
+})
 @Controller('badges')
 export class BadgeAdminCommandController extends BaseBadgeGrpcController {
   private readonly logger = new Logger({ context: BadgeAdminCommandController.name });

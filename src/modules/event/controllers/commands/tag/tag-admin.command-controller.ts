@@ -1,44 +1,25 @@
-import { Body, Controller, Delete, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Param, Patch, Post, Req } from '@nestjs/common';
 import { Logger } from '@volontariapp/logger';
 import type { Metadata } from '@grpc/grpc-js';
-import {
-  ApiOperation,
-  ApiParam,
-  ApiTags,
-  ApiResponse,
-  ApiExtraModels,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
-import {
-  ApiInternalServerErrorResponse,
-  ApiConflictResponse,
-  CustomApiError,
-  MISSING_ACCESS_TOKEN,
-  ApiForbiddenResponse,
-  ApiUnauthorizedResponse,
-} from '@volontariapp/errors-nest';
-import { AccessTokenGuard, RolesGuard, Roles } from '@volontariapp/auth';
+import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
+import { ApiConflictResponse } from '@volontariapp/errors-nest';
+import { Roles } from '@volontariapp/auth';
+import { GatewayController } from '../../../../../common/decorators/gateway-controller.decorator.js';
 import { UserRoles } from '@volontariapp/shared';
-import { CreateTagRequestDTO, UpdateTagRequestDTO } from '../../dto/request/index.js';
+import { CreateTagRequestDTO, UpdateTagRequestDTO } from '../../../dto/request/index.js';
 import {
   CreateTagResponseDTO,
   UpdateTagResponseDTO,
   ActionSuccessResponseDTO,
-} from '../../dto/response/index.js';
+} from '../../../dto/response/index.js';
 import { DeleteTagCommand } from '@volontariapp/contracts-nest';
-import { BaseTagGrpcController } from '../base-grpc.controller.js';
+import { BaseTagGrpcController } from '../../base-grpc.controller.js';
 
-@ApiTags('Tags - Admin')
-@ApiExtraModels(CreateTagResponseDTO, UpdateTagResponseDTO, ActionSuccessResponseDTO)
-@ApiBearerAuth('access-token')
-@ApiBearerAuth('refresh-token')
-@ApiBearerAuth('internal-token')
-@CustomApiError(MISSING_ACCESS_TOKEN)
-@ApiUnauthorizedResponse('Missing or invalid access token')
-@ApiForbiddenResponse('Required role: ADMIN — your token does not grant this access')
-@ApiInternalServerErrorResponse('An unexpected error occurred on the server')
+@GatewayController('Tags - Admin', {
+  admin: true,
+  extraModels: [CreateTagResponseDTO, UpdateTagResponseDTO, ActionSuccessResponseDTO],
+})
 @Controller('tags')
-@UseGuards(AccessTokenGuard, RolesGuard)
 export class TagAdminCommandController extends BaseTagGrpcController {
   private readonly logger = new Logger({
     context: TagAdminCommandController.name,
