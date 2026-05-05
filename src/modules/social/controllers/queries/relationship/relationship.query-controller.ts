@@ -1,0 +1,60 @@
+import { Controller, Get, Query, Req } from '@nestjs/common';
+import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { CustomApiError, DATABASE_ERROR } from '@volontariapp/errors-nest';
+import type { Metadata } from '@grpc/grpc-js';
+import { GatewayController } from '../../../../../common/decorators/gateway-controller.decorator.js';
+import { BaseRelationshipGrpcController } from '../../base-grpc.controller.js';
+import {
+  GetMyFollowsRequestDTO,
+  GetMyFollowersRequestDTO,
+  GetMyBlocksRequestDTO,
+  GetWhoBlockedMeRequestDTO,
+} from '../../../dto/request/index.js';
+import { IdsListResponseDTO } from '../../../dto/response/index.js';
+
+@GatewayController('Social - Relationships - Queries')
+@Controller('social')
+export class RelationshipQueryController extends BaseRelationshipGrpcController {
+  @Get('follows')
+  @ApiOperation({ summary: 'Get list of users followed by current user' })
+  @ApiResponse({ status: 200, type: IdsListResponseDTO })
+  @CustomApiError(() => DATABASE_ERROR('fetching follows', 'details'))
+  getFollowsSelf(@Query() query: GetMyFollowsRequestDTO, @Req() req: Record<string, unknown>) {
+    const metadata = req['internalMetadata'] as Metadata;
+    const { pagination } = query;
+    return this.queryService.getMyFollows({ pagination }, metadata);
+  }
+
+  @Get('followers')
+  @ApiOperation({ summary: 'Get list of users following current user' })
+  @ApiResponse({ status: 200, type: IdsListResponseDTO })
+  @CustomApiError(() => DATABASE_ERROR('fetching followers', 'details'))
+  getFollowersSelf(@Query() query: GetMyFollowersRequestDTO, @Req() req: Record<string, unknown>) {
+    const metadata = req['internalMetadata'] as Metadata;
+    const { pagination } = query;
+    return this.queryService.getMyFollowers({ pagination }, metadata);
+  }
+
+  @Get('blocks')
+  @ApiOperation({ summary: 'Get list of blocked users by current user' })
+  @ApiResponse({ status: 200, type: IdsListResponseDTO })
+  @CustomApiError(() => DATABASE_ERROR('fetching blocks', 'details'))
+  getBlocksSelf(@Query() query: GetMyBlocksRequestDTO, @Req() req: Record<string, unknown>) {
+    const metadata = req['internalMetadata'] as Metadata;
+    const { pagination } = query;
+    return this.queryService.getMyBlocks({ pagination }, metadata);
+  }
+
+  @Get('who-blocked-me')
+  @ApiOperation({ summary: 'Get list of users who blocked current user' })
+  @ApiResponse({ status: 200, type: IdsListResponseDTO })
+  @CustomApiError(() => DATABASE_ERROR('fetching who blocked me', 'details'))
+  getWhoBlockedMeSelf(
+    @Query() query: GetWhoBlockedMeRequestDTO,
+    @Req() req: Record<string, unknown>,
+  ) {
+    const metadata = req['internalMetadata'] as Metadata;
+    const { pagination } = query;
+    return this.queryService.getWhoBlockedMe({ pagination }, metadata);
+  }
+}

@@ -58,7 +58,7 @@ describe('User Lifecycle (E2E)', () => {
         email: signUpDto.email,
         password: signUpDto.password,
       });
-      const res = await client.post('/api/v1/users/login').send(loginDto).expect(200);
+      const res = await client.post('/api/v1/users/login').send(loginDto).expect(201);
 
       const body = res.body as LoginResponseDTO;
       expect(body.auth.accessToken).toBeDefined();
@@ -79,7 +79,7 @@ describe('User Lifecycle (E2E)', () => {
         .withToken(refreshToken)
         .post('/api/v1/users/refresh')
         .send(refreshTokenRequestFactory(refreshToken))
-        .expect(200);
+        .expect(201);
 
       const body = res.body as LoginResponseDTO;
       expect(body.auth.accessToken).toBeDefined();
@@ -101,7 +101,7 @@ describe('User Lifecycle (E2E)', () => {
         email: signUpDto.email,
         password: signUpDto.password,
       });
-      const loginRes = await client.post('/api/v1/users/login').send(loginDto).expect(200);
+      const loginRes = await client.post('/api/v1/users/login').send(loginDto).expect(201);
       const loginBody = loginRes.body as LoginResponseDTO;
       expect(loginBody.auth.accessToken).toBeDefined();
 
@@ -110,7 +110,7 @@ describe('User Lifecycle (E2E)', () => {
         .withToken(loginBody.auth.refreshToken)
         .post('/api/v1/users/refresh')
         .send(refreshTokenRequestFactory(loginBody.auth.refreshToken))
-        .expect(200);
+        .expect(201);
 
       const refreshBody = refreshRes.body as LoginResponseDTO;
       expect(refreshBody.auth.accessToken).toBeDefined();
@@ -230,7 +230,7 @@ describe('User Lifecycle (E2E)', () => {
       await client
         .post('/api/v1/users/login')
         .send(loginRequestFactory({ email: signUpDto.email, password: 'NewSecurePassword456!' }))
-        .expect(200);
+        .expect(201);
 
       // Cleanup
       await client.delete(`/api/v1/users/${userId}`).expect(200);
@@ -428,7 +428,7 @@ describe('User Lifecycle (E2E)', () => {
       const loginRes = await client
         .post('/api/v1/users/login')
         .send(loginRequestFactory({ email: signUpDto.email, password: signUpDto.password }))
-        .expect(200);
+        .expect(201);
       expect((loginRes.body as LoginResponseDTO).auth.accessToken).toBeDefined();
 
       // 4. Get user

@@ -1,14 +1,8 @@
-import { Body, Controller, HttpCode, Inject, OnModuleInit, Post } from '@nestjs/common';
+import { Body, Controller, Inject, OnModuleInit, Post } from '@nestjs/common';
 import { map } from 'rxjs';
 import { Logger } from '@volontariapp/logger';
-import { ApiOperation, ApiResponse, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
-import {
-  ApiForbiddenResponse,
-  ApiUnauthorizedResponse,
-  CustomApiError,
-  MISSING_ACCESS_TOKEN,
-  USER_ALREADY_EXISTS,
-} from '@volontariapp/errors-nest';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { CustomApiError, USER_ALREADY_EXISTS } from '@volontariapp/errors-nest';
 import type { ClientGrpc } from '@nestjs/microservices';
 import { Public, UseRefreshToken } from '@volontariapp/auth';
 import { WithMetadata } from '../../../../common/types/grpc.types.js';
@@ -22,12 +16,6 @@ import {
 import { SignUpResponseDTO, LoginResponseDTO } from '../../dto/response/index.js';
 
 @ApiTags('Users - Auth')
-@ApiBearerAuth('access-token')
-@ApiBearerAuth('refresh-token')
-@ApiBearerAuth('internal-token')
-@CustomApiError(MISSING_ACCESS_TOKEN)
-@ApiUnauthorizedResponse('Missing or invalid access token')
-@ApiForbiddenResponse('You do not have permission to manage users')
 @Controller('users')
 export class UserAuthController implements OnModuleInit {
   private readonly logger = new Logger({ context: UserAuthController.name });
@@ -53,7 +41,6 @@ export class UserAuthController implements OnModuleInit {
 
   @ApiOperation({ summary: 'Login with email and password' })
   @ApiResponse({ status: 200, type: LoginResponseDTO })
-  @HttpCode(200)
   @Public()
   @Post('login')
   login(@Body() request: LoginRequestDTO) {
@@ -65,7 +52,6 @@ export class UserAuthController implements OnModuleInit {
 
   @ApiOperation({ summary: 'Refresh access token' })
   @ApiResponse({ status: 200, type: LoginResponseDTO })
-  @HttpCode(200)
   @UseRefreshToken()
   @Post('refresh')
   refreshToken(@Body() request: RefreshTokenRequestDTO) {

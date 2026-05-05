@@ -1,56 +1,39 @@
-import { Body, Controller, Delete, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Param, Patch, Post, Req } from '@nestjs/common';
 import { map } from 'rxjs';
 import { Logger } from '@volontariapp/logger';
+import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import {
-  ApiOperation,
-  ApiParam,
-  ApiTags,
-  ApiResponse,
-  ApiExtraModels,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
-import {
-  ApiInternalServerErrorResponse,
   CustomApiError,
   INVALID_DATE_PARAMETERS,
   EVENT_NOT_FOUND,
   EVENT_ALREADY_EXISTS,
   INVALID_EVENT_STATE_TRANSITION,
   DATABASE_ERROR,
-  MISSING_ACCESS_TOKEN,
-  ApiUnauthorizedResponse,
-  ApiForbiddenResponse,
 } from '@volontariapp/errors-nest';
 import type { Metadata } from '@grpc/grpc-js';
 import type { UUID } from 'crypto';
-import { AccessTokenGuard } from '@volontariapp/auth';
+import { GatewayController } from '../../../../../common/decorators/gateway-controller.decorator.js';
 import {
   CreateEventRequestDTO,
   UpdateEventRequestDTO,
   ChangeEventStateRequestDTO,
   AddRequirementRequestDTO,
   RemoveRequirementRequestDTO,
-} from '../../dto/request/index.js';
+} from '../../../dto/request/index.js';
 import {
   CreateEventResponseDTO,
   UpdateEventResponseDTO,
   ChangeEventStateResponseDTO,
   GetEventResponseDTO,
   ActionSuccessResponseDTO,
-} from '../../dto/response/index.js';
-import { BaseEventGrpcController } from '../base-grpc.controller.js';
+  ManageRequirementsResponseDTO,
+} from '../../../dto/response/index.js';
+import { BaseEventGrpcController } from '../../base-grpc.controller.js';
 
-@ApiTags('Events')
-@ApiExtraModels(GetEventResponseDTO, ActionSuccessResponseDTO)
-@ApiBearerAuth('access-token')
-@ApiBearerAuth('refresh-token')
-@ApiBearerAuth('internal-token')
-@CustomApiError(MISSING_ACCESS_TOKEN)
-@ApiUnauthorizedResponse('Missing or invalid access token')
-@ApiForbiddenResponse('Access denied')
-@ApiInternalServerErrorResponse('An unexpected error occurred on the server')
+@GatewayController('Events', {
+  extraModels: [GetEventResponseDTO, ActionSuccessResponseDTO],
+})
 @Controller('events')
-@UseGuards(AccessTokenGuard)
 export class EventCommandController extends BaseEventGrpcController {
   private readonly logger = new Logger({
     context: EventCommandController.name,
@@ -137,7 +120,7 @@ export class EventCommandController extends BaseEventGrpcController {
   @ApiParam({ name: 'id', example: 'uuid-123' })
   @ApiResponse({
     status: 201,
-    type: ActionSuccessResponseDTO,
+    type: ManageRequirementsResponseDTO,
   })
   @CustomApiError(() => EVENT_NOT_FOUND('id'))
   @CustomApiError(() => DATABASE_ERROR('adding requirement', 'details'))
@@ -160,7 +143,7 @@ export class EventCommandController extends BaseEventGrpcController {
   @ApiParam({ name: 'requirementId', example: 'uuid-456' })
   @ApiResponse({
     status: 200,
-    type: ActionSuccessResponseDTO,
+    type: ManageRequirementsResponseDTO,
   })
   @CustomApiError(() => EVENT_NOT_FOUND('id'))
   @CustomApiError(() => DATABASE_ERROR('removing requirement', 'details'))

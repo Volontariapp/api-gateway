@@ -1,38 +1,27 @@
 import { map } from 'rxjs';
-import { Controller, Delete, Param, Post, Req, UseGuards } from '@nestjs/common';
-
-import { ApiOperation, ApiParam, ApiResponse, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
-import { Roles, AccessTokenGuard, RolesGuard } from '@volontariapp/auth';
+import { Controller, Delete, Param, Post, Req } from '@nestjs/common';
+import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
+import { Roles } from '@volontariapp/auth';
+import { GatewayController } from '../../../../../common/decorators/gateway-controller.decorator.js';
 import { UserRoles } from '@volontariapp/shared';
 import type { Metadata } from '@grpc/grpc-js';
-import { BaseSocialUserGrpcController } from '../base-grpc.controller.js';
-import { ActionSuccessResponseDTO } from '../../dto/response/index.js';
+import { BaseSocialUserGrpcController } from '../../base-grpc.controller.js';
+import { ActionSuccessResponseDTO } from '../../../dto/response/index.js';
 import {
   CustomApiError,
   SOCIAL_USER_ALREADY_EXISTS,
   SOCIAL_USER_NOT_FOUND,
   DATABASE_ERROR,
-  ApiForbiddenResponse,
-  ApiUnauthorizedResponse,
-  MISSING_ACCESS_TOKEN,
 } from '@volontariapp/errors-nest';
 
-@ApiTags('Social - Users - Admin')
-@ApiBearerAuth('access-token')
-@ApiBearerAuth('refresh-token')
-@ApiBearerAuth('internal-token')
-@CustomApiError(MISSING_ACCESS_TOKEN)
-@ApiUnauthorizedResponse('Missing or invalid access token')
-@ApiForbiddenResponse('Required role: ADMIN — your token does not grant this access')
+@GatewayController('Social - User Nodes - Admin Commands', { admin: true })
 @Controller('social/users')
-@UseGuards(AccessTokenGuard, RolesGuard)
-export class SocialUserCommandController extends BaseSocialUserGrpcController {
+export class SocialUserAdminCommandController extends BaseSocialUserGrpcController {
   @Post(':userId')
   @Roles(UserRoles.ADMIN)
   @ApiOperation({
-    summary: 'Create a social user node',
-    description:
-      '🔐 **Required Role:** `ADMIN`\n\nInitialize a new user node in the social graph. This must be done before the user can participate in social interactions.',
+    summary: 'Create a social user node (Admin)',
+    description: '🔐 **Required Role:** `ADMIN`\n\nInitialize a new user node in the social graph.',
   })
   @ApiParam({ name: 'userId', example: 'uuid-user-123' })
   @ApiResponse({ status: 201, type: ActionSuccessResponseDTO })
@@ -48,9 +37,8 @@ export class SocialUserCommandController extends BaseSocialUserGrpcController {
   @Delete(':userId')
   @Roles(UserRoles.ADMIN)
   @ApiOperation({
-    summary: 'Delete a social user node',
-    description:
-      '🔐 **Required Role:** `ADMIN`\n\nRemove a user node from the social graph. This will cascade and remove all related relationships (posts, events, participations).',
+    summary: 'Delete a social user node (Admin)',
+    description: '🔐 **Required Role:** `ADMIN`\n\nRemove a user node from the social graph.',
   })
   @ApiParam({ name: 'userId', example: 'uuid-user-123' })
   @ApiResponse({ status: 200, type: ActionSuccessResponseDTO })

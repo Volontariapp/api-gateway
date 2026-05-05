@@ -1,33 +1,25 @@
 import { Body, Controller, Delete, Patch, Req } from '@nestjs/common';
 import { map, switchMap } from 'rxjs';
 import { Logger } from '@volontariapp/logger';
-import { ApiOperation, ApiResponse, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import {
-  ApiForbiddenResponse,
-  ApiUnauthorizedResponse,
   CustomApiError,
-  MISSING_ACCESS_TOKEN,
   USER_NOT_FOUND,
   INVALID_RNA,
+  DATABASE_ERROR,
 } from '@volontariapp/errors-nest';
 import type { Metadata } from '@grpc/grpc-js';
-import { CurrentUser, AccessTokenGuard } from '@volontariapp/auth';
+import { CurrentUser } from '@volontariapp/auth';
 import type { AuthUser } from '@volontariapp/auth';
-import { UseGuards } from '@nestjs/common';
-import { BaseUserGrpcController } from '../base-user-grpc.controller.js';
-import { GetUserQuery } from '@volontariapp/contracts-nest';
-import { UpdateUserRequestDTO } from '../../dto/request/index.js';
-import { UserResponseDTO } from '../../dto/response/index.js';
+import { GatewayController } from '../../../../../common/decorators/gateway-controller.decorator.js';
+import { BaseUserGrpcController } from '../../base-user-grpc.controller.js';
+import { GetUserQuery, DeleteUserCommand } from '@volontariapp/contracts-nest';
+import { UpdateUserRequestDTO } from '../../../dto/request/index.js';
+import { UserResponseDTO } from '../../../dto/response/index.js';
+import { ActionSuccessResponseDTO } from '../../../../event/dto/response/index.js';
 
-@ApiTags('Users - Commands')
-@ApiBearerAuth('access-token')
-@ApiBearerAuth('refresh-token')
-@ApiBearerAuth('internal-token')
-@CustomApiError(MISSING_ACCESS_TOKEN)
-@ApiUnauthorizedResponse('Missing or invalid access token')
-@ApiForbiddenResponse('You do not have permission to access this resource')
+@GatewayController('Users')
 @Controller('users')
-@UseGuards(AccessTokenGuard)
 export class UserCommandController extends BaseUserGrpcController {
   private readonly logger = new Logger({ context: UserCommandController.name });
 
@@ -53,12 +45,14 @@ export class UserCommandController extends BaseUserGrpcController {
   }
 
   @ApiOperation({ summary: 'Delete current user account' })
-  @ApiResponse({ status: 200 })
+  @ApiResponse({ status: 200, type: ActionSuccessResponseDTO })
   @CustomApiError(() => USER_NOT_FOUND(''))
+  @CustomApiError(() => DATABASE_ERROR('deleting account', 'details'))
   @Delete('me')
   deleteMe(@CurrentUser() user: AuthUser, @Req() req: Record<string, unknown>) {
     this.logger.log(`Deleting current user account: ${user.id}`);
+    const command: DeleteUserCommand = {};
     const metadata = req['internalMetadata'] as Metadata;
-    return this.userService.deleteUser({}, metadata);
+    return this.userService.deleteUser(command, metadata);
   }
 }

@@ -8,6 +8,7 @@ import type {
   ListBadgesResponseDTO,
 } from '../../src/modules/user/dto/response/index.js';
 import { createBadgeRequestFactory } from './user-test.factory.js';
+import { UserRoles } from '@volontariapp/shared';
 
 describe('Badge Lifecycle (E2E)', () => {
   let app: INestApplication;
@@ -15,7 +16,7 @@ describe('Badge Lifecycle (E2E)', () => {
 
   beforeAll(async () => {
     app = await createApp();
-    client = await createTestClient(app).login({ id: randomUUID(), role: 'admin' });
+    client = await createTestClient(app).login({ id: randomUUID(), role: UserRoles.ADMIN });
   });
 
   afterAll(async () => {

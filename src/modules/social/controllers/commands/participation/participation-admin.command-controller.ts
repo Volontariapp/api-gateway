@@ -1,7 +1,6 @@
 import { map } from 'rxjs';
-import { Controller, Delete, Param, Post, Req, UseGuards } from '@nestjs/common';
-
-import { ApiOperation, ApiParam, ApiResponse, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { Controller, Delete, Param, Post, Req } from '@nestjs/common';
+import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import {
   CustomApiError,
   SOCIAL_EVENT_NOT_FOUND,
@@ -11,30 +10,20 @@ import {
   SOCIAL_WISH_ALREADY_EXISTS,
   SOCIAL_WISH_NOT_FOUND,
   DATABASE_ERROR,
-  ApiForbiddenResponse,
-  ApiUnauthorizedResponse,
-  MISSING_ACCESS_TOKEN,
 } from '@volontariapp/errors-nest';
 import type { Metadata } from '@grpc/grpc-js';
-import { Roles, AccessTokenGuard, RolesGuard } from '@volontariapp/auth';
+import { Roles } from '@volontariapp/auth';
 import { UserRoles } from '@volontariapp/shared';
-import { IsCurrentUserOrAdminGuard } from '../../../../common/guards/is-current-user-or-admin.guard.js';
-import { BaseParticipationGrpcController } from '../base-grpc.controller.js';
-import { ActionSuccessResponseDTO } from '../../dto/response/index.js';
+import { GatewayController } from '../../../../../common/decorators/gateway-controller.decorator.js';
+import { BaseParticipationGrpcController } from '../../base-grpc.controller.js';
+import { ActionSuccessResponseDTO } from '../../../dto/response/index.js';
 
-@ApiTags('Social - Participation - Admin')
-@ApiBearerAuth('access-token')
-@ApiBearerAuth('refresh-token')
-@ApiBearerAuth('internal-token')
-@CustomApiError(MISSING_ACCESS_TOKEN)
-@ApiUnauthorizedResponse('Missing or invalid access token')
-@ApiForbiddenResponse('Required role: ADMIN — your token does not grant this access')
+@GatewayController('Social - Participation - Admin', { admin: true })
 @Controller('social')
-@UseGuards(AccessTokenGuard, RolesGuard)
-export class ParticipationCommandController extends BaseParticipationGrpcController {
+export class ParticipationAdminCommandController extends BaseParticipationGrpcController {
   @Post('events/:eventId')
   @Roles(UserRoles.ADMIN)
-  @ApiOperation({ summary: 'Create a social event node' })
+  @ApiOperation({ summary: 'Create a social event node (Admin)' })
   @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
   @ApiResponse({ status: 201, type: ActionSuccessResponseDTO })
   @CustomApiError(() => SOCIAL_EVENT_ALREADY_EXISTS('eventId'))
@@ -48,7 +37,7 @@ export class ParticipationCommandController extends BaseParticipationGrpcControl
 
   @Delete('events/:eventId')
   @Roles(UserRoles.ADMIN)
-  @ApiOperation({ summary: 'Delete a social event node' })
+  @ApiOperation({ summary: 'Delete a social event node (Admin)' })
   @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
   @ApiResponse({ status: 200, type: ActionSuccessResponseDTO })
   @CustomApiError(() => SOCIAL_EVENT_NOT_FOUND('eventId'))
@@ -62,11 +51,7 @@ export class ParticipationCommandController extends BaseParticipationGrpcControl
 
   @Post('users/:userId/events/:eventId/own')
   @Roles(UserRoles.ADMIN)
-  @ApiOperation({
-    summary: 'Link a user as creator of an event',
-    description:
-      '🔐 **Required Role:** `ADMIN`\n\nManually assign event creation to a user. Useful for correcting creator information or migrating events.',
-  })
+  @ApiOperation({ summary: 'Link a user as creator of an event (Admin)' })
   @ApiParam({ name: 'userId', example: 'uuid-user-123' })
   @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
   @ApiResponse({ status: 201, type: ActionSuccessResponseDTO })
@@ -85,11 +70,7 @@ export class ParticipationCommandController extends BaseParticipationGrpcControl
 
   @Delete('users/:userId/events/:eventId/own')
   @Roles(UserRoles.ADMIN)
-  @ApiOperation({
-    summary: 'Unlink a user from event creation',
-    description:
-      '🔐 **Required Role:** `ADMIN`\n\nRevoke event creator status from a user. The event will remain but will have no creator.',
-  })
+  @ApiOperation({ summary: 'Unlink a user from event creation (Admin)' })
   @ApiParam({ name: 'userId', example: 'uuid-user-123' })
   @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
   @ApiResponse({ status: 200, type: ActionSuccessResponseDTO })
@@ -107,8 +88,8 @@ export class ParticipationCommandController extends BaseParticipationGrpcControl
   }
 
   @Post('users/:userId/events/:eventId/participate')
-  @UseGuards(IsCurrentUserOrAdminGuard)
-  @ApiOperation({ summary: 'User participates in an event' })
+  @Roles(UserRoles.ADMIN)
+  @ApiOperation({ summary: 'User participates in an event (Admin)' })
   @ApiParam({ name: 'userId', example: 'uuid-user-123' })
   @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
   @ApiResponse({ status: 201, type: ActionSuccessResponseDTO })
@@ -127,8 +108,8 @@ export class ParticipationCommandController extends BaseParticipationGrpcControl
   }
 
   @Delete('users/:userId/events/:eventId/participate')
-  @UseGuards(IsCurrentUserOrAdminGuard)
-  @ApiOperation({ summary: 'User stops participating in an event' })
+  @Roles(UserRoles.ADMIN)
+  @ApiOperation({ summary: 'User stops participating in an event (Admin)' })
   @ApiParam({ name: 'userId', example: 'uuid-user-123' })
   @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
   @ApiResponse({ status: 200, type: ActionSuccessResponseDTO })
@@ -147,8 +128,8 @@ export class ParticipationCommandController extends BaseParticipationGrpcControl
   }
 
   @Post('users/:userId/events/:eventId/wish')
-  @UseGuards(IsCurrentUserOrAdminGuard)
-  @ApiOperation({ summary: 'Add event to user wishes' })
+  @Roles(UserRoles.ADMIN)
+  @ApiOperation({ summary: 'Add event to user wishes (Admin)' })
   @ApiParam({ name: 'userId', example: 'uuid-user-123' })
   @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
   @ApiResponse({ status: 201, type: ActionSuccessResponseDTO })
@@ -167,8 +148,8 @@ export class ParticipationCommandController extends BaseParticipationGrpcControl
   }
 
   @Delete('users/:userId/events/:eventId/wish')
-  @UseGuards(IsCurrentUserOrAdminGuard)
-  @ApiOperation({ summary: 'Remove event from user wishes' })
+  @Roles(UserRoles.ADMIN)
+  @ApiOperation({ summary: 'Remove event from user wishes (Admin)' })
   @ApiParam({ name: 'userId', example: 'uuid-user-123' })
   @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
   @ApiResponse({ status: 200, type: ActionSuccessResponseDTO })
@@ -183,62 +164,6 @@ export class ParticipationCommandController extends BaseParticipationGrpcControl
     const metadata = req['internalMetadata'] as Metadata;
     return this.commandService
       .adminDeleteUserWishEvent({ userId, eventId }, metadata)
-      .pipe(map(() => ({ success: true, message: 'Event removed from wishes' })));
-  }
-
-  @Post('events/:eventId/participate')
-  @ApiOperation({ summary: 'User participates in an event (self)' })
-  @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
-  @ApiResponse({ status: 201, type: ActionSuccessResponseDTO })
-  @CustomApiError(() => SOCIAL_EVENT_NOT_FOUND('eventId'))
-  @CustomApiError(() => SOCIAL_PARTICIPATION_ALREADY_EXISTS('userId', 'eventId'))
-  @CustomApiError(() => DATABASE_ERROR('creating event participation', 'details'))
-  participateSelf(@Param('eventId') eventId: string, @Req() req: Record<string, unknown>) {
-    const metadata = req['internalMetadata'] as Metadata;
-    return this.commandService
-      .postUserParticipateEvent({ eventId }, metadata)
-      .pipe(map(() => ({ success: true, message: 'Participation linked' })));
-  }
-
-  @Delete('events/:eventId/participate')
-  @ApiOperation({ summary: 'User stops participating in an event (self)' })
-  @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
-  @ApiResponse({ status: 200, type: ActionSuccessResponseDTO })
-  @CustomApiError(() => SOCIAL_EVENT_NOT_FOUND('eventId'))
-  @CustomApiError(() => SOCIAL_PARTICIPATION_NOT_FOUND('userId', 'eventId'))
-  @CustomApiError(() => DATABASE_ERROR('deleting event participation', 'details'))
-  unparticipateSelf(@Param('eventId') eventId: string, @Req() req: Record<string, unknown>) {
-    const metadata = req['internalMetadata'] as Metadata;
-    return this.commandService
-      .deleteUserParticipateEvent({ eventId }, metadata)
-      .pipe(map(() => ({ success: true, message: 'Participation unlinked' })));
-  }
-
-  @Post('events/:eventId/wish')
-  @ApiOperation({ summary: 'Add event to current user wishes' })
-  @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
-  @ApiResponse({ status: 201, type: ActionSuccessResponseDTO })
-  @CustomApiError(() => SOCIAL_EVENT_NOT_FOUND('eventId'))
-  @CustomApiError(() => SOCIAL_WISH_ALREADY_EXISTS('userId', 'eventId'))
-  @CustomApiError(() => DATABASE_ERROR('creating event wish', 'details'))
-  wishEventSelf(@Param('eventId') eventId: string, @Req() req: Record<string, unknown>) {
-    const metadata = req['internalMetadata'] as Metadata;
-    return this.commandService
-      .postUserWishEvent({ eventId }, metadata)
-      .pipe(map(() => ({ success: true, message: 'Event added to wishes' })));
-  }
-
-  @Delete('events/:eventId/wish')
-  @ApiOperation({ summary: 'Remove event from current user wishes' })
-  @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
-  @ApiResponse({ status: 200, type: ActionSuccessResponseDTO })
-  @CustomApiError(() => SOCIAL_EVENT_NOT_FOUND('eventId'))
-  @CustomApiError(() => SOCIAL_WISH_NOT_FOUND('userId', 'eventId'))
-  @CustomApiError(() => DATABASE_ERROR('deleting event wish', 'details'))
-  unwishEventSelf(@Param('eventId') eventId: string, @Req() req: Record<string, unknown>) {
-    const metadata = req['internalMetadata'] as Metadata;
-    return this.commandService
-      .deleteUserWishEvent({ eventId }, metadata)
       .pipe(map(() => ({ success: true, message: 'Event removed from wishes' })));
   }
 }
