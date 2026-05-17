@@ -3983,6 +3983,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@volontariapp/config@npm:3.1.0":
+  version: 3.1.0
+  resolution: "@volontariapp/config@npm:3.1.0"
+  dependencies:
+    "@volontariapp/logger": "npm:0.2.4"
+    class-transformer: "npm:^0.5.1"
+    class-validator: "npm:^0.15.1"
+    ioredis: "npm:^5.10.1"
+    neo4j-driver: "npm:^6.0.1"
+    reflect-metadata: "npm:^0.2.2"
+    typeorm: "npm:^0.3.28"
+  checksum: 10c0/11bd9139d6d62bb759b54c9712b1d18847cd33cd3d69676f942bc0a55f5d7b228c6c16e4591f56f572a5195385c1660f31515830fdc143395863426f478fa82f
+  languageName: node
+  linkType: hard
+
 "@volontariapp/contracts-nest@npm:3.1.2":
   version: 3.1.2
   resolution: "@volontariapp/contracts-nest@npm:3.1.2"
@@ -4512,7 +4527,7 @@ __metadata:
     "@types/supertest": "npm:^6.0.2"
     "@volontariapp/auth": "npm:3.2.4"
     "@volontariapp/bridge-nest": "npm:0.3.13"
-    "@volontariapp/config": "npm:3.0.1"
+    "@volontariapp/config": "npm:3.1.0"
     "@volontariapp/contracts": "npm:4.0.10"
     "@volontariapp/contracts-nest": "npm:3.1.2"
     "@volontariapp/errors": "npm:0.5.1"
