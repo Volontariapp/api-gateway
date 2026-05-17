@@ -11,13 +11,16 @@ FROM base AS runner
 # des fichiers de config et des tests eux-mêmes.
 COPY . .
 
+# On s'assure que les certificats sont présents (générés par scripts/generate-certs.sh)
+# Note: Si ils ne sont pas générés localement, le build échouera ici
+
 # Installation de TOUTES les dépendances (y compris devDeps pour Jest et ts-jest)
 RUN yarn install --immutable
 
 # Variables d'environnement par défaut pour les tests
 ENV NODE_ENV=test
 # Si cette variable est fournie, les tests cibleront cette URL plutôt que l'instance locale
-ENV E2E_TARGET_URL=
+ENV E2E_TARGET_URL=http://api-gateway:3000
 
 # Par défaut, on lance les tests E2E
 # --runInBand est souvent nécessaire pour les tests E2E afin d'éviter les collisions de données
