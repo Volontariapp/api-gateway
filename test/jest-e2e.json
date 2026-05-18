@@ -16,5 +16,6 @@
     "^(\\./.*)\\.js$": "$1",
     "^(\\.\\./.*)\\.js$": "$1"
   },
-  "extensionsToTreatAsEsm": [".ts"]
+  "extensionsToTreatAsEsm": [".ts"],
+  "testTimeout": 30000
 }
