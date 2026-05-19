@@ -5,8 +5,11 @@ import { getAuthHeader } from './auth-helper.js';
 
 export class TestClient {
   private authHeader: Record<string, string> | undefined;
+  private readonly baseUrl: string | undefined;
 
-  constructor(private readonly app: INestApplication) {}
+  constructor(private readonly app: INestApplication) {
+    this.baseUrl = process.env.E2E_TARGET_URL;
+  }
 
   async login(user: { id: string; role: string }) {
     this.authHeader = await getAuthHeader(this.app, user);
@@ -25,8 +28,15 @@ export class TestClient {
     return newClient;
   }
 
+  private getRequestTarget() {
+    if (this.baseUrl) {
+      return this.baseUrl;
+    }
+    return this.app.getHttpServer();
+  }
+
   get(url: string) {
-    const req = request(this.app.getHttpServer()).get(url);
+    const req = request(this.getRequestTarget()).get(url);
     if (this.authHeader) {
       req.set(this.authHeader);
     }
@@ -34,7 +44,7 @@ export class TestClient {
   }
 
   post(url: string) {
-    const req = request(this.app.getHttpServer()).post(url);
+    const req = request(this.getRequestTarget()).post(url);
     if (this.authHeader) {
       req.set(this.authHeader);
     }
@@ -42,7 +52,7 @@ export class TestClient {
   }
 
   patch(url: string) {
-    const req = request(this.app.getHttpServer()).patch(url);
+    const req = request(this.getRequestTarget()).patch(url);
     if (this.authHeader) {
       req.set(this.authHeader);
     }
@@ -50,7 +60,7 @@ export class TestClient {
   }
 
   delete(url: string) {
-    const req = request(this.app.getHttpServer()).delete(url);
+    const req = request(this.getRequestTarget()).delete(url);
     if (this.authHeader) {
       req.set(this.authHeader);
     }
