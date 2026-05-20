@@ -33,6 +33,9 @@ jobs:
     with:
       service-name: api-gateway
     secrets: inherit
+
+  validate-e2e-matrix:
+    uses: Volontariapp/ci-tools/.github/workflows/e2e-matrix-checker.yml@main
   
   ci-docker:
     needs: ci
@@ -43,8 +46,8 @@ jobs:
     with:
       service-name: api-gateway
     secrets: inherit
-
+  
   e2e:
-    needs: ci-docker
+    needs: [ci-docker, validate-e2e-matrix]
     uses: Volontariapp/ci-tools/.github/workflows/e2e-orchestrator.yml@main
     secrets: inherit
