@@ -36,6 +36,8 @@ jobs:
 
   validate-e2e-matrix:
     uses: Volontariapp/ci-tools/.github/workflows/e2e-matrix-checker.yml@main
+    with:
+      service-name: api-gateway
   
   ci-docker:
     needs: ci
