@@ -10,8 +10,7 @@ import { SocialModule } from './modules/social/social.module.js';
 import { AuthModule, GrpcInternalInterceptor } from '@volontariapp/auth';
 import { HelperModule } from './modules/helper/helper.module.js';
 import { NodeEnv } from '@volontariapp/config';
-import { HealthModule } from '@volontariapp/health-check-nest';
-import { TerminusModule } from '@nestjs/terminus';
+import { HealthModule } from './modules/health/health.module.js';
 
 @Module({
   imports: [GrpcClientModule, UserModule, PostModule, EventModule, SocialModule],
@@ -21,16 +20,12 @@ export class AppModule {
     const imports: DynamicModule['imports'] = [
       AppConfigModule.forRoot(config),
       AuthModule.registerGateway(config.auth),
-      TerminusModule.forRoot({}),
-      HealthModule.register({
-        databases: [],
-        failOnMissingProvider: true,
-      }),
       GrpcClientModule,
       UserModule,
       PostModule,
       EventModule,
       SocialModule,
+      HealthModule,
     ];
 
     if (config.nodeEnv !== NodeEnv.PRODUCTION) {
