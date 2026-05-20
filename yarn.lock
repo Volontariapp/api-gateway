@@ -4023,6 +4023,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@volontariapp/bridge@npm:1.0.2":
+  version: 1.0.2
+  resolution: "@volontariapp/bridge@npm:1.0.2"
+  dependencies:
+    "@types/geojson": "npm:^7946.0.16"
+    "@volontariapp/config": "npm:3.1.0"
+    "@volontariapp/errors": "npm:0.5.1"
+    "@volontariapp/logger": "npm:0.2.4"
+    ioredis: "npm:^5.10.1"
+    neo4j-driver: "npm:^6.0.1"
+    pg: "npm:^8.20.0"
+    reflect-metadata: "npm:^0.2.2"
+    typeorm: "npm:^0.3.28"
+  checksum: 10c0/d8054c930b85603b781ba603bd2466e1a080ec62b4b292eb3d4c043a6b05ca3cce7a5095fb4c12d8914d62c687f0beec3bec439db6ff45f855bc12a858d03ee4
+  languageName: node
+  linkType: hard
+
 "@volontariapp/config@npm:3.0.1":
   version: 3.0.1
   resolution: "@volontariapp/config@npm:3.0.1"
@@ -4127,15 +4144,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@volontariapp/health-check-nest@npm:0.1.31":
-  version: 0.1.31
-  resolution: "@volontariapp/health-check-nest@npm:0.1.31"
+"@volontariapp/health-check-nest@npm:0.1.32":
+  version: 0.1.32
+  resolution: "@volontariapp/health-check-nest@npm:0.1.32"
   dependencies:
-    "@volontariapp/bridge": "npm:1.0.1"
+    "@volontariapp/bridge": "npm:1.0.2"
     "@volontariapp/bridge-nest": "npm:0.3.13"
-    "@volontariapp/config": "npm:3.0.1"
+    "@volontariapp/config": "npm:3.1.0"
     "@volontariapp/errors-nest": "npm:0.11.1"
-    "@volontariapp/health-check": "npm:1.0.1"
+    "@volontariapp/health-check": "npm:1.0.2"
     "@volontariapp/logger": "npm:0.2.4"
   peerDependencies:
     "@nestjs/axios": ^4.0.1
@@ -4153,18 +4170,18 @@ __metadata:
       optional: true
     typeorm:
       optional: true
-  checksum: 10c0/5b92b52572bc220a4a9c9992a14a0a06ef8c052fb4b41f5162b5c7931446b248076ff464044b0b81fa056dfa7a451fcb87db97d98b8d546b317d715c2ab9602f
+  checksum: 10c0/7b02c325dda3d84690938bd505ee09a15bf0f7ad2bdc7b82de4545211ed9941b830793e885e9116f8794367264af7ff0f77192cab1ebf89c63f252f781abf6f6
   languageName: node
   linkType: hard
 
-"@volontariapp/health-check@npm:1.0.1":
-  version: 1.0.1
-  resolution: "@volontariapp/health-check@npm:1.0.1"
+"@volontariapp/health-check@npm:1.0.2":
+  version: 1.0.2
+  resolution: "@volontariapp/health-check@npm:1.0.2"
   dependencies:
-    "@volontariapp/bridge": "npm:1.0.1"
-    "@volontariapp/config": "npm:3.0.1"
+    "@volontariapp/bridge": "npm:1.0.2"
+    "@volontariapp/config": "npm:3.1.0"
     "@volontariapp/errors": "npm:0.5.1"
-  checksum: 10c0/96e28d21c122e8f256de728eb7ea5ef3c9d5e64ffea1a3757d953fd618d30b5362d20601f56bc1b4c81a8c398d6f0733ed8471a1d77e0afacfbdce6b523d1d65
+  checksum: 10c0/3632a5d37e549d6599f934e43d530383e9d4acfae677155a82d32132ffd77324c390c0b321fa9b041248c115b4d9c0d066e0ff5fe7532a53e49b8c1bffc5af58
   languageName: node
   linkType: hard
 
@@ -4639,8 +4656,8 @@ __metadata:
     "@volontariapp/errors": "npm:0.5.1"
     "@volontariapp/errors-nest": "npm:0.11.1"
     "@volontariapp/eslint-config": "npm:2.2.3"
-    "@volontariapp/health-check": "npm:1.0.1"
-    "@volontariapp/health-check-nest": "npm:0.1.31"
+    "@volontariapp/health-check": "npm:1.0.2"
+    "@volontariapp/health-check-nest": "npm:0.1.32"
     "@volontariapp/logger": "npm:0.2.4"
     "@volontariapp/monitoring": "npm:2.1.4"
     "@volontariapp/shared": "npm:0.4.0"
