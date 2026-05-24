@@ -11,9 +11,10 @@ import { AuthModule, GrpcInternalInterceptor } from '@volontariapp/auth';
 import { HelperModule } from './modules/helper/helper.module.js';
 import { NodeEnv } from '@volontariapp/config';
 import { HealthModule } from './modules/health/health.module.js';
+import { WsProxyModule } from './modules/ws-proxy/ws-proxy.module.js';
 
 @Module({
-  imports: [GrpcClientModule, UserModule, PostModule, EventModule, SocialModule],
+  imports: [GrpcClientModule, UserModule, PostModule, EventModule, SocialModule, WsProxyModule],
 })
 export class AppModule {
   static register(config: CustomConfig): DynamicModule {
@@ -26,6 +27,7 @@ export class AppModule {
       EventModule,
       SocialModule,
       HealthModule,
+      WsProxyModule,
     ];
 
     if (config.nodeEnv !== NodeEnv.PRODUCTION) {
