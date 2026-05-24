@@ -19,6 +19,10 @@ export class AppConfigService {
     return this.config.microServices.msSocialUrl;
   }
 
+  get msWsUrl(): string {
+    return this.config.microServices.msWsUrl;
+  }
+
   get loggerFormat(): LoggerFormat {
     return this.config.logger.format;
   }
