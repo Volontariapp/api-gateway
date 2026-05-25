@@ -3,18 +3,12 @@ import { Request, Response, NextFunction } from 'express';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import { JwtService, AuthUser } from '@volontariapp/auth';
 import { AppConfigService } from '../../config/app-config.service.js';
-import type { ClientRequest, IncomingMessage } from 'http';
-import type { Socket } from 'net';
 import type { RequestHandler } from 'http-proxy-middleware';
 
 export interface AuthenticatedWsRequest extends Request {
   user?: AuthUser;
   internalWsToken?: string;
   accessToken?: string;
-}
-
-interface WsIncomingMessage extends IncomingMessage {
-  internalWsToken?: string;
 }
 
 @Injectable()
@@ -26,35 +20,15 @@ export class WsProxyMiddleware implements NestMiddleware {
     private readonly jwtService: JwtService,
     private readonly configService: AppConfigService,
   ) {
-    const wsServiceUrl = this.configService.msWsUrl;
+    const rawUrl = this.configService.msWsUrl;
+    const wsServiceUrl = rawUrl.startsWith('http') ? rawUrl : `http://${rawUrl}`;
     this.logger.log(`Initializing WebSocket proxy pointing to: ${wsServiceUrl}`);
 
     this.proxy = createProxyMiddleware({
       target: wsServiceUrl,
       changeOrigin: true,
       ws: true,
-      on: {
-        proxyReqWs: (
-          proxyReq: ClientRequest,
-          req: IncomingMessage,
-          _socket: Socket,
-          _options: unknown,
-          _head: unknown,
-        ) => {
-          const authReq = req as WsIncomingMessage;
-          if (authReq.internalWsToken) {
-            proxyReq.setHeader('x-internal-token', authReq.internalWsToken);
-            this.logger.debug('Added x-internal-token to WebSocket upgrade request');
-          }
-        },
-        proxyReq: (proxyReq: ClientRequest, req: IncomingMessage) => {
-          const authReq = req as WsIncomingMessage;
-          if (authReq.internalWsToken) {
-            proxyReq.setHeader('x-internal-token', authReq.internalWsToken);
-            this.logger.debug('Added x-internal-token to HTTP proxy request');
-          }
-        },
-      },
+      pathRewrite: (path) => path.replace(/^\/api\/v1/, ''),
     });
   }
 
@@ -81,6 +55,10 @@ export class WsProxyMiddleware implements NestMiddleware {
           role: req.user.role,
         });
         this.logger.debug('Generated internal WebSocket token');
+
+        const separator = req.url.includes('?') ? '&' : '?';
+        req.url = `${req.url}${separator}internalToken=${encodeURIComponent(req.internalWsToken)}`;
+        this.logger.debug('Injected internalToken into proxied URL');
       } else {
         this.logger.warn('Connection rejected: Missing or invalid access token');
         throw new UnauthorizedException('Missing or invalid access token');
