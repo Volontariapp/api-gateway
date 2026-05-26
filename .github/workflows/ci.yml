@@ -16,7 +16,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Node & Yarn
-        uses: Volontariapp/ci-tools/.github/actions/setup-node-yarn@main
+        uses: Volontariapp/ci-tools/.github/actions/setup-node-yarn@02257dd664a2c48b8140f4ca4980cfde6f4189d0
         with:
           node-version: "24.14.0"
           cache: "yarn"
@@ -29,27 +29,27 @@ jobs:
 
   ci:
     needs: check-arch
-    uses: Volontariapp/ci-tools/.github/workflows/ci-service.yml@main
+    uses: Volontariapp/ci-tools/.github/workflows/ci-service.yml@02257dd664a2c48b8140f4ca4980cfde6f4189d0
     with:
       service-name: api-gateway
     secrets: inherit
-  
+
   ci-docker:
     needs: ci
     permissions:
       contents: read
       packages: write
-    uses: Volontariapp/ci-tools/.github/workflows/docker-build-push.yml@main
+    uses: Volontariapp/ci-tools/.github/workflows/docker-build-push.yml@02257dd664a2c48b8140f4ca4980cfde6f4189d0
     with:
       service-name: api-gateway
     secrets: inherit
-  
+
   e2e:
     needs: [ci-docker]
-    uses: Volontariapp/ci-tools/.github/workflows/e2e-orchestrator.yml@main
+    uses: Volontariapp/ci-tools/.github/workflows/e2e-orchestrator.yml@02257dd664a2c48b8140f4ca4980cfde6f4189d0
     secrets: inherit
 
   validate-e2e-matrix:
-    uses: Volontariapp/ci-tools/.github/workflows/e2e-matrix-checker.yml@main
+    uses: Volontariapp/ci-tools/.github/workflows/e2e-matrix-checker.yml@02257dd664a2c48b8140f4ca4980cfde6f4189d0
     with:
       service-name: api-gateway
