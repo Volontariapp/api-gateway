@@ -18,8 +18,8 @@ jobs:
       - name: Setup Node & Yarn
         uses: Volontariapp/ci-tools/.github/actions/setup-node-yarn@main
         with:
-          node-version: "24.14.0"
-          cache: "yarn"
+          node-version: '24.14.0'
+          cache: 'yarn'
 
       - name: Install Dependencies
         run: yarn install --immutable
@@ -29,7 +29,7 @@ jobs:
 
   ci:
     needs: check-arch
-    uses: Volontariapp/ci-tools/.github/workflows/service-ci.yml@main
+    uses: Volontariapp/ci-tools/.github/workflows/ci-service.yml@main
     with:
       service-name: api-gateway
     secrets: inherit
@@ -39,7 +39,7 @@ jobs:
     permissions:
       contents: read
       packages: write
-    uses: Volontariapp/ci-tools/.github/workflows/service-docker-build-push.yml@main
+    uses: Volontariapp/ci-tools/.github/workflows/docker-build-push.yml@main
     with:
       service-name: api-gateway
     secrets: inherit

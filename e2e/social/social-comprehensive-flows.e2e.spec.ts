@@ -8,11 +8,14 @@ import { randomUUID } from 'node:crypto';
 import { loadConfig } from '@volontariapp/config';
 import { CustomConfig } from '../../src/config/base-config.js';
 import type { GetMyFollowsWebResponse } from '@volontariapp/contracts';
+import type { ListUsersResponseDTO } from '../../src/modules/user/dto/response/list-users.response.dto.js';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { setupAuth } from '../helpers/auth-helper.js';
 import { createTestClient } from '../helpers/test-client.helper.js';
 import { UserRoles } from '@volontariapp/shared';
+import { signUpRequestFactory } from '../user/user-test.factory.js';
+import type { SignUpResponseDTO } from '../../src/modules/user/dto/response/sign-up.response.dto.js';
 
 describe('Social Comprehensive User Flows (E2E)', () => {
   let app: INestApplication;
@@ -44,13 +47,19 @@ describe('Social Comprehensive User Flows (E2E)', () => {
       id: randomUUID(),
       role: UserRoles.ADMIN,
     });
-    const userAId = randomUUID();
-    const userBId = randomUUID();
+    const signUpDtoA = signUpRequestFactory();
+    const signUpResA = await adminClient.post('/api/v1/users').send(signUpDtoA).expect(201);
+    const userAId = (signUpResA.body as SignUpResponseDTO).user.id;
+
+    const signUpDtoB = signUpRequestFactory();
+    const signUpResB = await adminClient.post('/api/v1/users').send(signUpDtoB).expect(201);
+    const userBId = (signUpResB.body as SignUpResponseDTO).user.id;
+
     const postId = randomUUID();
 
-    // 1. Admin creates nodes
-    await adminClient.post(`/api/v1/social/users/${userAId}`).expect(201);
-    await adminClient.post(`/api/v1/social/users/${userBId}`).expect(201);
+    // 1. Admin creates nodes (users are created by the event, but we can call it to be safe or it just returns 409/201)
+    await adminClient.post(`/api/v1/social/users/${userAId}`);
+    await adminClient.post(`/api/v1/social/users/${userBId}`);
     await adminClient.post(`/api/v1/social/posts/${postId}`).expect(201);
 
     // 2. User A logs in
@@ -75,11 +84,13 @@ describe('Social Comprehensive User Flows (E2E)', () => {
 
     // 6. User A fetches follows
     const followsRes = await userAClient.get('/api/v1/social/follows').expect(200);
-    expect((followsRes.body as GetMyFollowsWebResponse).ids).toContain(userBId);
+    expect((followsRes.body as ListUsersResponseDTO).users.map((u) => u.id)).toContain(userBId);
 
     // User A fetches followers (should be empty for A)
     const followersRes = await userAClient.get('/api/v1/social/followers').expect(200);
-    expect((followersRes.body as GetMyFollowsWebResponse).ids).not.toContain(userBId);
+    expect((followersRes.body as ListUsersResponseDTO).users.map((u) => u.id)).not.toContain(
+      userBId,
+    );
 
     // 7. User A unlikes post
     await userAClient.delete(`/api/v1/social/likes/${postId}`).expect(200);
@@ -95,6 +106,8 @@ describe('Social Comprehensive User Flows (E2E)', () => {
     await adminClient.delete(`/api/v1/social/users/${userAId}`).expect(200);
     await adminClient.delete(`/api/v1/social/users/${userBId}`).expect(200);
     await adminClient.delete(`/api/v1/social/posts/${postId}`).expect(200);
+    await adminClient.delete(`/api/v1/users/${userAId}`).expect(200);
+    await adminClient.delete(`/api/v1/users/${userBId}`).expect(200);
   });
 
   it('should process a complete self participation flow (events, wishes)', async () => {

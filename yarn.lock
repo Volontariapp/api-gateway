@@ -4354,9 +4354,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@volontariapp/contracts-nest@npm:3.1.3":
-  version: 3.1.3
-  resolution: "@volontariapp/contracts-nest@npm:3.1.3"
+"@volontariapp/contracts-nest@npm:3.1.4-snap-a3cb1d0":
+  version: 3.1.4-snap-a3cb1d0
+  resolution: "@volontariapp/contracts-nest@npm:3.1.4-snap-a3cb1d0"
   dependencies:
     "@volontariapp/logger": "npm:0.2.5"
     protobufjs: "npm:^7.5.8"
@@ -4365,7 +4365,7 @@ __metadata:
     "@nestjs/core": ^11.0.0
     "@nestjs/microservices": ^11.0.0
     rxjs: ^7.0.0
-  checksum: 10c0/7f64fe702507727ddee662f21ad5f59b51270958a6f2489235dde0b6b3b4e408d74c617218f4017cc8abe9a06c771105b0b110eed3ae736e270054e530fb6cc4
+  checksum: 10c0/2786d9630e2527df231348a9800aeda3f2893983c54db970ee6a83c68584f10d5a4eb7747b97866a9b33282205ea194d8509a370a84a483e4ebd53a221407044
   languageName: node
   linkType: hard
 
@@ -4955,7 +4955,7 @@ __metadata:
     "@volontariapp/bridge-nest": "npm:0.3.14"
     "@volontariapp/config": "npm:3.2.0"
     "@volontariapp/contracts": "npm:4.0.11"
-    "@volontariapp/contracts-nest": "npm:3.1.3"
+    "@volontariapp/contracts-nest": "npm:3.1.4-snap-a3cb1d0"
     "@volontariapp/errors": "npm:0.5.2"
     "@volontariapp/errors-nest": "npm:0.11.2"
     "@volontariapp/eslint-config": "npm:2.2.4"

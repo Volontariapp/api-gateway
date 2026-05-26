@@ -17,6 +17,11 @@ import { fileURLToPath } from 'node:url';
 import { setupAuth } from '../helpers/auth-helper.js';
 import { createTestClient } from '../helpers/test-client.helper.js';
 import { UserRoles } from '@volontariapp/shared';
+import { signUpRequestFactory } from '../user/user-test.factory.js';
+import type {
+  SignUpResponseDTO,
+  ListUsersResponseDTO,
+} from '../../src/modules/user/dto/response/index.js';
 
 describe('Social Relations & Interactions (E2E)', () => {
   let app: INestApplication;
@@ -315,5 +320,58 @@ describe('Social Relations & Interactions (E2E)', () => {
 
     await client.delete(`/api/v1/social/events/${eventId}`).expect(200);
     await client.delete(`/api/v1/social/users/${userId}`).expect(200);
+  });
+
+  it('should return hydrated users for follows and followers', async () => {
+    const adminClient = await createTestClient(app).login({
+      id: randomUUID(),
+      role: UserRoles.ADMIN,
+    });
+
+    const signUpDtoA = signUpRequestFactory();
+    const signUpResA = await adminClient.post('/api/v1/users').send(signUpDtoA).expect(201);
+    const userA = (signUpResA.body as SignUpResponseDTO).user;
+
+    const signUpDtoB = signUpRequestFactory();
+    const signUpResB = await adminClient.post('/api/v1/users').send(signUpDtoB).expect(201);
+    const userB = (signUpResB.body as SignUpResponseDTO).user;
+
+    await adminClient.post(`/api/v1/social/users/${userA.id}`).expect(201);
+    await adminClient.post(`/api/v1/social/users/${userB.id}`).expect(201);
+
+    await adminClient.post(`/api/v1/social/users/${userA.id}/follow/${userB.id}`).expect(201);
+
+    const clientA = await createTestClient(app).login({
+      id: userA.id,
+      role: UserRoles.VOLUNTEER,
+    });
+    const followsResponse = await clientA.get(`/api/v1/social/follows`).expect(200);
+    const followsData = followsResponse.body as ListUsersResponseDTO;
+
+    expect(followsData.users).toBeDefined();
+    expect(followsData.users.length).toBeGreaterThan(0);
+    const foundUserB = followsData.users.find((u) => u.id === userB.id);
+    expect(foundUserB).toBeDefined();
+    expect(foundUserB?.email).toBe(signUpDtoB.email);
+
+    const clientB = await createTestClient(app).login({
+      id: userB.id,
+      role: UserRoles.VOLUNTEER,
+    });
+    const followersResponse = await clientB.get(`/api/v1/social/followers`).expect(200);
+    const followersData = followersResponse.body as ListUsersResponseDTO;
+
+    expect(followersData.users).toBeDefined();
+    expect(followersData.users.length).toBeGreaterThan(0);
+    const foundUserA = followersData.users.find((u) => u.id === userA.id);
+    expect(foundUserA).toBeDefined();
+    expect(foundUserA?.email).toBe(signUpDtoA.email);
+
+    // Cleanup
+    await adminClient.delete(`/api/v1/social/users/${userA.id}/follow/${userB.id}`).expect(200);
+    await adminClient.delete(`/api/v1/social/users/${userA.id}`).expect(200);
+    await adminClient.delete(`/api/v1/social/users/${userB.id}`).expect(200);
+    await adminClient.delete(`/api/v1/users/${userA.id}`).expect(200);
+    await adminClient.delete(`/api/v1/users/${userB.id}`).expect(200);
   });
 });
