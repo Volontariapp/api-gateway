@@ -29,21 +29,21 @@ jobs:
 
   ci:
     needs: check-arch
-    uses: Volontariapp/ci-tools/.github/workflows/ci-service.yml@main
+    uses: Volontariapp/ci-tools/.github/workflows/service-ci.yml@main
     with:
       service-name: api-gateway
     secrets: inherit
-  
+
   ci-docker:
     needs: ci
     permissions:
       contents: read
       packages: write
-    uses: Volontariapp/ci-tools/.github/workflows/docker-build-push.yml@main
+    uses: Volontariapp/ci-tools/.github/workflows/service-docker-build-push.yml@main
     with:
       service-name: api-gateway
     secrets: inherit
-  
+
   e2e:
     needs: [ci-docker]
     uses: Volontariapp/ci-tools/.github/workflows/e2e-orchestrator.yml@main
