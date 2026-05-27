@@ -4,6 +4,7 @@ import {
   ListUsersResponse,
   GetMyFollowsProfilesResponse,
   GetMyFollowersProfilesResponse,
+  User,
 } from '@volontariapp/contracts-nest';
 import { PaginationResponseDTO } from '../../../../common/dto/response/index.js';
 import { UserDTO } from '../common/user.dto.js';
@@ -13,7 +14,7 @@ export class ListUsersResponseDTO implements ListUsersWebResponse {
     res: ListUsersResponse | GetMyFollowsProfilesResponse | GetMyFollowersProfilesResponse,
   ): ListUsersResponseDTO {
     const dto = new ListUsersResponseDTO();
-    dto.users = res.users.map((u) => UserDTO.fromUser(u));
+    dto.users = res.users.map((u: User) => UserDTO.fromUser(u));
     dto.pagination = res.pagination as PaginationResponseDTO;
     return dto;
   }
