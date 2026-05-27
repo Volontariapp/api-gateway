@@ -1,15 +1,19 @@
-import { Controller, Get, Req } from '@nestjs/common';
+import { Controller, Get, Req, Param, Query } from '@nestjs/common';
 import { map } from 'rxjs';
 import { Logger } from '@volontariapp/logger';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { CustomApiError, USER_NOT_FOUND } from '@volontariapp/errors-nest';
+import { ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { CustomApiError, USER_NOT_FOUND, DATABASE_ERROR } from '@volontariapp/errors-nest';
 import type { Metadata } from '@grpc/grpc-js';
 import { CurrentUser } from '@volontariapp/auth';
 import type { AuthUser } from '@volontariapp/auth';
 import { GatewayController } from '../../../../../common/decorators/gateway-controller.decorator.js';
 import { BaseUserGrpcController } from '../../base-user-grpc.controller.js';
 import { GetUserRequestDTO } from '../../../dto/request/index.js';
-import { UserResponseDTO } from '../../../dto/response/index.js';
+import {
+  GetEventParticipantsRequestDTO,
+  GetPostLikersRequestDTO,
+} from '../../../../social/dto/request/index.js';
+import { ListUsersPublicResponseDTO, UserResponseDTO } from '../../../dto/response/index.js';
 
 @GatewayController('Users')
 @Controller('users')
@@ -28,5 +32,39 @@ export class UserQueryController extends BaseUserGrpcController {
     return this.userService
       .getUser(dto.toQuery(), metadata)
       .pipe(map((res) => UserResponseDTO.fromResponse(res)));
+  }
+
+  @Get('event/:eventId/participants')
+  @ApiOperation({ summary: 'Get list of participants for an event' })
+  @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
+  @ApiResponse({ status: 200, type: ListUsersPublicResponseDTO })
+  @CustomApiError(() => DATABASE_ERROR('fetching event participants', 'details'))
+  getEventParticipants(
+    @Param('eventId') eventId: string,
+    @Query() query: GetEventParticipantsRequestDTO,
+    @Req() req: Record<string, unknown>,
+  ) {
+    const metadata = req['internalMetadata'] as Metadata;
+    const { pagination } = query;
+    return this.userService
+      .getEventParticipantsProfiles({ eventId, pagination }, metadata)
+      .pipe(map((res) => ListUsersPublicResponseDTO.fromResponse(res)));
+  }
+
+  @Get('post/:postId/likers')
+  @ApiOperation({ summary: 'Get list of users who liked a post' })
+  @ApiParam({ name: 'postId', example: 'uuid-post-123' })
+  @ApiResponse({ status: 200, type: ListUsersPublicResponseDTO })
+  @CustomApiError(() => DATABASE_ERROR('fetching post likers', 'details'))
+  getPostLikers(
+    @Param('postId') postId: string,
+    @Query() query: GetPostLikersRequestDTO,
+    @Req() req: Record<string, unknown>,
+  ) {
+    const metadata = req['internalMetadata'] as Metadata;
+    const { pagination } = query;
+    return this.userService
+      .getPostLikersProfiles({ postId, pagination }, metadata)
+      .pipe(map((res) => ListUsersPublicResponseDTO.fromResponse(res)));
   }
 }

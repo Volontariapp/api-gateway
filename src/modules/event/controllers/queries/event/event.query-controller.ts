@@ -7,6 +7,11 @@ import type { Metadata } from '@grpc/grpc-js';
 import { GatewayController } from '../../../../../common/decorators/gateway-controller.decorator.js';
 import { GetEventRequestDTO, SearchEventsRequestDTO } from '../../../dto/request/index.js';
 import {
+  GetUserEventsRequestDTO,
+  GetUserParticipationsRequestDTO,
+  GetUserWishesRequestDTO,
+} from '../../../../social/dto/request/index.js';
+import {
   GetEventResponseDTO,
   SearchEventsResponseDTO,
   ListRequirementsResponseDTO,
@@ -76,5 +81,50 @@ export class EventQueryController extends BaseEventGrpcController {
     this.logger.log(`Listing requirements for event: ${id}`);
     const metadata = req['internalMetadata'] as Metadata;
     return this.queryService.listRequirements({ eventId: id }, metadata);
+  }
+
+  @Get('created/me')
+  @ApiOperation({ summary: 'Get events created by current user' })
+  @ApiResponse({ status: 200, type: SearchEventsResponseDTO })
+  @CustomApiError(() => DATABASE_ERROR('fetching user created events', 'details'))
+  getUserCreatedEventsSelf(
+    @Query() query: GetUserEventsRequestDTO,
+    @Req() req: Record<string, unknown>,
+  ) {
+    const metadata = req['internalMetadata'] as Metadata;
+    const { pagination } = query;
+    return this.queryService
+      .getUserCreatedEvents({ pagination }, metadata)
+      .pipe(map((res) => SearchEventsResponseDTO.fromResponse(res)));
+  }
+
+  @Get('participated/me')
+  @ApiOperation({ summary: 'Get events current user participates in' })
+  @ApiResponse({ status: 200, type: SearchEventsResponseDTO })
+  @CustomApiError(() => DATABASE_ERROR('fetching user participations', 'details'))
+  getUserParticipatedEventsSelf(
+    @Query() query: GetUserParticipationsRequestDTO,
+    @Req() req: Record<string, unknown>,
+  ) {
+    const metadata = req['internalMetadata'] as Metadata;
+    const { pagination } = query;
+    return this.queryService
+      .getUserParticipatedEvents({ pagination }, metadata)
+      .pipe(map((res) => SearchEventsResponseDTO.fromResponse(res)));
+  }
+
+  @Get('wished/me')
+  @ApiOperation({ summary: 'Get events wished by current user' })
+  @ApiResponse({ status: 200, type: SearchEventsResponseDTO })
+  @CustomApiError(() => DATABASE_ERROR('fetching user wished events', 'details'))
+  getUserWishedEventsSelf(
+    @Query() query: GetUserWishesRequestDTO,
+    @Req() req: Record<string, unknown>,
+  ) {
+    const metadata = req['internalMetadata'] as Metadata;
+    const { pagination } = query;
+    return this.queryService
+      .getUserWishedEvents({ pagination }, metadata)
+      .pipe(map((res) => SearchEventsResponseDTO.fromResponse(res)));
   }
 }
