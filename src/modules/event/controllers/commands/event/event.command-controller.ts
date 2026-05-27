@@ -51,6 +51,11 @@ export class EventCommandController extends BaseEventGrpcController {
   @CustomApiError(() => INVALID_DATE_PARAMETERS('startAt or endAt is invalid'))
   @CustomApiError(() => EVENT_ALREADY_EXISTS('title'))
   @CustomApiError(() => DATABASE_ERROR('creating event', 'details'))
+  @ApiResponse({
+    status: 206,
+    description:
+      "L'opération n'a pas pu être finalisée immédiatement, elle sera traitée en arrière-plan.",
+  })
   @Post()
   createEvent(@Body() request: CreateEventRequestDTO, @Req() req: Record<string, unknown>) {
     this.logger.log(`Creating event with title: ${request.title}`);
@@ -74,6 +79,11 @@ export class EventCommandController extends BaseEventGrpcController {
   @CustomApiError(() => INVALID_DATE_PARAMETERS('startAt or endAt is invalid'))
   @CustomApiError(() => EVENT_ALREADY_EXISTS('title'))
   @CustomApiError(() => DATABASE_ERROR('updating event', 'details'))
+  @ApiResponse({
+    status: 206,
+    description:
+      "L'opération n'a pas pu être finalisée immédiatement, elle sera traitée en arrière-plan.",
+  })
   @Patch(':id')
   updateEvent(
     @Param('id') id: string,
@@ -100,6 +110,11 @@ export class EventCommandController extends BaseEventGrpcController {
   @CustomApiError(() => EVENT_NOT_FOUND('id'))
   @CustomApiError(() => INVALID_EVENT_STATE_TRANSITION('from', 'to'))
   @CustomApiError(() => DATABASE_ERROR('changing event state', 'details'))
+  @ApiResponse({
+    status: 206,
+    description:
+      "L'opération n'a pas pu être finalisée immédiatement, elle sera traitée en arrière-plan.",
+  })
   @Patch(':id/state')
   changeEventState(
     @Param('id') id: string,
@@ -124,6 +139,11 @@ export class EventCommandController extends BaseEventGrpcController {
   })
   @CustomApiError(() => EVENT_NOT_FOUND('id'))
   @CustomApiError(() => DATABASE_ERROR('adding requirement', 'details'))
+  @ApiResponse({
+    status: 206,
+    description:
+      "L'opération n'a pas pu être finalisée immédiatement, elle sera traitée en arrière-plan.",
+  })
   @Post(':id/requirements')
   addRequirement(
     @Param('id') id: UUID,
@@ -147,6 +167,11 @@ export class EventCommandController extends BaseEventGrpcController {
   })
   @CustomApiError(() => EVENT_NOT_FOUND('id'))
   @CustomApiError(() => DATABASE_ERROR('removing requirement', 'details'))
+  @ApiResponse({
+    status: 206,
+    description:
+      "L'opération n'a pas pu être finalisée immédiatement, elle sera traitée en arrière-plan.",
+  })
   @Delete(':id/requirements/:requirementId')
   removeRequirement(
     @Param('id') id: UUID,
@@ -171,6 +196,11 @@ export class EventCommandController extends BaseEventGrpcController {
   })
   @CustomApiError(() => EVENT_NOT_FOUND('id'))
   @CustomApiError(() => DATABASE_ERROR('deleting event', 'details'))
+  @ApiResponse({
+    status: 206,
+    description:
+      "L'opération n'a pas pu être finalisée immédiatement, elle sera traitée en arrière-plan.",
+  })
   @Delete(':id')
   deleteEvent(@Param('id') id: string, @Req() req: Record<string, unknown>) {
     this.logger.log(`Deleting event with id: ${id}`);

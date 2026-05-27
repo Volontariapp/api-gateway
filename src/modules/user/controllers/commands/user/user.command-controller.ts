@@ -27,6 +27,11 @@ export class UserCommandController extends BaseUserGrpcController {
   @ApiResponse({ status: 200, type: UserResponseDTO })
   @CustomApiError(() => USER_NOT_FOUND(''))
   @CustomApiError(() => INVALID_RNA(''))
+  @ApiResponse({
+    status: 206,
+    description:
+      "L'opération n'a pas pu être finalisée immédiatement, elle sera traitée en arrière-plan.",
+  })
   @Patch('me')
   updateMe(
     @CurrentUser() user: AuthUser,
@@ -48,6 +53,11 @@ export class UserCommandController extends BaseUserGrpcController {
   @ApiResponse({ status: 200, type: ActionSuccessResponseDTO })
   @CustomApiError(() => USER_NOT_FOUND(''))
   @CustomApiError(() => DATABASE_ERROR('deleting account', 'details'))
+  @ApiResponse({
+    status: 206,
+    description:
+      "L'opération n'a pas pu être finalisée immédiatement, elle sera traitée en arrière-plan.",
+  })
   @Delete('me')
   deleteMe(@CurrentUser() user: AuthUser, @Req() req: Record<string, unknown>) {
     this.logger.log(`Deleting current user account: ${user.id}`);
