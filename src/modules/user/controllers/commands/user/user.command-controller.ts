@@ -7,6 +7,7 @@ import {
   USER_NOT_FOUND,
   INVALID_RNA,
   DATABASE_ERROR,
+  FALLBACK_ACTIVATED,
 } from '@volontariapp/errors-nest';
 import type { Metadata } from '@grpc/grpc-js';
 import { CurrentUser } from '@volontariapp/auth';
@@ -27,11 +28,7 @@ export class UserCommandController extends BaseUserGrpcController {
   @ApiResponse({ status: 200, type: UserResponseDTO })
   @CustomApiError(() => USER_NOT_FOUND(''))
   @CustomApiError(() => INVALID_RNA(''))
-  @ApiResponse({
-    status: 206,
-    description:
-      "L'opération n'a pas pu être finalisée immédiatement, elle sera traitée en arrière-plan.",
-  })
+  @CustomApiError(() => FALLBACK_ACTIVATED('user.fallback_update_user', 'Erreur interne'))
   @Patch('me')
   updateMe(
     @CurrentUser() user: AuthUser,
@@ -53,11 +50,7 @@ export class UserCommandController extends BaseUserGrpcController {
   @ApiResponse({ status: 200, type: ActionSuccessResponseDTO })
   @CustomApiError(() => USER_NOT_FOUND(''))
   @CustomApiError(() => DATABASE_ERROR('deleting account', 'details'))
-  @ApiResponse({
-    status: 206,
-    description:
-      "L'opération n'a pas pu être finalisée immédiatement, elle sera traitée en arrière-plan.",
-  })
+  @CustomApiError(() => FALLBACK_ACTIVATED('user.fallback_delete_user', 'Erreur interne'))
   @Delete('me')
   deleteMe(@CurrentUser() user: AuthUser, @Req() req: Record<string, unknown>) {
     this.logger.log(`Deleting current user account: ${user.id}`);

@@ -10,6 +10,7 @@ import {
   USER_BADGE_NOT_FOUND,
   INVALID_SCORE_INCREMENT,
   INVALID_RNA,
+  FALLBACK_ACTIVATED,
 } from '@volontariapp/errors-nest';
 import type { Metadata } from '@grpc/grpc-js';
 import { Roles } from '@volontariapp/auth';
@@ -44,11 +45,7 @@ export class UserAdminCommandController extends BaseUserGrpcController {
   @ApiResponse({ status: 200, type: UserResponseDTO })
   @CustomApiError(() => USER_NOT_FOUND(''))
   @CustomApiError(() => INVALID_RNA(''))
-  @ApiResponse({
-    status: 206,
-    description:
-      "L'opération n'a pas pu être finalisée immédiatement, elle sera traitée en arrière-plan.",
-  })
+  @CustomApiError(() => FALLBACK_ACTIVATED('user.fallback_admin_update_user', 'Erreur interne'))
   @Roles(UserRoles.ADMIN)
   @Patch(':id')
   updateUser(
@@ -78,11 +75,7 @@ export class UserAdminCommandController extends BaseUserGrpcController {
   @ApiParam({ name: 'id', example: 'uuid-123' })
   @ApiResponse({ status: 200 })
   @CustomApiError(() => USER_NOT_FOUND(''))
-  @ApiResponse({
-    status: 206,
-    description:
-      "L'opération n'a pas pu être finalisée immédiatement, elle sera traitée en arrière-plan.",
-  })
+  @CustomApiError(() => FALLBACK_ACTIVATED('user.fallback_admin_delete_user', 'Erreur interne'))
   @Roles(UserRoles.ADMIN)
   @Delete(':id')
   deleteUser(@Param('id') userId: string, @Req() req: Record<string, unknown>) {
@@ -102,11 +95,7 @@ export class UserAdminCommandController extends BaseUserGrpcController {
   @CustomApiError(() => USER_NOT_FOUND(''))
   @CustomApiError(() => BADGE_NOT_FOUND(''))
   @CustomApiError(() => USER_ALREADY_HAS_BADGE('', ''))
-  @ApiResponse({
-    status: 206,
-    description:
-      "L'opération n'a pas pu être finalisée immédiatement, elle sera traitée en arrière-plan.",
-  })
+  @CustomApiError(() => FALLBACK_ACTIVATED('user.fallback_add_badge', 'Erreur interne'))
   @Roles(UserRoles.ADMIN)
   @Post(':id/badges')
   addBadge(
@@ -130,11 +119,7 @@ export class UserAdminCommandController extends BaseUserGrpcController {
   @ApiResponse({ status: 200 })
   @CustomApiError(() => USER_NOT_FOUND(''))
   @CustomApiError(() => USER_BADGE_NOT_FOUND('', ''))
-  @ApiResponse({
-    status: 206,
-    description:
-      "L'opération n'a pas pu être finalisée immédiatement, elle sera traitée en arrière-plan.",
-  })
+  @CustomApiError(() => FALLBACK_ACTIVATED('user.fallback_remove_badge', 'Erreur interne'))
   @Roles(UserRoles.ADMIN)
   @Delete(':id/badges/:badgeId')
   removeBadge(
@@ -159,11 +144,9 @@ export class UserAdminCommandController extends BaseUserGrpcController {
   @ApiResponse({ status: 200 })
   @CustomApiError(() => USER_NOT_FOUND(''))
   @CustomApiError(() => INVALID_SCORE_INCREMENT(0))
-  @ApiResponse({
-    status: 206,
-    description:
-      "L'opération n'a pas pu être finalisée immédiatement, elle sera traitée en arrière-plan.",
-  })
+  @CustomApiError(() =>
+    FALLBACK_ACTIVATED('user.fallback_increment_impact_score', 'Erreur interne'),
+  )
   @Roles(UserRoles.ADMIN)
   @Post(':id/impact-score')
   incrementImpactScore(
