@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { SearchEventsQuery, EventType } from '@volontariapp/contracts-nest';
 import { SearchEventsRequest } from '@volontariapp/contracts';
+import { Transform } from 'class-transformer';
 import { GeoCircleDTO } from '../../../../common/dto/common/geo-circle.dto.js';
 
 export class SearchEventsRequestDTO implements SearchEventsRequest {
@@ -14,6 +15,10 @@ export class SearchEventsRequestDTO implements SearchEventsRequest {
   tagSlugs!: string[];
 
   @ApiProperty({ example: true, required: false })
+  @Transform(({ value }) => {
+    if (value === undefined || value === null) return undefined;
+    return value === 'true' || value === true || value === '1';
+  })
   onlyAvailable!: boolean;
 
   @ApiProperty({ example: 'Tech Conference', required: false })

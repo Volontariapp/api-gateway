@@ -468,4 +468,65 @@ describe('User Lifecycle (E2E)', () => {
       await client.delete(`/api/v1/badges/${badgeId}`).expect(200);
     });
   });
+
+  describe('Admin Listing Capabilities', () => {
+    it('should allow admin to list all users, including other roles and admins', async () => {
+      const adminClient = await createTestClient(app).login({
+        id: randomUUID(),
+        role: UserRoles.ADMIN,
+      });
+
+      const volunteerDto = signUpRequestFactory();
+      const volunteerRes = await adminClient.post('/api/v1/users').send(volunteerDto).expect(201);
+      const volunteerId = (volunteerRes.body as SignUpResponseDTO).user.id;
+
+      const orgDto = signUpRequestFactory({
+        organisationInfo: { rna: 'W123456789' },
+      });
+      const orgRes = await adminClient.post('/api/v1/users').send(orgDto).expect(201);
+      const orgId = (orgRes.body as SignUpResponseDTO).user.id;
+
+      try {
+        // List all users via admin
+        const res = await adminClient.get('/api/v1/users').expect(200);
+        const body = res.body as ListUsersResponseDTO;
+
+        expect(body.users.some((u) => u.id === volunteerId)).toBe(true);
+        expect(body.users.some((u) => u.id === orgId)).toBe(true);
+      } finally {
+        // Clean up
+        await adminClient.delete(`/api/v1/users/${volunteerId}`).expect(200);
+        await adminClient.delete(`/api/v1/users/${orgId}`).expect(200);
+      }
+    });
+
+    it('should allow an admin to retrieve and see other admin profiles in the list by registering a user with admin in their pseudo', async () => {
+      const adminClient = await createTestClient(app).login({
+        id: randomUUID(),
+        role: UserRoles.ADMIN,
+      });
+
+      // Create a user whose pseudo contains admin
+      const adminUserDto = signUpRequestFactory({
+        pseudo: `admin_user_${randomUUID().slice(0, 8)}`,
+      });
+      const signUpRes = await adminClient.post('/api/v1/users').send(adminUserDto).expect(201);
+      const newAdminId = (signUpRes.body as SignUpResponseDTO).user.id;
+
+      try {
+        // Retrieve the admin profile by ID
+        const getRes = await adminClient.get(`/api/v1/users/${newAdminId}`).expect(200);
+        const getBody = getRes.body as UserResponseDTO;
+        expect(getBody.user.pseudo).toContain('admin');
+
+        // Retrieve all users and verify the new admin is in the list
+        const listRes = await adminClient.get('/api/v1/users').expect(200);
+        const listBody = listRes.body as ListUsersResponseDTO;
+        expect(listBody.users.some((u) => u.id === newAdminId)).toBe(true);
+      } finally {
+        // Cleanup
+        await adminClient.delete(`/api/v1/users/${newAdminId}`).expect(200);
+      }
+    });
+  });
 });

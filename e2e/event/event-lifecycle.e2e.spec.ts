@@ -7,7 +7,7 @@ import { GlobalExceptionFilter } from '@volontariapp/errors-nest';
 import { randomUUID } from 'node:crypto';
 import { loadConfig } from '@volontariapp/config';
 import { CustomConfig } from '../../src/config/base-config.js';
-import { EventState } from '@volontariapp/contracts-nest';
+import { EventState, EventType as GrpcEventType } from '@volontariapp/contracts-nest';
 import { TagsNames, UserRoles } from '@volontariapp/shared';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -148,5 +148,110 @@ describe('Event Lifecycle (E2E)', () => {
       endAt: new Date(Date.now() + 86400000),
     });
     await client.post('/api/v1/events').send(invalidEvent).expect(400);
+  });
+
+  it('should list and search multiple events as an admin when onlyAvailable is false', async () => {
+    const client = await createTestClient(app).login({ id: randomUUID(), role: UserRoles.ADMIN });
+
+    const event1Dto = createEventRequestFactory({ title: `SearchTest-1-${randomUUID()}` });
+    const event2Dto = createEventRequestFactory({ title: `SearchTest-2-${randomUUID()}` });
+
+    const res1 = await client.post('/api/v1/events').send(event1Dto).expect(201);
+    const res2 = await client.post('/api/v1/events').send(event2Dto).expect(201);
+
+    const event1Id = (res1.body as EventWebResponse).event.id;
+    const event2Id = (res2.body as EventWebResponse).event.id;
+
+    try {
+      const listRes = await client
+        .get('/api/v1/events')
+        .query({ onlyAvailable: false })
+        .expect(200);
+
+      const listBody = listRes.body as ListEventsWebResponse;
+      expect(listBody.events.some((e) => e.id === event1Id)).toBe(true);
+      expect(listBody.events.some((e) => e.id === event2Id)).toBe(true);
+
+      const searchRes = await client
+        .get('/api/v1/events')
+        .query({ searchTerm: `SearchTest-1` })
+        .expect(200);
+
+      const searchBody = searchRes.body as ListEventsWebResponse;
+      expect(searchBody.events.some((e) => e.id === event1Id)).toBe(true);
+      expect(searchBody.events.some((e) => e.id === event2Id)).toBe(false);
+    } finally {
+      await client.delete(`/api/v1/events/${event1Id}`).expect(200);
+      await client.delete(`/api/v1/events/${event2Id}`).expect(200);
+    }
+  });
+  it('should return correct numeric type values in event responses (debug type serialization)', async () => {
+    const client = await createTestClient(app).login({ id: randomUUID(), role: UserRoles.ADMIN });
+
+    // Create one SOCIAL event and one ECOLOGY event
+    const socialDto = createEventRequestFactory({ type: GrpcEventType.EVENT_TYPE_SOCIAL });
+    const ecoDto = createEventRequestFactory({ type: GrpcEventType.EVENT_TYPE_ECOLOGY });
+
+    const socialRes = await client.post('/api/v1/events').send(socialDto).expect(201);
+    const ecoRes = await client.post('/api/v1/events').send(ecoDto).expect(201);
+
+    const socialBody = socialRes.body as EventWebResponse;
+    const ecoBody = ecoRes.body as EventWebResponse;
+
+    const socialId = socialBody.event.id;
+    const ecoId = ecoBody.event.id;
+
+    try {
+      // --- Assert create response ---
+      console.log(
+        '[TYPE-DEBUG] SOCIAL create response type:',
+        socialBody.event.type,
+        '| typeof:',
+        typeof socialBody.event.type,
+      );
+      console.log(
+        '[TYPE-DEBUG] ECO create response type:',
+        ecoBody.event.type,
+        '| typeof:',
+        typeof ecoBody.event.type,
+      );
+      console.log('[TYPE-DEBUG] GrpcEventType.EVENT_TYPE_SOCIAL:', GrpcEventType.EVENT_TYPE_SOCIAL);
+      console.log(
+        '[TYPE-DEBUG] GrpcEventType.EVENT_TYPE_ECOLOGY:',
+        GrpcEventType.EVENT_TYPE_ECOLOGY,
+      );
+
+      expect(socialBody.event.type).toBe(GrpcEventType[GrpcEventType.EVENT_TYPE_SOCIAL]);
+      expect(ecoBody.event.type).toBe(GrpcEventType[GrpcEventType.EVENT_TYPE_ECOLOGY]);
+
+      // --- Assert GET single event ---
+      const getSocialRes = await client.get(`/api/v1/events/${socialId}`).expect(200);
+      const getSocialBody = getSocialRes.body as EventWebResponse;
+      console.log(
+        '[TYPE-DEBUG] GET single SOCIAL type:',
+        getSocialBody.event.type,
+        '| typeof:',
+        typeof getSocialBody.event.type,
+      );
+      expect(getSocialBody.event.type).toBe(GrpcEventType[GrpcEventType.EVENT_TYPE_SOCIAL]);
+
+      // --- Assert list response ---
+      const listRes = await client
+        .get('/api/v1/events')
+        .query({ onlyAvailable: false, searchTerm: socialDto.title })
+        .expect(200);
+      const listBody = listRes.body as ListEventsWebResponse;
+      const foundSocial = listBody.events.find((e) => e.id === socialId);
+      console.log(
+        '[TYPE-DEBUG] LIST SOCIAL type:',
+        foundSocial?.type,
+        '| typeof:',
+        typeof foundSocial?.type,
+      );
+      expect(foundSocial?.type).toBe(GrpcEventType[GrpcEventType.EVENT_TYPE_SOCIAL] as any);
+    } finally {
+      await client.delete(`/api/v1/events/${socialId}`).expect(200);
+      await client.delete(`/api/v1/events/${ecoId}`).expect(200);
+    }
   });
 });
