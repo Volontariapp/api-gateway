@@ -248,10 +248,31 @@ describe('Event Lifecycle (E2E)', () => {
         '| typeof:',
         typeof foundSocial?.type,
       );
-      expect(foundSocial?.type).toBe(GrpcEventType[GrpcEventType.EVENT_TYPE_SOCIAL] as any);
+      expect(foundSocial?.type).toBe(GrpcEventType[GrpcEventType.EVENT_TYPE_SOCIAL]);
     } finally {
       await client.delete(`/api/v1/events/${socialId}`).expect(200);
       await client.delete(`/api/v1/events/${ecoId}`).expect(200);
+    }
+  });
+
+  it('should accept string representations of enums for state updates from the frontend', async () => {
+    const client = await createTestClient(app).login({ id: randomUUID(), role: UserRoles.ADMIN });
+
+    const eventDto = createEventRequestFactory({ type: GrpcEventType.EVENT_TYPE_SOCIAL });
+    const createRes = await client.post('/api/v1/events').send(eventDto).expect(201);
+    const eventId = (createRes.body as EventWebResponse).event.id;
+
+    try {
+      await client
+        .patch(`/api/v1/events/${eventId}/state`)
+        .send({ newState: 'EVENT_STATE_PUBLISHED' })
+        .expect(200);
+
+      const getRes = await client.get(`/api/v1/events/${eventId}`).expect(200);
+      const getBody = getRes.body as EventWebResponse;
+      expect(getBody.event.state).toBe(EventState[EventState.EVENT_STATE_PUBLISHED]);
+    } finally {
+      await client.delete(`/api/v1/events/${eventId}`).expect(200);
     }
   });
 });
