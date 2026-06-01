@@ -53,6 +53,8 @@ async function bootstrap() {
     origin: true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
+    allowedHeaders:
+      'Content-Type, Accept, Authorization, CF-Access-Client-Id, CF-Access-Client-Secret, X-Requested-With',
   });
   const configService = app.get(AppConfigService);
   app.setGlobalPrefix('api/v1');
