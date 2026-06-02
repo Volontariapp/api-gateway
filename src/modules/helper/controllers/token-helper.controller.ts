@@ -6,6 +6,7 @@ import { AppConfigService } from '../../../config/app-config.service.js';
 import { Logger } from '@volontariapp/logger';
 import { UserRoles } from '@volontariapp/shared';
 import fs from 'node:fs';
+import { randomUUID } from 'node:crypto';
 
 @ApiTags('Tokens Helper')
 @Public()
@@ -50,7 +51,7 @@ export class TokenHelperController implements OnModuleInit {
   })
   @ApiQuery({
     name: 'userId',
-    example: 'uuid-123',
+    example: randomUUID(),
     description: 'User ID to include in the payload',
   })
   @ApiQuery({
@@ -88,7 +89,7 @@ export class TokenHelperController implements OnModuleInit {
     summary: 'Generate a Refresh Token',
     description: 'Creates a signed refresh token for development and testing.',
   })
-  @ApiQuery({ name: 'userId', example: 'uuid-123' })
+  @ApiQuery({ name: 'userId', example: randomUUID() })
   @ApiQuery({ name: 'role', example: 'user', required: false })
   @ApiOkResponse({ type: TokenResponseDTO })
   async generateRefreshToken(
@@ -105,7 +106,7 @@ export class TokenHelperController implements OnModuleInit {
     summary: 'Generate an Internal Token',
     description: 'Creates a signed internal token used for inter-service communication.',
   })
-  @ApiQuery({ name: 'userId', example: 'uuid-123' })
+  @ApiQuery({ name: 'userId', example: randomUUID() })
   @ApiQuery({ name: 'role', example: 'user', required: false })
   @ApiOkResponse({ type: TokenResponseDTO })
   async generateInternalToken(
