@@ -33,6 +33,10 @@ export class WsProxyMiddleware implements NestMiddleware {
   }
 
   async use(req: AuthenticatedWsRequest, res: Response, next: NextFunction) {
+    if (!req.originalUrl.includes('socket.io')) {
+      next();
+      return;
+    }
     try {
       this.logger.debug(`Incoming WebSocket request to: ${req.originalUrl}`);
       let token = req.accessToken;
