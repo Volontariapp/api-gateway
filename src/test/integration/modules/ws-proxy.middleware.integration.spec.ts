@@ -22,14 +22,14 @@ describe('WsProxyMiddleware (Integration)', () => {
   let targetServer: http.Server;
   let proxyApp: express.Express;
 
-  let receivedUrl: string;
+  let receivedHeaders: Record<string, string | string[] | undefined>;
 
   beforeEach(async () => {
     setupNestLoggerMock();
-    receivedUrl = '';
+    receivedHeaders = {};
     targetApp = express();
     targetApp.use((req: Request, res: Response) => {
-      receivedUrl = req.url;
+      receivedHeaders = req.headers;
       res.status(200).send('OK');
     });
 
@@ -100,7 +100,7 @@ describe('WsProxyMiddleware (Integration)', () => {
     expect(spyJwtServiceVerifyAccessToken).toHaveBeenCalledWith('valid-access-token');
     expect(spyJwtServiceSignInternal).toHaveBeenCalledWith({ id: 'user-123', role: 'USER' });
 
-    expect(receivedUrl).toContain('internalToken=internal-signed-token');
+    expect(receivedHeaders['x-internal-token']).toBe('internal-signed-token');
   });
 
   it('should read token from query parameter if header is missing', async () => {
@@ -115,7 +115,7 @@ describe('WsProxyMiddleware (Integration)', () => {
     expect(spyJwtServiceVerifyAccessToken).toHaveBeenCalledWith('query-access-token');
     expect(spyJwtServiceSignInternal).toHaveBeenCalledWith({ id: 'user-123', role: 'USER' });
 
-    expect(receivedUrl).toContain('internalToken=internal-query-token');
+    expect(receivedHeaders['x-internal-token']).toBe('internal-query-token');
   });
 
   it('should return 401 if token is invalid or missing', async () => {

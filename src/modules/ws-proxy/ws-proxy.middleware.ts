@@ -52,11 +52,12 @@ export class WsProxyMiddleware implements NestMiddleware {
           _options: Options,
           _head: Buffer,
         ) => {
+          const customReq = req as AuthenticatedWsRequest;
+          if (customReq.headers['x-internal-token']) {
+            proxyReq.setHeader('x-internal-token', customReq.headers['x-internal-token']);
+          }
           this.logger.log(
-            `🔌 [WS-PROXY] Handshake established! Upgrading connection for: ${req.url ?? 'undefined'}`,
-          );
-          this.logger.debug(
-            `[WS-PROXY] Target Headers sent to MS: ${JSON.stringify(proxyReq.getHeaders())}`,
+            `🔌 [WS-PROXY] Handshake established! Upgrading connection for: ${customReq.url}`,
           );
         },
         open: (_proxySocket: Socket) => {
@@ -122,9 +123,8 @@ export class WsProxyMiddleware implements NestMiddleware {
           role: req.user.role,
         });
 
-        const separator = req.url.includes('?') ? '&' : '?';
-        req.url = `${req.url}${separator}internalToken=${encodeURIComponent(req.internalWsToken)}`;
-        this.logger.debug(`💉 [URL-REWRITE] Injected internalToken into req.url: ${req.url}`);
+        req.headers['x-internal-token'] = req.internalWsToken;
+        this.logger.debug('💉 [HEADERS] Injected x-internal-token into req.headers');
       } else {
         this.logger.warn(
           '🚫 [AUTH-FAILED] Rejecting connection: Missing or invalid token payload.',
@@ -134,7 +134,7 @@ export class WsProxyMiddleware implements NestMiddleware {
 
       this.logger.log(`🎯 [FORWARDING] Handing off request to createProxyMiddleware...`);
 
-      await this.proxy(req as IncomingMessage, res as ServerResponse, next);
+      await this.proxy(req as IncomingMessage, res as unknown as ServerResponse, next);
     } catch (err) {
       if (err instanceof UnauthorizedException) {
         this.logger.warn(`🛑 [GUARD-BLOCKED] UnauthorizedException thrown: ${err.message}`);
