@@ -37,7 +37,7 @@ export class WsProxyMiddleware implements NestMiddleware {
       next();
       return;
     }
-    this.logger.debug(`[WsProxyMiddleware] Incoming WebSocket request to: ${req.originalUrl}`);
+    this.logger.log(`[WsProxyMiddleware] Incoming WebSocket request to: ${req.originalUrl}`);
     try {
       let token = req.accessToken;
       let tokenSource = 'middleware/headers';

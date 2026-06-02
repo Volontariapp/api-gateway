@@ -65,7 +65,7 @@ async function bootstrap() {
 
   // GLOBAL LOGGER MIDDLEWARE FOR DEBUGGING
   app.use((req: Request, _res: Response, next: NextFunction) => {
-    logger.debug(
+    logger.log(
       `[GLOBAL LOG] Incoming request: ${req.method} ${req.url} (originalUrl: ${req.originalUrl})`,
     );
     next();
