@@ -91,6 +91,13 @@ export class WsProxyMiddleware implements NestMiddleware, OnModuleInit {
     }
 
     server.on('upgrade', (req: IncomingMessage, socket: Socket, head: Buffer) => {
+      interface HandledSocket extends Socket {
+        _wsUpgradeHandled?: boolean;
+      }
+      const handledSocket = socket as HandledSocket;
+      if (handledSocket._wsUpgradeHandled) return;
+      handledSocket._wsUpgradeHandled = true;
+
       void (async () => {
         if (!req.url?.includes('socket.io')) {
           return;
