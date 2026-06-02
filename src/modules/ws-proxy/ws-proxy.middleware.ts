@@ -1,12 +1,20 @@
-import { Injectable, NestMiddleware, UnauthorizedException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  NestMiddleware,
+  UnauthorizedException,
+  Logger,
+  OnModuleInit,
+} from '@nestjs/common';
+import { HttpAdapterHost } from '@nestjs/core';
 import { Request, Response, NextFunction } from 'express';
-import { createProxyMiddleware } from 'http-proxy-middleware';
+import { createProxyMiddleware, RequestHandler } from 'http-proxy-middleware';
 import { JwtService, AuthUser } from '@volontariapp/auth';
 import { AppConfigService } from '../../config/app-config.service.js';
 import type { Options } from 'http-proxy-middleware';
-import type { IncomingMessage, ServerResponse } from 'http';
+import type { IncomingMessage, ServerResponse, Server } from 'http';
 import type { ClientRequest } from 'http';
 import type { Socket } from 'net';
+import * as url from 'url';
 
 export interface AuthenticatedWsRequest extends Request {
   user?: AuthUser;
@@ -15,17 +23,14 @@ export interface AuthenticatedWsRequest extends Request {
 }
 
 @Injectable()
-export class WsProxyMiddleware implements NestMiddleware {
-  private proxy: (
-    req: IncomingMessage,
-    res: ServerResponse,
-    next?: (err?: Error) => void,
-  ) => void | Promise<void>;
+export class WsProxyMiddleware implements NestMiddleware, OnModuleInit {
+  private proxy: RequestHandler;
   private readonly logger = new Logger('WS-PROXY-DEBUG');
 
   constructor(
     private readonly jwtService: JwtService,
     private readonly configService: AppConfigService,
+    private readonly adapterHost: HttpAdapterHost,
   ) {
     const rawUrl = this.configService.msWsUrl;
     const wsServiceUrl = rawUrl.startsWith('http') ? rawUrl : `http://${rawUrl}`;
@@ -34,7 +39,7 @@ export class WsProxyMiddleware implements NestMiddleware {
     const proxyOptions: Options = {
       target: wsServiceUrl,
       changeOrigin: true,
-      ws: true,
+      // Removed ws: true to prevent automatic hooking of the 'upgrade' event by http-proxy-middleware
       pathRewrite: {
         '^/api/v1/socket.io': '/socket.io',
         '^/socket.io': '/socket.io',
@@ -76,6 +81,60 @@ export class WsProxyMiddleware implements NestMiddleware {
     };
 
     this.proxy = createProxyMiddleware(proxyOptions);
+  }
+
+  onModuleInit() {
+    const server = this.adapterHost.httpAdapter.getHttpServer() as Server | undefined;
+    if (!server) {
+      this.logger.error('No HTTP server found in adapterHost');
+      return;
+    }
+
+    server.on('upgrade', (req: IncomingMessage, socket: Socket, head: Buffer) => {
+      void (async () => {
+        if (!req.url?.includes('socket.io')) {
+          return;
+        }
+
+        this.logger.log(`📥 [UPGRADE] Intercepted WebSocket upgrade: ${req.url}`);
+
+        try {
+          const parsedUrl = new url.URL(req.url, `http://${req.headers.host ?? 'localhost'}`);
+          const token = parsedUrl.searchParams.get('token');
+
+          if (!token) {
+            this.logger.warn('🚫 [UPGRADE-FAILED] No token in query string');
+            socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
+            socket.destroy();
+            return;
+          }
+
+          const user = await this.jwtService.verifyAccessToken(token);
+          this.logger.log(`👤 [UPGRADE-AUTH] Token valid. User ID: ${user.id} (${user.role})`);
+
+          const internalWsToken = await this.jwtService.signInternal({
+            id: user.id,
+            role: user.role,
+          });
+
+          // Mutate headers so proxyReqWs can forward it
+          req.headers['x-internal-token'] = internalWsToken;
+
+          // Manually trigger the proxy upgrade
+          if (typeof this.proxy.upgrade === 'function') {
+            this.proxy.upgrade(req, socket, head);
+          } else {
+            this.logger.error('Proxy does not support .upgrade()');
+            socket.destroy();
+          }
+        } catch (err: unknown) {
+          const message = err instanceof Error ? err.message : 'Unknown error';
+          this.logger.warn(`🛑 [UPGRADE-BLOCKED] Authentication failed: ${message}`);
+          socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
+          socket.destroy();
+        }
+      })();
+    });
   }
 
   async use(req: AuthenticatedWsRequest, res: Response, next: NextFunction) {
