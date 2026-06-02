@@ -21,6 +21,7 @@ import {
   RolesGuard,
 } from '@volontariapp/auth';
 import { Reflector } from '@nestjs/core';
+import type { Request, Response, NextFunction } from 'express';
 
 function resolveConfigDirectory(): string {
   const currentFileDir = dirname(fileURLToPath(import.meta.url));
@@ -61,6 +62,14 @@ async function bootstrap() {
 
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
   app.useGlobalFilters(new GlobalExceptionFilter());
+
+  // GLOBAL LOGGER MIDDLEWARE FOR DEBUGGING
+  app.use((req: Request, _res: Response, next: NextFunction) => {
+    logger.debug(
+      `[GLOBAL LOG] Incoming request: ${req.method} ${req.url} (originalUrl: ${req.originalUrl})`,
+    );
+    next();
+  });
 
   const reflector = app.get(Reflector);
   const jwtService = app.get(JwtService);
