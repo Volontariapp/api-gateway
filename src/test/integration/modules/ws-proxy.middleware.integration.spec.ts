@@ -92,7 +92,10 @@ describe('WsProxyMiddleware (Integration)', () => {
     spyJwtServiceVerifyAccessToken.mockResolvedValue(authUserMock);
     spyJwtServiceSignInternal.mockResolvedValue('internal-signed-token');
 
-    await request(proxyApp).get('/').set('Authorization', 'Bearer valid-access-token').expect(200);
+    await request(proxyApp)
+      .get('/socket.io')
+      .set('Authorization', 'Bearer valid-access-token')
+      .expect(200);
 
     expect(spyJwtServiceVerifyAccessToken).toHaveBeenCalledWith('valid-access-token');
     expect(spyJwtServiceSignInternal).toHaveBeenCalledWith({ id: 'user-123', role: 'USER' });
@@ -107,7 +110,7 @@ describe('WsProxyMiddleware (Integration)', () => {
     spyJwtServiceVerifyAccessToken.mockResolvedValue(authUserMock);
     spyJwtServiceSignInternal.mockResolvedValue('internal-query-token');
 
-    await request(proxyApp).get('/?token=query-access-token').expect(200);
+    await request(proxyApp).get('/socket.io?token=query-access-token').expect(200);
 
     expect(spyJwtServiceVerifyAccessToken).toHaveBeenCalledWith('query-access-token');
     expect(spyJwtServiceSignInternal).toHaveBeenCalledWith({ id: 'user-123', role: 'USER' });
@@ -120,7 +123,7 @@ describe('WsProxyMiddleware (Integration)', () => {
     const spyJwtServiceSignInternal = jest.spyOn(jwtServiceMock, 'signInternal');
 
     await request(proxyApp)
-      .get('/')
+      .get('/socket.io')
       .expect(401)
       .expect((res) => {
         expect((res.body as { message: string }).message).toBe('Missing or invalid access token');
