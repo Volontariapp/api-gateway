@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, MiddlewareConsumer, NestModule, RequestMethod } from '@nestjs/common';
 import { WsProxyMiddleware } from './ws-proxy.middleware.js';
 import { AuthModule } from '@volontariapp/auth';
 
@@ -7,4 +7,13 @@ import { AuthModule } from '@volontariapp/auth';
   providers: [WsProxyMiddleware],
   exports: [WsProxyMiddleware],
 })
-export class WsProxyModule {}
+export class WsProxyModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(WsProxyMiddleware)
+      .forRoutes(
+        { path: 'socket.io', method: RequestMethod.ALL },
+        { path: 'socket.io/(.*)', method: RequestMethod.ALL },
+      );
+  }
+}
