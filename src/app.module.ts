@@ -1,4 +1,4 @@
-import { DynamicModule, Module } from '@nestjs/common';
+import { DynamicModule, Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { AppConfigModule } from './config/app-config.module.js';
 import type { CustomConfig } from './config/base-config.js';
@@ -12,11 +12,12 @@ import { HelperModule } from './modules/helper/helper.module.js';
 import { NodeEnv } from '@volontariapp/config';
 import { HealthModule } from './modules/health/health.module.js';
 import { WsProxyModule } from './modules/ws-proxy/ws-proxy.module.js';
+import { WsProxyMiddleware } from './modules/ws-proxy/ws-proxy.middleware.js';
 
 @Module({
   imports: [GrpcClientModule, UserModule, PostModule, EventModule, SocialModule, WsProxyModule],
 })
-export class AppModule {
+export class AppModule implements NestModule {
   static register(config: CustomConfig): DynamicModule {
     const imports: DynamicModule['imports'] = [
       AppConfigModule.forRoot(config),
@@ -30,7 +31,7 @@ export class AppModule {
       WsProxyModule,
     ];
 
-    if (config.nodeEnv !== NodeEnv.PRODUCTION) {
+    if (config.nodeEnv !== NodeEnv.TEST) {
       imports.push(HelperModule);
     }
 
@@ -44,5 +45,9 @@ export class AppModule {
         },
       ],
     };
+  }
+
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(WsProxyMiddleware).forRoutes('socket.io');
   }
 }
