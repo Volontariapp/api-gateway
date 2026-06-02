@@ -22,6 +22,7 @@ import {
 } from '@volontariapp/auth';
 import { Reflector } from '@nestjs/core';
 import type { Request, Response, NextFunction } from 'express';
+import { WsProxyMiddleware } from './modules/ws-proxy/ws-proxy.middleware.js';
 
 function resolveConfigDirectory(): string {
   const currentFileDir = dirname(fileURLToPath(import.meta.url));
@@ -76,6 +77,10 @@ async function bootstrap() {
   app.useGlobalGuards(new AccessTokenGuard(jwtService, reflector), new RolesGuard(reflector));
   app.use(new AccessTokenMiddleware().use);
   app.use(new RefreshTokenMiddleware().use);
+
+  const wsProxyMiddleware = app.get(WsProxyMiddleware);
+  app.use(wsProxyMiddleware.use.bind(wsProxyMiddleware));
+
   const port = configService.config.port;
   await app.listen(port);
   logger.log('=================================== API Gateway ===================================');
