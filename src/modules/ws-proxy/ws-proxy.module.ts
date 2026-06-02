@@ -13,7 +13,7 @@ export class WsProxyModule implements NestModule {
       .apply(WsProxyMiddleware)
       .forRoutes(
         { path: 'socket.io', method: RequestMethod.ALL },
-        { path: 'socket.io/(.*)', method: RequestMethod.ALL },
+        { path: 'socket.io/*', method: RequestMethod.ALL },
       );
   }
 }

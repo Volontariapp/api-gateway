@@ -28,7 +28,10 @@ export class WsProxyMiddleware implements NestMiddleware {
       target: wsServiceUrl,
       changeOrigin: true,
       ws: true,
-      pathRewrite: (path) => path.replace(/^\/api\/v1/, ''),
+      pathRewrite: {
+        '^/api/v1/socket.io': '/socket.io',
+        '^/socket.io': '/socket.io',
+      },
     });
   }
 
