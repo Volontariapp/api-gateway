@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Post } from '@volontariapp/contracts-nest';
 
-export class PostDTO {
+export abstract class PostBaseDTO {
   @ApiProperty({ example: 'uuid-123' })
   id!: string;
 
@@ -19,3 +20,15 @@ export class PostDTO {
   @ApiProperty({ example: '2026-04-12T12:00:00Z', type: Date })
   createdAt!: Date | undefined;
 }
+
+export class PostResponseDTO extends PostBaseDTO {
+  static fromResponse(post: Post): PostResponseDTO {
+    const dto = new PostResponseDTO();
+    Object.assign(dto, {
+      ...post,
+    });
+    return dto;
+  }
+}
+
+export { PostResponseDTO as PostDTO };

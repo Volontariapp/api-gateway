@@ -4255,13 +4255,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@volontariapp/contracts@npm:^4.0.14":
-  version: 4.0.14
-  resolution: "@volontariapp/contracts@npm:4.0.14"
+"@volontariapp/contracts@npm:4.1.0-snap-058e08e":
+  version: 4.1.0-snap-058e08e
+  resolution: "@volontariapp/contracts@npm:4.1.0-snap-058e08e"
   dependencies:
     "@volontariapp/logger": "npm:0.2.5"
     protobufjs: "npm:^7.5.8"
-  checksum: 10c0/7041f6b3b084da41773579fecef16893296534370f5060e25ad6313a7cb916e7d53cfef946d0be6ecc0b059c156a3c55c0130433caa4c25f45b60ed76cb67deb
+  checksum: 10c0/508e2c69e5df1a94899743ae9e437419bdec0627881235aec95783c0a837805dcffcf907f535d0c067a318a8cd1d149024e81df8a28f30918c13119c786d8620
   languageName: node
   linkType: hard
 
@@ -4882,7 +4882,7 @@ __metadata:
     "@volontariapp/auth": "npm:^3.3.0"
     "@volontariapp/bridge-nest": "npm:^0.3.14"
     "@volontariapp/config": "npm:^3.2.0"
-    "@volontariapp/contracts": "npm:^4.0.14"
+    "@volontariapp/contracts": "npm:4.1.0-snap-058e08e"
     "@volontariapp/contracts-nest": "npm:^3.1.6"
     "@volontariapp/errors": "npm:^0.6.0"
     "@volontariapp/errors-nest": "npm:^0.12.0"
