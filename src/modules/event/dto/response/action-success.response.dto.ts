@@ -7,4 +7,11 @@ export class ActionSuccessResponseDTO implements ActionSuccessWebResponse {
 
   @ApiProperty({ example: 'Operation completed successfully', required: false })
   message!: string;
+
+  static fromResponse(response: { success: boolean }): ActionSuccessResponseDTO {
+    return {
+      success: response.success,
+      message: response.success ? 'Operation completed successfully' : 'Operation failed',
+    };
+  }
 }
