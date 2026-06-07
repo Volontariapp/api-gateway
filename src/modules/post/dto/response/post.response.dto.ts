@@ -3,10 +3,21 @@ import type { GetPostResponse } from '@volontariapp/contracts-nest';
 import { PostWebResponse } from '@volontariapp/contracts';
 import { PostDTO } from '../common/post.dto.js';
 
-export class PostResponseDTO implements GetPostResponse, PostWebResponse {
+import { timestampToDate } from './comment.response.dto.js';
+
+export class PostResponseDTO implements PostWebResponse {
   static fromResponse(response: GetPostResponse): PostResponseDTO {
     const dto = new PostResponseDTO();
-    dto.post = response.post as PostDTO;
+    const postDto = new PostDTO();
+    if (response.post) {
+      postDto.id = response.post.id;
+      postDto.title = response.post.title;
+      postDto.content = response.post.content;
+      postDto.authorId = response.post.authorId;
+      postDto.createdAt = timestampToDate(response.post.createdAt);
+      postDto.updatedAt = timestampToDate(response.post.updatedAt);
+    }
+    dto.post = postDto;
     return dto;
   }
 

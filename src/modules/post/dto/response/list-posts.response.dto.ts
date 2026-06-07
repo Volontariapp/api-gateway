@@ -5,11 +5,22 @@ import { PaginationResponseDTO } from '../../../../common/dto/response/index.js'
 
 import { PostDTO } from '../common/post.dto.js';
 
-export class ListPostsResponseDTO implements ListPostsResponse, ListPostsWebResponse {
+import { timestampToDate } from './comment.response.dto.js';
+
+export class ListPostsResponseDTO implements ListPostsWebResponse {
   static fromResponse(response: ListPostsResponse): ListPostsResponseDTO {
     const dto = new ListPostsResponseDTO();
-    dto.posts = response.posts as PostDTO[];
-    dto.totalCount = response.posts.length;
+    dto.posts = response.posts.map((post) => {
+      const postDto = new PostDTO();
+      postDto.id = post.id;
+      postDto.title = post.title;
+      postDto.content = post.content;
+      postDto.authorId = post.authorId;
+      postDto.createdAt = timestampToDate(post.createdAt);
+      postDto.updatedAt = timestampToDate(post.updatedAt);
+      return postDto;
+    });
+    dto.totalCount = response.pagination?.total ?? response.posts.length;
     dto.pagination = response.pagination as PaginationResponseDTO;
     return dto;
   }
