@@ -7,8 +7,13 @@ import { PostDTO } from '../common/post.dto.js';
 
 import { timestampToDate } from './comment.response.dto.js';
 
+import { EventDTO } from '../../../event/dto/common/event.dto.js';
+
 export class ListPostsResponseDTO implements ListPostsWebResponse {
-  static fromResponse(response: ListPostsResponse): ListPostsResponseDTO {
+  static fromResponse(
+    response: ListPostsResponse,
+    eventsMap?: Map<string, EventDTO>,
+  ): ListPostsResponseDTO {
     const dto = new ListPostsResponseDTO();
     dto.posts = response.posts.map((post) => {
       const postDto = new PostDTO();
@@ -18,6 +23,11 @@ export class ListPostsResponseDTO implements ListPostsWebResponse {
       postDto.authorId = post.authorId;
       postDto.createdAt = timestampToDate(post.createdAt);
       postDto.updatedAt = timestampToDate(post.updatedAt);
+
+      if (post.eventId && eventsMap?.has(post.eventId)) {
+        postDto.event = eventsMap.get(post.eventId);
+      }
+
       return postDto;
     });
     dto.totalCount = response.pagination?.total ?? response.posts.length;

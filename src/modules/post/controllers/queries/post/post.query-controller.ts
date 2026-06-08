@@ -1,6 +1,7 @@
-import { Controller, Get, Param, Query, Req } from '@nestjs/common';
+import { Controller, Get, Param, Query, Req, Inject } from '@nestjs/common';
+import type { ClientGrpc } from '@nestjs/microservices';
 import { Logger } from '@volontariapp/logger';
-import { map, Observable } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 
 import {
   ApiOperation,
@@ -26,6 +27,18 @@ import { GatewayController } from '../../../../../common/decorators/gateway-cont
 import { ListPostsRequestDTO, GetPostRequestDTO } from '../../../dto/request/index.js';
 import { PostResponseDTO, ListPostsResponseDTO } from '../../../dto/response/index.js';
 import { GetPostResponseDTO } from '../../../dto/response/get-post.response.dto.js';
+import { EventDTO } from '../../../../event/dto/common/event.dto.js';
+
+import { EVENT_PACKAGE, POST_PACKAGE } from '../../../../../grpc/grpc-packages.js';
+import {
+  EventQueryServiceClient,
+  EVENT_QUERY_SERVICE_NAME,
+  GetEventsByIdsResponse,
+  GetEventResponse,
+  ListPostsResponse,
+  GetPostResponse,
+} from '@volontariapp/contracts-nest';
+import { WithMetadata } from '../../../../../common/types/grpc.types.js';
 
 @ApiTags('Posts')
 @ApiExtraModels(PostResponseDTO, ListPostsResponseDTO, GetPostResponseDTO)
@@ -38,20 +51,55 @@ import { GetPostResponseDTO } from '../../../dto/response/get-post.response.dto.
 @Controller('posts')
 export class PostQueryController extends BasePostGrpcController {
   private readonly logger = new Logger({ context: PostQueryController.name });
+  private eventQueryService!: WithMetadata<EventQueryServiceClient>;
+
+  constructor(
+    @Inject(POST_PACKAGE) client: ClientGrpc,
+    @Inject(EVENT_PACKAGE) private readonly eventClient: ClientGrpc,
+  ) {
+    super(client);
+  }
+
+  onModuleInit() {
+    super.onModuleInit();
+    this.eventQueryService = this.eventClient.getService<EventQueryServiceClient>(
+      EVENT_QUERY_SERVICE_NAME,
+    ) as WithMetadata<EventQueryServiceClient>;
+  }
 
   @ApiOperation({ summary: 'List all posts' })
   @ApiResponse({ status: 200, type: ListPostsResponseDTO })
   @Get()
-  listPosts(
+  async listPosts(
     @Query() request: ListPostsRequestDTO,
     @Req() req: Record<string, unknown>,
-  ): Observable<ListPostsResponseDTO> {
+  ): Promise<ListPostsResponseDTO> {
     this.logger.log('Listing posts');
     const metadata = req['internalMetadata'] as Metadata;
 
-    return this.postService
-      .listPosts(request.toQuery(), metadata)
-      .pipe(map((res) => ListPostsResponseDTO.fromResponse(res)));
+    const res = await firstValueFrom<ListPostsResponse>(
+      this.postService.listPosts(request.toQuery(), metadata),
+    );
+
+    const eventIds = [
+      ...new Set(res.posts.map((p) => p.eventId).filter((id): id is string => !!id)),
+    ];
+    const eventsMap = new Map<string, EventDTO>();
+
+    if (eventIds.length > 0) {
+      try {
+        const eventsRes = await firstValueFrom<GetEventsByIdsResponse>(
+          this.eventQueryService.getEventsByIds({ ids: eventIds }, metadata),
+        );
+        for (const ev of eventsRes.events) {
+          eventsMap.set(ev.id, EventDTO.fromResponse(ev));
+        }
+      } catch (err) {
+        this.logger.error('Failed to fetch events for posts', err as Error);
+      }
+    }
+
+    return ListPostsResponseDTO.fromResponse(res, eventsMap);
   }
 
   @ApiOperation({ summary: 'Get a post by ID' })
@@ -59,17 +107,33 @@ export class PostQueryController extends BasePostGrpcController {
   @ApiResponse({ status: 200, type: PostResponseDTO })
   @CustomApiError(() => POST_NOT_FOUND('id'))
   @Get(':id')
-  getPost(
+  async getPost(
     @Param('id') id: string,
     @Req() req: Record<string, unknown>,
-  ): Observable<GetPostResponseDTO> {
+  ): Promise<GetPostResponseDTO> {
     this.logger.log(`Fetching post with id: ${id}`);
     const request = new GetPostRequestDTO();
     request.id = id;
     const metadata = req['internalMetadata'] as Metadata;
 
-    return this.postService
-      .getPost(request.toQuery(), metadata)
-      .pipe(map((res) => GetPostResponseDTO.fromResponse(res)));
+    const res = await firstValueFrom<GetPostResponse>(
+      this.postService.getPost(request.toQuery(), metadata),
+    );
+
+    let eventDto: EventDTO | undefined;
+    if (res.post?.eventId) {
+      try {
+        const eventRes = await firstValueFrom<GetEventResponse>(
+          this.eventQueryService.getEvent({ id: res.post.eventId }, metadata),
+        );
+        if (eventRes.event) {
+          eventDto = EventDTO.fromResponse(eventRes.event);
+        }
+      } catch (err) {
+        this.logger.error(`Failed to fetch event for post ${id}`, err as Error);
+      }
+    }
+
+    return GetPostResponseDTO.fromResponse(res, eventDto);
   }
 }
