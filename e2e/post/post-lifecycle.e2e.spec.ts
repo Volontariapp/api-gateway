@@ -48,10 +48,11 @@ describe('Post Lifecycle (E2E)', () => {
     expect(getBody.post.title).toBe(createDto.title);
 
     // 4. List posts and verify the new post is in the list
-    const listRes = await client.get('/api/v1/posts').expect(200);
+    const authorId = createBody.post.authorId;
+    const listRes = await client.get('/api/v1/posts').query({ authorId }).expect(200);
     const listBody = listRes.body as ListPostsWebResponse;
     expect(listBody.posts.length).toBeGreaterThan(0);
-    expect(listBody.posts.some((p) => p.id === postId)).toBe(true); // FLACKY
+    expect(listBody.posts.some((p) => p.id === postId)).toBe(true);
 
     // 5. Update the post
     const updateTitle = `${createDto.title}-Updated`;
@@ -191,7 +192,11 @@ describe('Post Lifecycle (E2E)', () => {
       assertIsoDate(getBody.post.updatedAt, 'post.updatedAt (get)');
 
       // Dates in list response
-      const listRes = await client.get('/api/v1/posts').query({ page: 1, limit: 10 }).expect(200);
+      const authorId = createBody.post.authorId;
+      const listRes = await client
+        .get('/api/v1/posts')
+        .query({ page: 1, limit: 10, authorId })
+        .expect(200);
       const listBody = listRes.body as ListPostsWebResponse;
       const found = listBody.posts.find((p) => p.id === postId);
       expect(found).toBeDefined();
