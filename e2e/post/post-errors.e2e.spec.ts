@@ -239,6 +239,65 @@ describe('Post & Comment — Error Cases (E2E)', () => {
     });
   });
 
+  // ─── 403 — Forbidden ───────────────────────────────────────────────────────
+
+  describe('403 — Forbidden', () => {
+    it('should return 403 when updating a post created by another user', async () => {
+      const user1 = await createTestClient(app).login({
+        id: randomUUID(),
+        role: UserRoles.VOLUNTEER,
+      });
+      const user2 = await createTestClient(app).login({
+        id: randomUUID(),
+        role: UserRoles.VOLUNTEER,
+      });
+
+      const { postId } = await createPost(user1);
+      try {
+        await user2.patch(`/api/v1/posts/${postId}`).send({ title: 'Hacked Title' }).expect(403);
+      } finally {
+        await user1.delete(`/api/v1/posts/${postId}`).expect(200);
+      }
+    });
+
+    it('should return 403 when deleting a post created by another user', async () => {
+      const user1 = await createTestClient(app).login({
+        id: randomUUID(),
+        role: UserRoles.VOLUNTEER,
+      });
+      const user2 = await createTestClient(app).login({
+        id: randomUUID(),
+        role: UserRoles.VOLUNTEER,
+      });
+
+      const { postId } = await createPost(user1);
+      try {
+        await user2.delete(`/api/v1/posts/${postId}`).expect(403);
+      } finally {
+        await user1.delete(`/api/v1/posts/${postId}`).expect(200);
+      }
+    });
+
+    it('should return 403 when deleting a comment created by another user', async () => {
+      const user1 = await createTestClient(app).login({
+        id: randomUUID(),
+        role: UserRoles.VOLUNTEER,
+      });
+      const user2 = await createTestClient(app).login({
+        id: randomUUID(),
+        role: UserRoles.VOLUNTEER,
+      });
+
+      const { postId } = await createPost(user1);
+      const { commentId } = await createComment(user1, postId);
+      try {
+        await user2.delete(`/api/v1/posts/${postId}/comments/${commentId}`).expect(403);
+      } finally {
+        await user1.delete(`/api/v1/posts/${postId}`).expect(200);
+      }
+    });
+  });
+
   // ─── Full Error Scenario ────────────────────────────────────────────────────
 
   describe('End-to-End Error Scenario', () => {

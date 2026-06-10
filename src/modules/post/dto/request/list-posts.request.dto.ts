@@ -1,3 +1,4 @@
+import { IsOptional, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { ListPostsQuery } from '@volontariapp/contracts-nest';
@@ -13,6 +14,8 @@ export class ListPostsRequestDTO implements ListPostsRequest {
   page?: number;
 
   @ApiProperty({ example: 'uuid-user-123', required: false })
+  @IsOptional()
+  @IsString()
   authorId?: string;
 
   toQuery(): ListPostsQuery {

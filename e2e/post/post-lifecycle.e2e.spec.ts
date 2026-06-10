@@ -111,6 +111,54 @@ describe('Post Lifecycle (E2E)', () => {
     }
   });
 
+  // ─── Post Filtering ────────────────────────────────────────────────────────
+
+  it('should filter posts by authorId', async () => {
+    const userA = { id: randomUUID(), role: UserRoles.ADMIN };
+    const userB = { id: randomUUID(), role: UserRoles.ADMIN };
+    const clientA = await createTestClient(app).login(userA);
+    const clientB = await createTestClient(app).login(userB);
+
+    // User A creates a post
+    const resA = await clientA
+      .post('/api/v1/posts')
+      .send(createPostRequestFactory({ title: `User A Post ${randomUUID()}` }))
+      .expect(201);
+    const postIdA = (resA.body as PostWebResponse).post.id;
+
+    // User B creates a post
+    const resB = await clientB
+      .post('/api/v1/posts')
+      .send(createPostRequestFactory({ title: `User B Post ${randomUUID()}` }))
+      .expect(201);
+    const postIdB = (resB.body as PostWebResponse).post.id;
+
+    try {
+      // Query posts for User A
+      const listResA = await clientA.get('/api/v1/posts').query({ authorId: userA.id }).expect(200);
+      const listBodyA = listResA.body as ListPostsWebResponse;
+
+      const foundA = listBodyA.posts.some((p) => p.id === postIdA);
+      const foundBInA = listBodyA.posts.some((p) => p.id === postIdB);
+
+      expect(foundA).toBe(true);
+      expect(foundBInA).toBe(false); // User B's post should NOT be returned
+
+      // Query posts for User B
+      const listResB = await clientB.get('/api/v1/posts').query({ authorId: userB.id }).expect(200);
+      const listBodyB = listResB.body as ListPostsWebResponse;
+
+      const foundB = listBodyB.posts.some((p) => p.id === postIdB);
+      const foundAInB = listBodyB.posts.some((p) => p.id === postIdA);
+
+      expect(foundB).toBe(true);
+      expect(foundAInB).toBe(false); // User A's post should NOT be returned
+    } finally {
+      await clientA.delete(`/api/v1/posts/${postIdA}`).expect(200);
+      await clientB.delete(`/api/v1/posts/${postIdB}`).expect(200);
+    }
+  });
+
   // ─── Comment Lifecycle ─────────────────────────────────────────────────────
 
   it('should cover comment lifecycle: create, list, paginate, delete', async () => {
