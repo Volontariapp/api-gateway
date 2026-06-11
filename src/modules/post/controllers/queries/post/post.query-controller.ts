@@ -74,7 +74,8 @@ export class PostQueryController extends BasePostGrpcController {
     @Query() request: ListPostsRequestDTO,
     @Req() req: Record<string, unknown>,
   ): Promise<ListPostsResponseDTO> {
-    this.logger.log('Listing posts');
+    this.logger.log(`Listing posts with request: ${JSON.stringify(request)}`);
+
     const metadata = req['internalMetadata'] as Metadata;
 
     const res = await firstValueFrom<ListPostsResponse>(
