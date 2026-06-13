@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { EventDTO } from '../../../event/dto/common/event.dto.js';
 
 export class PostDTO {
   @ApiProperty({ example: 'uuid-123' })
@@ -13,9 +14,12 @@ export class PostDTO {
   @ApiProperty({ example: 'uuid-author-123' })
   authorId!: string;
 
-  @ApiProperty({ example: ['uuid-tag-1'], isArray: true })
-  tagIds!: string[];
+  @ApiProperty({ example: '2026-04-12T12:00:00Z', type: Date })
+  createdAt!: Date;
 
   @ApiProperty({ example: '2026-04-12T12:00:00Z', type: Date })
-  createdAt!: Date | undefined;
+  updatedAt!: Date;
+
+  @ApiProperty({ type: () => EventDTO, required: false })
+  event?: EventDTO;
 }

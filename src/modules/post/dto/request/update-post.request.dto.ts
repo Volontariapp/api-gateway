@@ -25,6 +25,8 @@ export class UpdatePostRequestDTO
         title: this.title ?? '',
         content: this.content ?? '',
         authorId: '',
+        createdAt: undefined,
+        updatedAt: undefined,
       },
       updateMask,
     };

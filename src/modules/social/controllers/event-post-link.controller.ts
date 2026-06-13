@@ -20,7 +20,10 @@ import {
   EventPostLinkCommandServiceClient,
   EVENT_POST_LINK_QUERY_SERVICE_NAME,
   EventPostLinkQueryServiceClient,
+  PARTICIPATION_QUERY_SERVICE_NAME,
+  ParticipationQueryServiceClient,
 } from '@volontariapp/contracts-nest';
+import { firstValueFrom } from 'rxjs';
 import { Roles } from '@volontariapp/auth';
 import { GatewayController } from '../../../common/decorators/gateway-controller.decorator.js';
 import { UserRoles } from '@volontariapp/shared';
@@ -30,7 +33,7 @@ import {
   EventIdResponseDTO,
 } from '../dto/response/index.js';
 import { GetEventPostsRequestDTO } from '../dto/request/index.js';
-import { CustomApiError, DATABASE_ERROR } from '@volontariapp/errors-nest';
+import { CustomApiError, DATABASE_ERROR, EVENT_NOT_FOUND } from '@volontariapp/errors-nest';
 
 @GatewayController('Social - Event-Post Links', {
   admin: true,
@@ -40,6 +43,7 @@ import { CustomApiError, DATABASE_ERROR } from '@volontariapp/errors-nest';
 export class EventPostLinkController implements OnModuleInit {
   private commandService!: WithMetadata<EventPostLinkCommandServiceClient>;
   private queryService!: WithMetadata<EventPostLinkQueryServiceClient>;
+  private participationQueryService!: WithMetadata<ParticipationQueryServiceClient>;
 
   constructor(@Inject(SOCIAL_PACKAGE) private client: ClientGrpc) {}
 
@@ -49,6 +53,9 @@ export class EventPostLinkController implements OnModuleInit {
     );
     this.queryService = this.client.getService<EventPostLinkQueryServiceClient>(
       EVENT_POST_LINK_QUERY_SERVICE_NAME,
+    );
+    this.participationQueryService = this.client.getService<ParticipationQueryServiceClient>(
+      PARTICIPATION_QUERY_SERVICE_NAME,
     );
   }
 
@@ -103,13 +110,17 @@ export class EventPostLinkController implements OnModuleInit {
   @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
   @ApiResponse({ status: 200, type: IdsListResponseDTO })
   @CustomApiError(() => DATABASE_ERROR('fetching event posts', 'details'))
-  getEventPosts(
+  async getEventPosts(
     @Param('eventId') eventId: string,
     @Query() query: GetEventPostsRequestDTO,
     @Req() req: Record<string, unknown>,
   ) {
-    query.eventId = eventId;
     const metadata = req['internalMetadata'] as Metadata;
+    const nodeRes = await firstValueFrom(
+      this.participationQueryService.getEventNode({ eventId }, metadata),
+    );
+    if (!nodeRes.exists) throw EVENT_NOT_FOUND(eventId);
+    query.eventId = eventId;
     return this.queryService.getEventPosts(query.toQuery(), metadata);
   }
 }
