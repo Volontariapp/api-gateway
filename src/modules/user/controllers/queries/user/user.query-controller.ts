@@ -35,12 +35,13 @@ export class UserQueryController extends BaseUserGrpcController {
       .pipe(map((res) => UserResponseDTO.fromResponse(res)));
   }
 
-  @Get('user/:userId/public')
+  @Get(':userId/public')
   @ApiOperation({ summary: 'Get the public profile of an user' })
   @ApiParam({ name: 'userId', example: 'uuid-user-123' })
   @ApiResponse({ status: 200, type: ListUsersPublicResponseDTO })
   @CustomApiError(() => DATABASE_ERROR('fetching user', 'details'))
   getPublicUser(@Param('userId') userId: string, @Req() req: Record<string, unknown>) {
+    this.logger.log(`Fetching public user profile: ${userId}`);
     const metadata = req['internalMetadata'] as Metadata;
     return this.userService
       .getPublicUser({ userId }, metadata)
