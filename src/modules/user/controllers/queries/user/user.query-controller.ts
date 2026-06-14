@@ -14,6 +14,7 @@ import {
   GetPostLikersRequestDTO,
 } from '../../../../social/dto/request/index.js';
 import { ListUsersPublicResponseDTO, UserResponseDTO } from '../../../dto/response/index.js';
+import { PublicUserResponseDTO } from '../../../dto/response/public-user.response.dto.js';
 
 @GatewayController('Users')
 @Controller('users')
@@ -32,6 +33,18 @@ export class UserQueryController extends BaseUserGrpcController {
     return this.userService
       .getUser(dto.toQuery(), metadata)
       .pipe(map((res) => UserResponseDTO.fromResponse(res)));
+  }
+
+  @Get('user/:userId/public')
+  @ApiOperation({ summary: 'Get the public profile of an user' })
+  @ApiParam({ name: 'userId', example: 'uuid-user-123' })
+  @ApiResponse({ status: 200, type: ListUsersPublicResponseDTO })
+  @CustomApiError(() => DATABASE_ERROR('fetching user', 'details'))
+  getPublicUser(@Param('userId') userId: string, @Req() req: Record<string, unknown>) {
+    const metadata = req['internalMetadata'] as Metadata;
+    return this.userService
+      .getPublicUser({ userId }, metadata)
+      .pipe(map((res) => PublicUserResponseDTO.fromResponse(res)));
   }
 
   @Get('event/:eventId/participants')
