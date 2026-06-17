@@ -1,7 +1,13 @@
 import { Controller, Get, Req, Param, Query } from '@nestjs/common';
 import { map } from 'rxjs';
 import { Logger } from '@volontariapp/logger';
-import { ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import {
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiNotFoundResponse,
+  ApiBadRequestResponse,
+} from '@nestjs/swagger';
 import { CustomApiError, USER_NOT_FOUND, DATABASE_ERROR } from '@volontariapp/errors-nest';
 import type { Metadata } from '@grpc/grpc-js';
 import { CurrentUser } from '@volontariapp/auth';
@@ -13,8 +19,11 @@ import {
   GetEventParticipantsRequestDTO,
   GetPostLikersRequestDTO,
 } from '../../../../social/dto/request/index.js';
-import { ListUsersPublicResponseDTO, UserResponseDTO } from '../../../dto/response/index.js';
-import { PublicUserResponseDTO } from '../../../dto/response/public-user.response.dto.js';
+import {
+  ListUsersPublicResponseDTO,
+  UserResponseDTO,
+  PublicUserResponseDTO,
+} from '../../../dto/response/index.js';
 
 @GatewayController('Users')
 @Controller('users')
@@ -38,7 +47,9 @@ export class UserQueryController extends BaseUserGrpcController {
   @Get(':userId/public')
   @ApiOperation({ summary: 'Get the public profile of an user' })
   @ApiParam({ name: 'userId', example: 'uuid-user-123' })
-  @ApiResponse({ status: 200, type: ListUsersPublicResponseDTO })
+  @ApiResponse({ status: 200, type: PublicUserResponseDTO })
+  @ApiNotFoundResponse({ description: 'User not found' })
+  @ApiBadRequestResponse({ description: 'Invalid user ID' })
   @CustomApiError(() => DATABASE_ERROR('fetching user', 'details'))
   getPublicUser(@Param('userId') userId: string, @Req() req: Record<string, unknown>) {
     this.logger.log(`Fetching public user profile: ${userId}`);

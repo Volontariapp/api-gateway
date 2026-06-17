@@ -6,3 +6,4 @@ export * from './list-users-public.response.dto.js';
 export * from './login.response.dto.js';
 export * from './badge.response.dto.js';
 export * from './list-badges.response.dto.js';
+export * from './public-user.response.dto.js';
