@@ -163,7 +163,7 @@ describe('Event Me Endpoints (E2E)', () => {
 
         const body1 = resPage1.body as SearchEventsResponseDTO;
         expect(body1.events.length).toBe(10);
-        expect(body1.pagination.total).toBeGreaterThanOrEqual(10);
+        expect(body1.pagination.total).toBe(25);
 
         // Fetch Page 2 (limit 10)
         const resPage2 = await paginatedClient
@@ -174,6 +174,7 @@ describe('Event Me Endpoints (E2E)', () => {
         const body2 = resPage2.body as SearchEventsResponseDTO;
         expect(body2.events.length).toBe(10);
         expect(body2.pagination.page).toBe(2);
+        expect(body2.pagination.total).toBe(25);
 
         // Fetch Page 3 (limit 10)
         const resPage3 = await paginatedClient
@@ -184,6 +185,7 @@ describe('Event Me Endpoints (E2E)', () => {
         const body3 = resPage3.body as SearchEventsResponseDTO;
         expect(body3.events.length).toBe(5);
         expect(body3.pagination.page).toBe(3);
+        expect(body3.pagination.total).toBe(25);
       } finally {
         for (const id of eventIds) {
           await paginatedClient.delete(`/api/v1/events/${id}`).expect(200);
