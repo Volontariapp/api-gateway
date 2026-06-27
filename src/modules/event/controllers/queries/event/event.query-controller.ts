@@ -95,7 +95,7 @@ export class EventQueryController extends BaseEventGrpcController {
     const { pagination } = query;
     return this.queryService
       .getUserCreatedEvents({ pagination }, metadata)
-      .pipe(map((res) => SearchEventsResponseDTO.fromResponse(res)));
+      .pipe(map((res) => SearchEventsResponseDTO.fromResponse(res, query.page, query.limit)));
   }
 
   @Get('participated/me')
@@ -110,7 +110,7 @@ export class EventQueryController extends BaseEventGrpcController {
     const { pagination } = query;
     return this.queryService
       .getUserParticipatedEvents({ pagination }, metadata)
-      .pipe(map((res) => SearchEventsResponseDTO.fromResponse(res)));
+      .pipe(map((res) => SearchEventsResponseDTO.fromResponse(res, query.page, query.limit)));
   }
 
   @Get('wished/me')
@@ -125,6 +125,6 @@ export class EventQueryController extends BaseEventGrpcController {
     const { pagination } = query;
     return this.queryService
       .getUserWishedEvents({ pagination }, metadata)
-      .pipe(map((res) => SearchEventsResponseDTO.fromResponse(res)));
+      .pipe(map((res) => SearchEventsResponseDTO.fromResponse(res, query.page, query.limit)));
   }
 }
