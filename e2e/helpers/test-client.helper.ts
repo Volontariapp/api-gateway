@@ -32,6 +32,7 @@ export class TestClient {
     if (this.baseUrl) {
       return this.baseUrl;
     }
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return this.app.getHttpServer();
   }
 

@@ -38,7 +38,7 @@ describe('User Public Profile (E2E)', () => {
 
     userClient = await createTestClient(app).login({
       id: visitorBody.user.id,
-      role: visitorBody.user.role
+      role: visitorBody.user.role,
     });
   });
 
@@ -57,11 +57,21 @@ describe('User Public Profile (E2E)', () => {
     const res = await userClient.get(`/api/v1/users/${targetUserId}/public`).expect(200);
     const body = res.body as PublicUserResponseDTO;
 
-    expect(body.user).toBeDefined();
+    expect(body).toBeDefined();
     expect(body.user.id).toBe(targetUserId);
     expect(body.user.pseudo).toBe(targetUserPseudo);
     expect(body.user.totalImpactScore).toBeDefined();
     expect(Array.isArray(body.user.badges)).toBe(true);
+
+    // Verify sensitive data is NOT returned
+    const rawUser = body.user as unknown as Record<string, unknown>;
+    expect(rawUser.email).toBeUndefined();
+    expect(rawUser.password).toBeUndefined();
+    expect(rawUser.phoneNumber).toBeUndefined();
+    expect(rawUser.role).toBeUndefined();
+    expect(rawUser.dateOfBirth).toBeUndefined();
+    expect(rawUser.lastLoginAt).toBeUndefined();
+    expect(rawUser.status).toBeUndefined();
   });
 
   it('should return 404 for non-existent user public profile', async () => {
