@@ -8,7 +8,7 @@ Il agrège, orchestre et expose les fonctionnalités métier sous-jacentes en s'
 ## Key Features
 
 - **Routage et Orchestration** : Aiguillage des requêtes HTTP/REST entrantes vers les microservices appropriés (User, Event, Post, Social).
-- **Authentification et Autorisation** : Validation des JWT (`AccessTokenGuard`) et contrôle d'accès basé sur les rôles (`RolesGuard`) de manière centralisée.
+- **Authentification et Autorisation (Token Interne)** : Validation des JWT (`AccessTokenGuard`) et contrôle d'accès basé sur les rôles (`RolesGuard`) de manière centralisée. L'API Gateway génère un **token interne** enrichi avec les informations de l'utilisateur (notamment ses rôles) avant de transmettre les requêtes aux microservices sous-jacents, garantissant une propagation sécurisée de l'identité.
 - **Validation des Requêtes** : Sanitisation et validation stricte des payloads via DTOs et `class-validator`.
 - **Documentation Interactive** : Auto-génération de spécifications OpenAPI/Swagger granulaires par domaine.
 - **Proxy WebSockets** : Relais des connexions persistantes vers le composant `ws-service` pour les retours asynchrones (feedback loop).
