@@ -61,8 +61,8 @@ L'API HTTP sera disponible sur le port configuré (par défaut: 3000) et la docu
 
 Pour une compréhension approfondie des choix techniques, de la structure interne et de la stratégie de test, veuillez consulter les documents dédiés dans le dossier `docs/` :
 
-- 🏛️ **[Architecture détaillée & Flux gRPC](docs/ARCHITECTURE.md)**
-- 🧪 **[Stratégie de Test & Assurance Qualité](docs/TESTS.md)**
+- ️ **[Architecture détaillée & Flux gRPC](docs/ARCHITECTURE.md)**
+- **[Stratégie de Test & Assurance Qualité](docs/TESTS.md)**
 
 ## Testing (Aperçu)
 
