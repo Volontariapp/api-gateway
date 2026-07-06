@@ -49,6 +49,14 @@ async function bootstrap() {
     logger,
   });
 
+  // Express 5 defaults to the 'simple' query parser, which doesn't parse
+  // bracket notation (e.g. area[center][latitude]=1) into nested objects.
+  // Restore the 'extended' (qs) parser that the query DTOs rely on.
+  (app.getHttpAdapter().getInstance() as { set: (key: string, value: string) => void }).set(
+    'query parser',
+    'extended',
+  );
+
   app.enableCors({
     origin: true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
