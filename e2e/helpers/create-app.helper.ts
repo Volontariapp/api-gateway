@@ -24,6 +24,13 @@ export async function createApp(): Promise<INestApplication> {
   }).compile();
 
   const app = moduleFixture.createNestApplication({ logger: false });
+  // Express 5 defaults to the 'simple' query parser, which doesn't parse
+  // bracket notation (e.g. area[center][latitude]=1) into nested objects.
+  // Restore the 'extended' (qs) parser that the query DTOs rely on.
+  (app.getHttpAdapter().getInstance() as { set: (key: string, value: string) => void }).set(
+    'query parser',
+    'extended',
+  );
   app.setGlobalPrefix('api/v1');
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
   app.useGlobalFilters(new GlobalExceptionFilter());

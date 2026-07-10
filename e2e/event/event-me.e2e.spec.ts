@@ -14,6 +14,8 @@ import { setupAuth } from '../helpers/auth-helper.js';
 import type { TestClient } from '../helpers/test-client.helper.js';
 import { createTestClient } from '../helpers/test-client.helper.js';
 import type { SearchEventsResponseDTO } from '../../src/modules/event/dto/response/index.js';
+import { createEventRequestFactory } from './event-test.factory.js';
+import type { EventWebResponse } from '@volontariapp/contracts';
 
 describe('Event Me Endpoints (E2E)', () => {
   let app: INestApplication;
@@ -122,6 +124,73 @@ describe('Event Me Endpoints (E2E)', () => {
       const body = res.body as SearchEventsResponseDTO;
       expect(body.pagination.page).toBe(1);
       expect(body.pagination.total).toBe(0);
+    });
+
+    it('should correctly paginate created events for a user with multiple pages', async () => {
+      const userId = randomUUID();
+      const paginatedClient = await createTestClient(app).login({
+        id: userId,
+        role: UserRoles.ADMIN,
+      });
+
+      // Synchronously simulate the async outbox processing for ms-social (create user node)
+      await paginatedClient.post(`/api/v1/social/users/${userId}`).send({}).expect(201);
+
+      const eventIds: string[] = [];
+      // Create 25 events
+      for (let i = 0; i < 25; i++) {
+        const eventDto = createEventRequestFactory({
+          title: `Paginated-Event-${String(i)}-${randomUUID()}`,
+        });
+        const createRes = await paginatedClient.post('/api/v1/events').send(eventDto).expect(201);
+        const eventId = (createRes.body as EventWebResponse).event.id;
+        eventIds.push(eventId);
+
+        // Synchronously simulate the async outbox processing for ms-social
+        await paginatedClient.post(`/api/v1/social/events/${eventId}`).send({}).expect(201);
+        await paginatedClient
+          .post(`/api/v1/social/users/${userId}/events/${eventId}/own`)
+          .send({})
+          .expect(201);
+      }
+
+      try {
+        // Fetch Page 1 (limit 10)
+        const resPage1 = await paginatedClient
+          .get('/api/v1/events/created/me')
+          .query({ page: 1, limit: 10 })
+          .expect(200);
+
+        const body1 = resPage1.body as SearchEventsResponseDTO;
+        expect(body1.events.length).toBe(10);
+        expect(body1.pagination.total).toBe(25);
+
+        // Fetch Page 2 (limit 10)
+        const resPage2 = await paginatedClient
+          .get('/api/v1/events/created/me')
+          .query({ page: 2, limit: 10 })
+          .expect(200);
+
+        const body2 = resPage2.body as SearchEventsResponseDTO;
+        expect(body2.events.length).toBe(10);
+        expect(body2.pagination.page).toBe(2);
+        expect(body2.pagination.total).toBe(25);
+
+        // Fetch Page 3 (limit 10)
+        const resPage3 = await paginatedClient
+          .get('/api/v1/events/created/me')
+          .query({ page: 3, limit: 10 })
+          .expect(200);
+
+        const body3 = resPage3.body as SearchEventsResponseDTO;
+        expect(body3.events.length).toBe(5);
+        expect(body3.pagination.page).toBe(3);
+        expect(body3.pagination.total).toBe(25);
+      } finally {
+        for (const id of eventIds) {
+          await paginatedClient.delete(`/api/v1/events/${id}`).expect(200);
+        }
+      }
     });
   });
 });
