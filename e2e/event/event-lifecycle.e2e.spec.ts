@@ -275,4 +275,56 @@ describe('Event Lifecycle (E2E)', () => {
       await client.delete(`/api/v1/events/${eventId}`).expect(200);
     }
   });
+
+  it('should list all events from multiple users without filtering by creator on the generic GET endpoint', async () => {
+    const clientA = await createTestClient(app).login({ id: randomUUID(), role: UserRoles.ADMIN });
+    const clientB = await createTestClient(app).login({ id: randomUUID(), role: UserRoles.ADMIN });
+
+    const eventIdsA: string[] = [];
+    const eventIdsB: string[] = [];
+
+    // User A creates 20 events
+    for (let i = 0; i < 20; i++) {
+      const eventDto = createEventRequestFactory({ title: `UserA-Event-${randomUUID()}` });
+      const createRes = await clientA.post('/api/v1/events').send(eventDto).expect(201);
+      eventIdsA.push((createRes.body as EventWebResponse).event.id);
+    }
+
+    // User B creates 20 events
+    for (let i = 0; i < 20; i++) {
+      const eventDto = createEventRequestFactory({ title: `UserB-Event-${randomUUID()}` });
+      const createRes = await clientB.post('/api/v1/events').send(eventDto).expect(201);
+      eventIdsB.push((createRes.body as EventWebResponse).event.id);
+    }
+
+    try {
+      // User A retrieves events
+      const listRes = await clientA
+        .get('/api/v1/events')
+        .query({ onlyAvailable: false })
+        .expect(200);
+
+      const listBody = listRes.body as ListEventsWebResponse;
+
+      // We expect at least 40 events to be present and totalCount >= 40
+      expect(listBody.events.length).toBeGreaterThanOrEqual(40);
+      expect(listBody.totalCount).toBeGreaterThanOrEqual(40);
+
+      // Verify User A can see User B's events
+      const foundUserBEvents = listBody.events.filter((e) => eventIdsB.includes(e.id));
+      expect(foundUserBEvents.length).toBe(20);
+
+      // Verify User A can see their own events
+      const foundUserAEvents = listBody.events.filter((e) => eventIdsA.includes(e.id));
+      expect(foundUserAEvents.length).toBe(20);
+    } finally {
+      // Cleanup
+      for (const id of eventIdsA) {
+        await clientA.delete(`/api/v1/events/${id}`).expect(200);
+      }
+      for (const id of eventIdsB) {
+        await clientB.delete(`/api/v1/events/${id}`).expect(200);
+      }
+    }
+  });
 });
