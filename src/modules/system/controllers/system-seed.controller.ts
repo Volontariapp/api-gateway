@@ -1,5 +1,7 @@
 import { Controller, Post, Req } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Roles } from '@volontariapp/auth';
+import { UserRoles } from '@volontariapp/shared';
 import {
   CustomApiError,
   MISSING_ACCESS_TOKEN,
@@ -18,6 +20,7 @@ import { GatewayController } from '../../../common/decorators/gateway-controller
 @ApiInternalServerErrorResponse('An unexpected error occurred on the server')
 @GatewayController('System')
 @Controller('system')
+@Roles(UserRoles.ADMIN)
 export class SystemSeedController {
   constructor(private readonly seedService: SystemSeedService) {}
 
