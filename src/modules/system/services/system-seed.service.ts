@@ -374,10 +374,21 @@ export class SystemSeedService implements OnModuleInit {
     status: SeedStatusResponse,
   ) {
     if (postIds.length === 0 || userIds.length === 0) return;
+    const seen = new Set<string>();
+
     for (let i = 0; i < count; i++) {
       try {
-        const userId = faker.helpers.arrayElement(userIds);
-        const postId = faker.helpers.arrayElement(postIds);
+        let userId, postId, key;
+        let attempts = 0;
+        do {
+          userId = faker.helpers.arrayElement(userIds);
+          postId = faker.helpers.arrayElement(postIds);
+          key = `${userId}-${postId}`;
+          attempts++;
+        } while (seen.has(key) && attempts < 100);
+
+        if (attempts >= 100) break;
+        seen.add(key);
 
         const md = baseMetadata.clone();
         md.add('user-id', userId);
@@ -407,10 +418,21 @@ export class SystemSeedService implements OnModuleInit {
     status: SeedStatusResponse,
   ) {
     if (eventIds.length === 0 || userIds.length === 0) return;
+    const seen = new Set<string>();
+
     for (let i = 0; i < count; i++) {
       try {
-        const userId = faker.helpers.arrayElement(userIds);
-        const eventId = faker.helpers.arrayElement(eventIds);
+        let userId, eventId, key;
+        let attempts = 0;
+        do {
+          userId = faker.helpers.arrayElement(userIds);
+          eventId = faker.helpers.arrayElement(eventIds);
+          key = `${userId}-${eventId}`;
+          attempts++;
+        } while (seen.has(key) && attempts < 100);
+
+        if (attempts >= 100) break;
+        seen.add(key);
 
         const md = baseMetadata.clone();
         md.add('user-id', userId);
