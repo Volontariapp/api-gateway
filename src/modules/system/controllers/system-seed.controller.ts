@@ -9,7 +9,7 @@ import {
   ApiForbiddenResponse,
   ApiInternalServerErrorResponse,
 } from '@volontariapp/errors-nest';
-import { SeedStatusResponse, SystemSeedService } from '../services/system-seed.service.js';
+import { SystemSeedService } from '../services/system-seed.service.js';
 import { GatewayController } from '../../../common/decorators/gateway-controller.decorator.js';
 
 @ApiTags('System')
@@ -25,9 +25,11 @@ export class SystemSeedController {
   constructor(private readonly seedService: SystemSeedService) {}
 
   @ApiOperation({ summary: 'Seed the database with fake data (500 users, etc.)' })
-  @ApiResponse({ status: 201, description: 'Seeding successful' })
+  @ApiResponse({ status: 201, description: 'Seeding successfully started' })
   @Post('seed')
-  async seedDatabase(@Req() req: Record<string, unknown>): Promise<SeedStatusResponse> {
-    return await this.seedService.seed(req);
+  seedDatabase(@Req() req: { headers?: Record<string, string | string[] | undefined> }): {
+    message: string;
+  } {
+    return this.seedService.seed(req);
   }
 }

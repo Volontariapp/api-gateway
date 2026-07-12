@@ -4,6 +4,8 @@ import { Logger } from '@volontariapp/logger';
 import { faker } from '@faker-js/faker';
 import { lastValueFrom } from 'rxjs';
 import { Metadata } from '@grpc/grpc-js';
+import { JwtService } from '@volontariapp/auth';
+import { UserRoles } from '@volontariapp/shared';
 
 import { WithMetadata } from '../../../common/types/grpc.types.js';
 
@@ -50,11 +52,22 @@ export class SystemSeedService implements OnModuleInit {
   protected participationCommandService!: WithMetadata<ParticipationCommandServiceClient>;
 
   constructor(
+    private readonly jwtService: JwtService,
     @Inject(USER_PACKAGE) private userClient: ClientGrpc,
     @Inject(POST_PACKAGE) private postClient: ClientGrpc,
     @Inject(EVENT_PACKAGE) private eventClient: ClientGrpc,
     @Inject(SOCIAL_PACKAGE) private socialClient: ClientGrpc,
   ) {}
+
+  private async getMetadataWithInternalToken(
+    baseMetadata: Metadata,
+    userId: string,
+  ): Promise<Metadata> {
+    const md = baseMetadata.clone();
+    const token = await this.jwtService.signInternal({ id: userId, role: UserRoles.VOLUNTEER });
+    md.add('x-internal-token', token);
+    return md;
+  }
 
   onModuleInit() {
     this.userService = this.userClient.getService<UserServiceClient>(USER_SERVICE_NAME);
@@ -74,10 +87,32 @@ export class SystemSeedService implements OnModuleInit {
       );
   }
 
-  async seed(req: Record<string, unknown>): Promise<SeedStatusResponse> {
-    const internalMeta = req['internalMetadata'];
-    const baseMetadata = internalMeta instanceof Metadata ? internalMeta.clone() : new Metadata();
-    this.logger.log('🚀 Starting global seeding process...');
+  seed(req: { headers?: Record<string, string | string[] | undefined> }): { message: string } {
+    const rawHeaders = req.headers;
+    const internalHeaders = rawHeaders?.['x-internal-metadata'];
+    const userIdHeader = rawHeaders?.['x-user-id'];
+
+    const baseMetadata = new Metadata();
+    if (internalHeaders && typeof internalHeaders === 'string') {
+      baseMetadata.add('internal-metadata', internalHeaders);
+    }
+    if (userIdHeader && typeof userIdHeader === 'string') {
+      baseMetadata.add('user-id', userIdHeader);
+    }
+
+    // Launch background process
+    this.runBackgroundSeed(baseMetadata).catch((err: unknown) => {
+      this.logger.error('Background seed failed', err);
+    });
+
+    return {
+      message:
+        'Seeding process has been started in the background. Check backend logs for progress.',
+    };
+  }
+
+  private async runBackgroundSeed(baseMetadata: Metadata) {
+    this.logger.log('🚀 Starting global seeding process in background...');
 
     const status: SeedStatusResponse = {
       users: { success: 0, failed: 0 },
@@ -94,34 +129,32 @@ export class SystemSeedService implements OnModuleInit {
       this.logger.log('Seeding Users...');
       const userIds = await this.seedUsers(200, baseMetadata, status);
 
-      this.logger.log('Waiting 15s for Users to sync across graphs...');
-      await delay(15000);
+      this.logger.log('Waiting 30s for Users to sync across graphs...');
+      await delay(30000);
 
       this.logger.log('Seeding Events...');
       const eventIds = await this.seedEvents(userIds, 50, baseMetadata, status);
 
-      this.logger.log('Waiting 15s for Events to sync across graphs...');
-      await delay(15000);
+      this.logger.log('Waiting 30s for Events to sync across graphs...');
+      await delay(30000);
 
       this.logger.log('Seeding Posts...');
       const postIds = await this.seedPosts(userIds, eventIds, 150, baseMetadata, status);
 
-      this.logger.log('Waiting 15s for Posts to sync across graphs...');
-      await delay(15000);
+      this.logger.log('Waiting 30s for Posts to sync across graphs...');
+      await delay(30000);
 
       this.logger.log('Seeding Interactions (Comments, Likes, Participations)...');
       await Promise.all([
         this.seedComments(userIds, postIds, 200, baseMetadata, status),
-        this.seedLikes(userIds, postIds, 300, baseMetadata, status),
-        this.seedParticipations(userIds, eventIds, 200, baseMetadata, status),
+        this.seedLikes(userIds, postIds, 1500, baseMetadata, status),
+        this.seedParticipations(userIds, eventIds, 1000, baseMetadata, status),
       ]);
 
-      this.logger.log('✅ Global seeding completed!');
-      return status;
+      this.logger.log(`✅ Global seeding completed! Final Status: ${JSON.stringify(status)}`);
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
-      this.logger.error(`💥 Fatal error during seeding: ${msg}`);
-      throw error;
+      this.logger.error(`💥 Fatal error during background seeding: ${msg}`);
     }
   }
 
@@ -203,8 +236,7 @@ export class SystemSeedService implements OnModuleInit {
         };
         const ownerId = faker.helpers.arrayElement(userIds);
 
-        const md = baseMetadata.clone();
-        md.add('user-id', ownerId);
+        const md = await this.getMetadataWithInternalToken(baseMetadata, ownerId);
 
         const PARIS_LOCATIONS = [
           'Paris 1er',
@@ -280,8 +312,7 @@ export class SystemSeedService implements OnModuleInit {
             ? faker.helpers.maybe(() => faker.helpers.arrayElement(eventIds), { probability: 0.5 })
             : undefined;
 
-        const md = baseMetadata.clone();
-        md.add('user-id', authorId);
+        const md = await this.getMetadataWithInternalToken(baseMetadata, authorId);
 
         const POST_CONTENTS = [
           "Super initiative ! J'ai adoré participer.",
@@ -340,8 +371,7 @@ export class SystemSeedService implements OnModuleInit {
         const authorId = faker.helpers.arrayElement(userIds);
         const postId = faker.helpers.arrayElement(postIds);
 
-        const md = baseMetadata.clone();
-        md.add('user-id', authorId);
+        const md = await this.getMetadataWithInternalToken(baseMetadata, authorId);
 
         const res = await lastValueFrom(
           this.postService.createComment(
@@ -390,8 +420,7 @@ export class SystemSeedService implements OnModuleInit {
         if (attempts >= 100) break;
         seen.add(key);
 
-        const md = baseMetadata.clone();
-        md.add('user-id', userId);
+        const md = await this.getMetadataWithInternalToken(baseMetadata, userId);
 
         await lastValueFrom(
           this.interactionCommandService.postLikePost(
@@ -434,8 +463,7 @@ export class SystemSeedService implements OnModuleInit {
         if (attempts >= 100) break;
         seen.add(key);
 
-        const md = baseMetadata.clone();
-        md.add('user-id', userId);
+        const md = await this.getMetadataWithInternalToken(baseMetadata, userId);
 
         await lastValueFrom(
           this.participationCommandService.postUserParticipateEvent(
