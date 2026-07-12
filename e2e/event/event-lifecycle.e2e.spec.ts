@@ -301,7 +301,7 @@ describe('Event Lifecycle (E2E)', () => {
       // User A retrieves events
       const listRes = await clientA
         .get('/api/v1/events')
-        .query({ onlyAvailable: false })
+        .query({ onlyAvailable: false, limit: 100 })
         .expect(200);
 
       const listBody = listRes.body as ListEventsWebResponse;
