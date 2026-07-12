@@ -13,9 +13,18 @@ import { AuthModule } from '@volontariapp/auth';
 import { NodeEnv } from '@volontariapp/config';
 import { HealthModule } from './modules/health/health.module.js';
 import { WsProxyModule } from './modules/ws-proxy/ws-proxy.module.js';
+import { SystemModule } from './modules/system/system.module.js';
 
 @Module({
-  imports: [GrpcClientModule, UserModule, PostModule, EventModule, SocialModule, WsProxyModule],
+  imports: [
+    GrpcClientModule,
+    UserModule,
+    PostModule,
+    EventModule,
+    SocialModule,
+    WsProxyModule,
+    SystemModule,
+  ],
 })
 export class AppModule {
   static register(config: CustomConfig): DynamicModule {
@@ -29,6 +38,7 @@ export class AppModule {
       SocialModule,
       HealthModule,
       WsProxyModule,
+      SystemModule,
     ];
 
     if (config.nodeEnv !== NodeEnv.TEST) {
