@@ -327,4 +327,54 @@ describe('Event Lifecycle (E2E)', () => {
       }
     }
   });
+
+  it('should correctly enrich currentParticipants when users join the event', async () => {
+    const adminId = randomUUID();
+    const adminClient = await createTestClient(app).login({ id: adminId, role: UserRoles.ADMIN });
+
+    // Create an event
+    const eventDto = createEventRequestFactory();
+    const createRes = await adminClient.post('/api/v1/events').send(eventDto).expect(201);
+    const eventId = (createRes.body as EventWebResponse).event.id;
+
+    try {
+      // Simulate Outbox creating the nodes in ms-social
+      await adminClient.post(`/api/v1/social/users/${adminId}`).expect(201);
+      await adminClient.post(`/api/v1/social/events/${eventId}`).expect(201);
+
+      // Initial fetch
+      const getRes1 = await adminClient.get(`/api/v1/events/${eventId}`).expect(200);
+      expect((getRes1.body as EventWebResponse).event.currentParticipants).toBe(1);
+
+      // Another user joins
+      const user2Id = randomUUID();
+      const user2Client = await createTestClient(app).login({
+        id: user2Id,
+        role: UserRoles.VOLUNTEER,
+      });
+      await adminClient.post(`/api/v1/social/users/${user2Id}`).expect(201);
+      await user2Client.post(`/api/v1/social/events/${eventId}/participate`).expect(201);
+
+      // Fetch again
+      const getRes2 = await adminClient.get(`/api/v1/events/${eventId}`).expect(200);
+      expect((getRes2.body as EventWebResponse).event.currentParticipants).toBe(2);
+
+      // Cleanup user2
+      await adminClient.delete(`/api/v1/social/users/${user2Id}`).expect(200);
+    } finally {
+      // Cleanup admin and event
+      // Use catch block or similar in case of failure to delete nodes if they don't exist
+      try {
+        await adminClient.delete(`/api/v1/social/users/${adminId}`);
+      } catch {
+        console.log('ERROR');
+      }
+      try {
+        await adminClient.delete(`/api/v1/social/events/${eventId}`);
+      } catch {
+        console.log('ERROR');
+      }
+      await adminClient.delete(`/api/v1/events/${eventId}`).expect(200);
+    }
+  });
 });

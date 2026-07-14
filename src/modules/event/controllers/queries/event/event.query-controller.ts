@@ -1,10 +1,11 @@
 import { Controller, Get, Param, Query, Req } from '@nestjs/common';
-import { firstValueFrom, map } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 import { Logger } from '@volontariapp/logger';
 import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { CustomApiError, DATABASE_ERROR, EVENT_NOT_FOUND } from '@volontariapp/errors-nest';
 import type { ClientGrpc } from '@nestjs/microservices';
 import { Inject } from '@nestjs/common';
+import { EventDTO } from '../../../dto/common/event.dto.js';
 import type { Metadata } from '@grpc/grpc-js';
 import { EVENT_PACKAGE, SOCIAL_PACKAGE } from '../../../../../grpc/grpc-packages.js';
 import {
@@ -104,11 +105,9 @@ export class EventQueryController extends BaseEventGrpcController {
       query.ids = eventIds;
     }
 
-    return firstValueFrom(
-      this.queryService
-        .searchEvents(query, metadata)
-        .pipe(map((res) => SearchEventsResponseDTO.fromResponse(res))),
-    );
+    const result = await firstValueFrom(this.queryService.searchEvents(query, metadata));
+    const dto = SearchEventsResponseDTO.fromResponse(result, request.page, request.limit);
+    return this.enrichSearchEventsResponse(dto, metadata);
   }
 
   @ApiOperation({
@@ -124,14 +123,16 @@ export class EventQueryController extends BaseEventGrpcController {
   @CustomApiError(() => EVENT_NOT_FOUND('id'))
   @CustomApiError(() => DATABASE_ERROR('fetching event', 'details'))
   @Get(':id')
-  getEvent(@Param('id') id: string, @Req() req: Record<string, unknown>) {
+  async getEvent(@Param('id') id: string, @Req() req: Record<string, unknown>) {
     this.logger.log(`Fetching event with id: ${id}`);
     const request = new GetEventRequestDTO();
     request.id = id;
     const metadata = req['internalMetadata'] as Metadata;
-    return this.queryService
-      .getEvent(request.toQuery(), metadata)
-      .pipe(map((res) => GetEventResponseDTO.fromResponse(res)));
+
+    const result = await firstValueFrom(this.queryService.getEvent(request.toQuery(), metadata));
+    const dto = GetEventResponseDTO.fromResponse(result);
+    await this.enrichEventWithParticipants(dto.event, metadata);
+    return dto;
   }
 
   @ApiOperation({
@@ -152,44 +153,73 @@ export class EventQueryController extends BaseEventGrpcController {
   @ApiOperation({ summary: 'Get events created by current user' })
   @ApiResponse({ status: 200, type: SearchEventsResponseDTO })
   @CustomApiError(() => DATABASE_ERROR('fetching user created events', 'details'))
-  getUserCreatedEventsSelf(
+  async getUserCreatedEventsSelf(
     @Query() query: GetUserEventsRequestDTO,
     @Req() req: Record<string, unknown>,
   ) {
     const metadata = req['internalMetadata'] as Metadata;
     const { pagination } = query;
-    return this.queryService
-      .getUserCreatedEvents({ pagination }, metadata)
-      .pipe(map((res) => SearchEventsResponseDTO.fromResponse(res, query.page, query.limit)));
+    const result = await firstValueFrom(
+      this.queryService.getUserCreatedEvents({ pagination }, metadata),
+    );
+    const dto = SearchEventsResponseDTO.fromResponse(result, query.page, query.limit);
+    return this.enrichSearchEventsResponse(dto, metadata);
   }
 
   @Get('participated/me')
   @ApiOperation({ summary: 'Get events current user participates in' })
   @ApiResponse({ status: 200, type: SearchEventsResponseDTO })
   @CustomApiError(() => DATABASE_ERROR('fetching user participations', 'details'))
-  getUserParticipatedEventsSelf(
+  async getUserParticipatedEventsSelf(
     @Query() query: GetUserParticipationsRequestDTO,
     @Req() req: Record<string, unknown>,
   ) {
     const metadata = req['internalMetadata'] as Metadata;
     const { pagination } = query;
-    return this.queryService
-      .getUserParticipatedEvents({ pagination }, metadata)
-      .pipe(map((res) => SearchEventsResponseDTO.fromResponse(res, query.page, query.limit)));
+    const result = await firstValueFrom(
+      this.queryService.getUserParticipatedEvents({ pagination }, metadata),
+    );
+    const dto = SearchEventsResponseDTO.fromResponse(result, query.page, query.limit);
+    return this.enrichSearchEventsResponse(dto, metadata);
   }
 
   @Get('wished/me')
   @ApiOperation({ summary: 'Get events wished by current user' })
   @ApiResponse({ status: 200, type: SearchEventsResponseDTO })
   @CustomApiError(() => DATABASE_ERROR('fetching user wished events', 'details'))
-  getUserWishedEventsSelf(
+  async getUserWishedEventsSelf(
     @Query() query: GetUserWishesRequestDTO,
     @Req() req: Record<string, unknown>,
   ) {
     const metadata = req['internalMetadata'] as Metadata;
     const { pagination } = query;
-    return this.queryService
-      .getUserWishedEvents({ pagination }, metadata)
-      .pipe(map((res) => SearchEventsResponseDTO.fromResponse(res, query.page, query.limit)));
+    const result = await firstValueFrom(
+      this.queryService.getUserWishedEvents({ pagination }, metadata),
+    );
+    const dto = SearchEventsResponseDTO.fromResponse(result, query.page, query.limit);
+    return this.enrichSearchEventsResponse(dto, metadata);
+  }
+
+  private async enrichEventWithParticipants(event: EventDTO, metadata: Metadata): Promise<void> {
+    try {
+      const participants = await firstValueFrom(
+        this.participationQueryService.getEventParticipants(
+          { eventId: event.id, pagination: { page: 1, limit: 1 } },
+          metadata,
+        ),
+      );
+      // We add +1 because the creator is an implicit participant but not returned by getEventParticipants
+      event.currentParticipants = (participants.pagination?.total ?? 0) + 1;
+    } catch {
+      this.logger.warn(`Failed to enrich participants for event ${event.id}`);
+    }
+  }
+
+  private async enrichSearchEventsResponse(
+    dto: SearchEventsResponseDTO,
+    metadata: Metadata,
+  ): Promise<SearchEventsResponseDTO> {
+    await Promise.all(dto.events.map((e) => this.enrichEventWithParticipants(e, metadata)));
+    return dto;
   }
 }

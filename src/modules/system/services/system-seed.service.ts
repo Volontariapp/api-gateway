@@ -309,26 +309,56 @@ export class SystemSeedService implements OnModuleInit {
         const authorId = faker.helpers.arrayElement(userIds);
         const relatedEventId =
           eventIds.length > 0
-            ? faker.helpers.maybe(() => faker.helpers.arrayElement(eventIds), { probability: 0.5 })
+            ? faker.helpers.maybe(() => faker.helpers.arrayElement(eventIds), { probability: 0.9 })
             : undefined;
 
         const md = await this.getMetadataWithInternalToken(baseMetadata, authorId);
 
-        const POST_CONTENTS = [
-          "Super initiative ! J'ai adoré participer.",
-          'Bravo à tous pour cette action.',
-          'Une belle journée de solidarité.',
-          'Merci aux organisateurs.',
-          "On a fait du bon boulot ! C'était fatiguant mais très utile.",
-          "Voici quelques photos de notre action d'aujourd'hui !",
-          'Qui est chaud pour la prochaine édition ?',
+        const POST_TEMPLATES = [
+          {
+            title: "Retour sur l'événement d'aujourd'hui",
+            content:
+              "Super initiative ! J'ai adoré participer et aider la communauté. Hâte de recommencer !",
+          },
+          {
+            title: "Bravo à toute l'équipe",
+            content:
+              "Bravo à tous pour cette action. On a fait du bon boulot ! C'était fatiguant mais très utile pour tout le monde.",
+          },
+          {
+            title: 'Une belle journée de solidarité',
+            content:
+              'Merci aux organisateurs. Une belle journée de solidarité qui fait chaud au cœur. À refaire très vite.',
+          },
+          {
+            title: 'Souvenirs de notre action',
+            content:
+              "Voici quelques souvenirs de notre action d'aujourd'hui ! Merci à tous les bénévoles présents, vous êtes au top.",
+          },
+          {
+            title: 'Prochaine édition ?',
+            content:
+              "C'était vraiment génial ! Qui est chaud pour la prochaine édition ? On espère vous voir encore plus nombreux.",
+          },
+          {
+            title: 'Impact positif',
+            content:
+              "Nous avons réussi à avoir un bel impact aujourd'hui. Chaque petit geste compte et ensemble on va plus loin.",
+          },
+          {
+            title: 'Merci pour votre mobilisation',
+            content:
+              "C'est incroyable de voir autant de monde réuni pour une bonne cause. Merci pour votre temps et votre énergie !",
+          },
         ];
+
+        const template = faker.helpers.arrayElement(POST_TEMPLATES);
 
         const res = await lastValueFrom(
           this.postService.createPost(
             {
-              title: faker.lorem.sentence(),
-              content: faker.helpers.arrayElement(POST_CONTENTS) + ' ' + faker.lorem.sentence(),
+              title: template.title,
+              content: template.content,
               eventId: relatedEventId,
             },
             md,
@@ -373,10 +403,23 @@ export class SystemSeedService implements OnModuleInit {
 
         const md = await this.getMetadataWithInternalToken(baseMetadata, authorId);
 
+        const COMMENT_TEMPLATES = [
+          'Trop bien !',
+          'Merci pour le partage !',
+          "C'est génial, j'aurais aimé y être.",
+          'Superbe initiative 👏',
+          'Bravo à tous !',
+          'Incroyable ! On refait ça quand ?',
+          "Merci pour l'organisation.",
+          "C'était une super expérience.",
+          "Totalement d'accord avec toi.",
+          'Quel bel impact pour la communauté !',
+        ];
+
         const res = await lastValueFrom(
           this.postService.createComment(
             {
-              content: faker.lorem.sentence(),
+              content: faker.helpers.arrayElement(COMMENT_TEMPLATES),
               postId: postId,
             },
             md,
