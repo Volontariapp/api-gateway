@@ -9,6 +9,11 @@ export class SearchEventsRequestDTO implements SearchEventsRequest {
   area: GeoCircleDTO | undefined;
 
   @ApiProperty({ enum: EventType, isArray: true, required: false })
+  @Transform(({ value }: { value: unknown }) => {
+    if (!value) return undefined;
+    const arr: unknown[] = Array.isArray(value) ? value : String(value as string).split(',');
+    return arr.map((v: unknown) => Number(v));
+  })
   types!: EventType[];
 
   @ApiProperty({ example: ['tech'], isArray: true, required: false })
@@ -37,6 +42,11 @@ export class SearchEventsRequestDTO implements SearchEventsRequest {
   startDateTo?: string;
 
   @ApiProperty({ enum: EventState, isArray: true, required: false })
+  @Transform(({ value }: { value: unknown }) => {
+    if (!value) return undefined;
+    const arr: unknown[] = Array.isArray(value) ? value : String(value as string).split(',');
+    return arr.map((v: unknown) => Number(v));
+  })
   statuses?: EventState[];
 
   @ApiProperty({ example: true, required: false })
