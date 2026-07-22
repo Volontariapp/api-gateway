@@ -67,3 +67,4 @@ swagger-static/*
 *.key
 *.pub
 certs/
+graphify-out/
