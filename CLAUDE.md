@@ -1,71 +1,73 @@
-<!-- gitnexus:start -->
+# api-gateway
 
-# 🧠 GitNexus — Code Intelligence
+NestJS REST gateway (no GraphQL in this repo). Contexte archi global (DDD/CQRS/token
+interne) : voir `.agents/skills/domain/backend-architecture/SKILL.md` à la racine du repo
+meta — non répété ici.
 
-This repository uses **GitNexus** to provide deep code understanding, impact analysis, and safe refactoring workflows. This project is indexed as **api-gateway**.
+## Routes REST -> microservice
 
-> [!IMPORTANT]
-> If any tool warns that the index is stale, run `npx gitnexus analyze` immediately.
+- `POST/PATCH/DELETE /users`, `GET /users/me`, `GET /users/:userId/public` -> **ms-user**
+  (`src/modules/user`, `BaseUserGrpcController` -> `UserServiceClient`)
+- `GET /badges*` -> **ms-user** (`BaseBadgeGrpcController`)
+- `POST /users/login`, `/users/refresh` (public, `user-auth.controller.ts`) -> **ms-user**
+- `/posts`, `/posts/:postId/comments` -> **ms-post** (`src/modules/post`,
+  `BasePostGrpcController` -> `PostServiceClient`)
+- `/events`, `/events/:id/requirements`, `/tags` -> **ms-event** (`src/modules/event`)
+- `/social/*` (likes, follow/block, participate/wish, feed, event-post links) -> **ms-social**
+  (`src/modules/social`, plusieurs controllers commands/queries + `event-post-link.controller.ts`)
+- `/system/seed` -> seed interne (dev/test uniquement, `system-seed.controller.ts`)
+- `/health` -> health checks locaux
+- `/helpers/tokens/*` (`@Public()`) -> génère des tokens de test (access/refresh/internal/admin),
+  monté uniquement si `nodeEnv !== TEST` (`src/modules/helper`)
+- WebSocket : `WsProxyMiddleware` (`src/modules/ws-proxy`) proxy HTTP/WS brut vers `msWsUrl`
+  (pas de contrôleur REST, auth via `JwtService` avant proxying)
 
-## 🚀 Quick Actions
+Chaque module REST expose des controllers séparés `commands/` (write) et `queries/` (read),
+plus des variantes `*-admin.*-controller.ts` (protégées par `GatewayController(tag, { admin: true })`).
 
-| Task                | Command / Resource                                                                           |
-| :------------------ | :------------------------------------------------------------------------------------------- |
-| **Visualize Graph** | [https://gitnexus.vercel.app/](https://gitnexus.vercel.app/) (Requires `npx gitnexus serve`) |
-| **Impact Analysis** | `npx gitnexus impact <symbol>`                                                               |
-| **Code Search**     | `npx gitnexus query "<concept>"`                                                             |
-| **Symbol Context**  | `npx gitnexus context <symbol>`                                                              |
+## Auth et token interne (implémentation réelle)
 
-## 🛠️ Mandatory Workflows
+Toute la logique (guards, interceptor, JwtService) vient du package externe
+`@volontariapp/auth` (v3.3.9) — **rien n'est réimplémenté dans ce repo**, seulement consommé :
 
-### 1. Pre-Edit: Impact Analysis
+- `GatewayController(tag, options)` (`src/common/decorators/gateway-controller.decorator.ts`)
+  applique `UseGuards(AccessTokenGuard)` (ou `+ RolesGuard` si `admin: true`) sur chaque
+  controller. `AccessTokenGuard` vérifie le JWT access/refresh token.
+- `GrpcInternalInterceptor` (de `@volontariapp/auth`) est enregistré globalement en
+  `APP_INTERCEPTOR` dans `AppModule.register()` (`src/app.module.ts`). Il génère le token
+  interne et pose `req['internalMetadata']` (un objet `grpc.Metadata`) sur la requête.
+- Les controllers récupèrent ce metadata (`req['internalMetadata'] as Metadata`) et le passent
+  en second argument de chaque appel gRPC (ex: `this.userService.updateUser(cmd, metadata)`).
+- `IsCurrentUserOrAdminGuard` (`src/common/guards/is-current-user-or-admin.guard.ts`) est un
+  guard maison additionnel : autorise si `user.role === ADMIN` ou `user.id === params.userId`.
+- `TokenHelperController` (`/helpers/tokens/*`) expose `jwtService.signAccessToken`,
+  `signRefreshToken`, `signInternal` pour générer des tokens de test — désactivé si
+  `nodeEnv === TEST`.
 
-**NEVER** modify a public function, class, or method without running impact analysis first.
+## Clients gRPC
 
-- **Action**: Run `gitnexus_impact({target: "SymbolName", direction: "upstream"})`.
-- **Rule**: Report the blast radius (direct callers, affected processes) to the user before proceeding.
+- Un seul `GrpcClientModule` global (`src/grpc/grpc-client.module.ts`) enregistre 4 clients via
+  `ClientsModule.registerAsync` : `USER_PACKAGE`, `POST_PACKAGE`, `EVENT_PACKAGE`,
+  `SOCIAL_PACKAGE` (noms dans `src/grpc/grpc-packages.ts`).
+- Options générées par `getGrpcOptions(GRPC_MICROSERVICES.X, url)` du package
+  `@volontariapp/contracts-nest`, avec l'URL lue depuis `AppConfigService`
+  (`config.microServices.msUserUrl/msPostUrl/msEventUrl/msSocialUrl`).
+- Chaque module a un `Base*GrpcController` (`base-user-grpc.controller.ts`,
+  `base-badge-grpc.controller.ts`, `base-post-grpc.controller.ts`, etc.) qui fait
+  `client.getService<XServiceClient>(X_SERVICE_NAME)` dans `onModuleInit` — les controllers
+  concrets héritent de cette base pour accéder au service typé.
+- `ms-social` (temps réel) n'a pas de client gRPC ici : le WS est proxyé en HTTP/WS brut via
+  `WsProxyMiddleware` vers `config.microServices.msWsUrl`, pas via gRPC.
 
-### 2. Pre-Commit: Verification
+## Contraintes vues dans le code
 
-**MUST** verify that your changes only affect the intended symbols.
-
-- **Action**: Run `gitnexus_detect_changes()`.
-- **Rule**: If unexpected files are impacted, investigate before committing.
-
-### 3. Exploring & Refactoring
-
-- **Search**: Use `gitnexus_query` to find execution flows instead of grepping.
-- **Rename**: Use `gitnexus_rename` instead of find-and-replace to maintain graph integrity.
-
-## 📊 Impact Risk Levels
-
-| Level        | Depth | Meaning                               | Required Action            |
-| :----------- | :---: | :------------------------------------ | :------------------------- |
-| **CRITICAL** |  d=1  | Direct callers/importers will break   | Update all dependents      |
-| **HIGH**     |  d=2  | Indirect dependencies likely affected | Extensive testing required |
-| **LOW**      | d=3+  | Transitive impacts possible           | Verify critical paths      |
-
-## 🔄 Keeping the Index Fresh
-
-After major changes or commits, refresh the knowledge graph:
-
-```bash
-npx gitnexus analyze
-```
-
-_Add `--embeddings` if you need semantic search capabilities._
-
-## 📖 Skill Reference
-
-For detailed workflows, refer to the following local instruction files:
-
-- [Architecture Exploring](.claude/skills/gitnexus/gitnexus-exploring/SKILL.md)
-- [Impact Analysis](.claude/skills/gitnexus/gitnexus-impact-analysis/SKILL.md)
-- [Debugging Flows](.claude/skills/gitnexus/gitnexus-debugging/SKILL.md)
-- [Safe Refactoring](.claude/skills/gitnexus/gitnexus-refactoring/SKILL.md)
-- [CLI Guide & Wiki](.claude/skills/gitnexus/gitnexus-cli/SKILL.md)
-
-<!-- gitnexus:end -->
+- `HelperModule` (génération de tokens) n'est jamais monté en environnement `TEST`.
+- Toutes les routes REST déclarées avec `@GatewayController` exigent un access token sauf
+  celles marquées `@Public()` (auth login/refresh, helpers/tokens).
+- Les routes "me" (`/users/me`, `/posts/me`, `/social/feed/me`, etc.) utilisent
+  `@CurrentUser()` (déduit du JWT) plutôt qu'un paramètre d'URL.
+- Les routes `:userId`-scopées protégées par `IsCurrentUserOrAdminGuard` n'autorisent que le
+  propriétaire ou un ADMIN.
 
 ## 🚀 RTK - Rust Token Killer (Optimized)
 
