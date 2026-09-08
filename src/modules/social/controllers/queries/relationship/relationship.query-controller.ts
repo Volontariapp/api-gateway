@@ -1,6 +1,6 @@
-import { Controller, Get, Query, Req, Inject } from '@nestjs/common';
+import { Controller, Get, Query, Req, Inject, Param } from '@nestjs/common';
 import type { ClientGrpc } from '@nestjs/microservices';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { CustomApiError, DATABASE_ERROR } from '@volontariapp/errors-nest';
 import type { Metadata } from '@grpc/grpc-js';
 import { map } from 'rxjs';
@@ -16,7 +16,7 @@ import {
   GetMyBlocksRequestDTO,
   GetWhoBlockedMeRequestDTO,
 } from '../../../dto/request/index.js';
-import { IdsListResponseDTO } from '../../../dto/response/index.js';
+import { IdsListResponseDTO, IsFollowingResponseDTO } from '../../../dto/response/index.js';
 
 @GatewayController('Social - Relationships - Queries')
 @Controller('social')
@@ -80,5 +80,17 @@ export class RelationshipQueryController extends BaseRelationshipGrpcController 
     const metadata = req['internalMetadata'] as Metadata;
     const { pagination } = query;
     return this.queryService.getWhoBlockedMe({ pagination }, metadata);
+  }
+
+  @Get('users/:userId/is-following')
+  @ApiOperation({ summary: 'Check if current user is following the target user' })
+  @ApiParam({ name: 'userId', example: 'uuid-user' })
+  @ApiResponse({ status: 200, type: IsFollowingResponseDTO })
+  @CustomApiError(() => DATABASE_ERROR('fetching is following status', 'details'))
+  getIsFollowing(@Param('userId') userId: string, @Req() req: Record<string, unknown>) {
+    const metadata = req['internalMetadata'] as Metadata;
+    return this.queryService
+      .getIsFollowing({ userId }, metadata)
+      .pipe(map((res) => IsFollowingResponseDTO.fromResponse(res)));
   }
 }

@@ -11,6 +11,7 @@ import type {
   GetUserNodeWebResponse,
   GetMyFollowsWebResponse,
   GetEventRelatedToPostWebResponse,
+  GetIsFollowingWebResponse,
 } from '@volontariapp/contracts';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -373,5 +374,51 @@ describe('Social Relations & Interactions (E2E)', () => {
     await adminClient.delete(`/api/v1/social/users/${userB.id}`).expect(200);
     await adminClient.delete(`/api/v1/users/${userA.id}`).expect(200);
     await adminClient.delete(`/api/v1/users/${userB.id}`).expect(200);
+  });
+  it('should verify is-following endpoints for both admin and self', async () => {
+    const adminClient = await createTestClient(app).login({
+      id: randomUUID(),
+      role: UserRoles.ADMIN,
+    });
+
+    const userAId = randomUUID();
+    const userBId = randomUUID();
+
+    // Create user nodes
+    await adminClient.post(`/api/v1/social/users/${userAId}`).expect(201);
+    await adminClient.post(`/api/v1/social/users/${userBId}`).expect(201);
+
+    // Setup client for user A
+    const clientA = await createTestClient(app).login({ id: userAId, role: UserRoles.VOLUNTEER });
+
+    // 1. Initial state (not following)
+    let adminRes = await adminClient
+      .get(`/api/v1/social/users/${userAId}/is-following/${userBId}`)
+      .expect(200);
+    let adminData = adminRes.body as GetIsFollowingWebResponse;
+    expect(adminData.isFollowing).toBe(false);
+
+    let selfRes = await clientA.get(`/api/v1/social/users/${userBId}/is-following`).expect(200);
+    let selfData = selfRes.body as GetIsFollowingWebResponse;
+    expect(selfData.isFollowing).toBe(false);
+
+    // 2. User A follows User B
+    await adminClient.post(`/api/v1/social/users/${userAId}/follow/${userBId}`).expect(201);
+
+    // 3. State after following
+    adminRes = await adminClient
+      .get(`/api/v1/social/users/${userAId}/is-following/${userBId}`)
+      .expect(200);
+    adminData = adminRes.body as GetIsFollowingWebResponse;
+    expect(adminData.isFollowing).toBe(true);
+
+    selfRes = await clientA.get(`/api/v1/social/users/${userBId}/is-following`).expect(200);
+    selfData = selfRes.body as GetIsFollowingWebResponse;
+    expect(selfData.isFollowing).toBe(true);
+
+    // 4. Cleanup
+    await adminClient.delete(`/api/v1/social/users/${userAId}/follow/${userBId}`).expect(200);
+    await adminClient.delete(`/api/v1/social/users/${userAId}`).expect(200);
+    await adminClient.delete(`/api/v1/social/users/${userBId}`).expect(200);
   });
 });

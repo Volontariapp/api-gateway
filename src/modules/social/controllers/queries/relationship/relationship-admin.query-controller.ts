@@ -12,7 +12,8 @@ import {
   GetMyBlocksRequestDTO,
   GetWhoBlockedMeRequestDTO,
 } from '../../../dto/request/index.js';
-import { IdsListResponseDTO } from '../../../dto/response/index.js';
+import { IdsListResponseDTO, IsFollowingResponseDTO } from '../../../dto/response/index.js';
+import { map } from 'rxjs';
 
 @GatewayController('Social - Relationships - Admin Queries', { admin: true })
 @Controller('social')
@@ -79,5 +80,23 @@ export class RelationshipAdminQueryController extends BaseRelationshipGrpcContro
     const metadata = req['internalMetadata'] as Metadata;
     const { pagination } = query;
     return this.queryService.adminGetWhoBlockedMe({ userId, pagination }, metadata);
+  }
+
+  @Get('users/:followerId/is-following/:followedId')
+  @Roles(UserRoles.ADMIN)
+  @ApiOperation({ summary: 'Check if a user is following another user (Admin)' })
+  @ApiParam({ name: 'followerId', example: 'uuid-follower' })
+  @ApiParam({ name: 'followedId', example: 'uuid-followed' })
+  @ApiResponse({ status: 200, type: IsFollowingResponseDTO })
+  @CustomApiError(() => DATABASE_ERROR('fetching is following status', 'details'))
+  getIsFollowing(
+    @Param('followerId') followerId: string,
+    @Param('followedId') followedId: string,
+    @Req() req: Record<string, unknown>,
+  ) {
+    const metadata = req['internalMetadata'] as Metadata;
+    return this.queryService
+      .adminGetIsFollowing({ followerId, followedId }, metadata)
+      .pipe(map((res) => IsFollowingResponseDTO.fromResponse(res)));
   }
 }
