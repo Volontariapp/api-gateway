@@ -93,4 +93,34 @@ export class RelationshipQueryController extends BaseRelationshipGrpcController 
       .getIsFollowing({ userId }, metadata)
       .pipe(map((res) => IsFollowingResponseDTO.fromResponse(res)));
   }
+
+  @Get('users/:userId/follows')
+  @ApiOperation({ summary: 'Get list of users followed by a specific user' })
+  @ApiParam({ name: 'userId', example: 'uuid-user' })
+  @ApiResponse({ status: 200, type: IdsListResponseDTO })
+  @CustomApiError(() => DATABASE_ERROR('fetching follows', 'details'))
+  getFollows(
+    @Param('userId') userId: string,
+    @Query() query: GetMyFollowsRequestDTO,
+    @Req() req: Record<string, unknown>,
+  ) {
+    const metadata = req['internalMetadata'] as Metadata;
+    const { pagination } = query;
+    return this.queryService.adminGetMyFollows({ userId, pagination }, metadata);
+  }
+
+  @Get('users/:userId/followers')
+  @ApiOperation({ summary: 'Get list of users following a specific user' })
+  @ApiParam({ name: 'userId', example: 'uuid-user' })
+  @ApiResponse({ status: 200, type: IdsListResponseDTO })
+  @CustomApiError(() => DATABASE_ERROR('fetching followers', 'details'))
+  getFollowers(
+    @Param('userId') userId: string,
+    @Query() query: GetMyFollowersRequestDTO,
+    @Req() req: Record<string, unknown>,
+  ) {
+    const metadata = req['internalMetadata'] as Metadata;
+    const { pagination } = query;
+    return this.queryService.adminGetMyFollowers({ userId, pagination }, metadata);
+  }
 }
