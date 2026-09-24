@@ -1,0 +1,9 @@
+schema-version: v2.2
+dd-service: api-gateway
+team: volontariapp
+application: volontariapp
+description: Point d'entrée HTTPS REST principal et routage gRPC vers les microservices.
+tier: frontend-api
+type: web
+repos:
+  - url: https://github.com/Volontariapp/api-gateway
