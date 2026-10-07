@@ -1,9 +1,6 @@
+import { randomUUID } from 'node:crypto';
 import { Logger } from '@volontariapp/logger';
-import {
-  type CreateEventRequest,
-  type EventWebResponse,
-  Tag,
-} from '@volontariapp/contracts';
+import { type CreateEventRequest, type EventWebResponse, Tag } from '@volontariapp/contracts';
 import { get, post } from './api.js';
 
 import { TagsNames } from '@volontariapp/shared';
@@ -17,9 +14,7 @@ export async function seedEvents(
 ): Promise<string[]> {
   logger.log(`🏷️ Seeding tags...`);
   const tagMap = new Map<string, string>();
-  const uniqueTags = Array.from(
-    new Set(eventData.flatMap((e) => e.tags || [])),
-  );
+  const uniqueTags = Array.from(new Set(eventData.flatMap((e) => e.tags || [])));
 
   for (const label of uniqueTags) {
     const slug = label
@@ -31,8 +26,7 @@ export async function seedEvents(
       .replace(/^-|-$/g, '');
 
     const balise =
-      label.toLowerCase().includes('écolo') ||
-      label.toLowerCase().includes('nature')
+      label.toLowerCase().includes('écolo') || label.toLowerCase().includes('nature')
         ? TagsNames.ECOLOGIE.toString()
         : TagsNames.SOCIAL.toString();
 
@@ -73,6 +67,7 @@ export async function seedEvents(
       awardedImpactScore: dataSample.awardedImpactScore,
       maxParticipants: dataSample.maxParticipants,
       tagIds,
+      idempotencyKey: randomUUID(),
     };
 
     try {
@@ -103,11 +98,7 @@ export async function seedEvents(
   return eventIds;
 }
 
-export async function seedWishes(
-  userIds: string[],
-  eventIds: string[],
-  probability: number,
-) {
+export async function seedWishes(userIds: string[], eventIds: string[], probability: number) {
   logger.log('✨ Seeding event wishes...');
   let wishCount = 0;
   for (const userId of userIds) {
