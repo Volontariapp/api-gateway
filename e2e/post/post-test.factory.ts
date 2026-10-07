@@ -7,6 +7,8 @@ export const createPostRequestFactory = (
   return {
     title: `Post Title ${randomUUID()}`,
     content: `This is the content of the post ${randomUUID()}. It is sufficiently long to pass validation.`,
+    fileIds: [],
+    idempotencyKey: randomUUID(),
     ...overrides,
   };
 };

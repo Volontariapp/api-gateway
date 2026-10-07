@@ -19,6 +19,7 @@ export const createEventRequestFactory = (
   type: EventType.EVENT_TYPE_SOCIAL,
   awardedImpactScore: 50,
   tagIds: [],
+  idempotencyKey: randomUUID(),
   ...overrides,
 });
 

@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Event, EventType, EventState, GrpcDateMapper } from '@volontariapp/contracts-nest';
+import {
+  CoverStatus,
+  Event,
+  EventType,
+  EventState,
+  GrpcDateMapper,
+} from '@volontariapp/contracts-nest';
 import { EventDTO as IEventDTO } from '@volontariapp/contracts';
 import { TagDTO, RequirementDTO } from './common.dto.js';
 import { PointDTO } from '../../../../common/dto/common/point.dto.js';
@@ -61,6 +67,12 @@ export class EventResponseDTO extends EventBaseDTO implements IEventDTO {
 
   @ApiProperty({ type: [RequirementDTO] })
   requirements!: RequirementDTO[];
+
+  @ApiProperty({ required: false, example: '76c5b964-b5a1-43e3-85e2-040683457e56' })
+  coverFileId?: string;
+
+  @ApiProperty({ enum: CoverStatus, example: CoverStatus.COVER_STATUS_NONE })
+  coverStatus!: CoverStatus;
 }
 
 export class EventRequestDTO extends EventBaseDTO {

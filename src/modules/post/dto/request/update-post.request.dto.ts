@@ -1,4 +1,5 @@
 import { ApiProperty, PartialType, OmitType } from '@nestjs/swagger';
+import { PostMediaStatus } from '@volontariapp/contracts-nest';
 import type { UpdatePostCommand } from '@volontariapp/contracts-nest';
 import { CreatePostRequestDTO } from './create-post.request.dto.js';
 import type { UpdatePostRequest } from '@volontariapp/contracts';
@@ -27,6 +28,8 @@ export class UpdatePostRequestDTO
         authorId: '',
         createdAt: undefined,
         updatedAt: undefined,
+        media: [],
+        mediaStatus: PostMediaStatus.POST_MEDIA_STATUS_UNSPECIFIED,
       },
       updateMask,
     };

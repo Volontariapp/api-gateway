@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { Injectable, Inject, OnModuleInit } from '@nestjs/common';
 import type { ClientGrpc } from '@nestjs/microservices';
 import { Logger } from '@volontariapp/logger';
@@ -265,6 +266,7 @@ export class SystemSeedService implements OnModuleInit {
               maxParticipants: faker.number.int({ min: 10, max: 100 }),
               awardedImpactScore: faker.number.int({ min: 5, max: 50 }),
               tagIds: [],
+              idempotencyKey: randomUUID(),
             },
             md,
           ),
@@ -360,6 +362,8 @@ export class SystemSeedService implements OnModuleInit {
               title: template.title,
               content: template.content,
               eventId: relatedEventId,
+              fileIds: [],
+              idempotencyKey: randomUUID(),
             },
             md,
           ),

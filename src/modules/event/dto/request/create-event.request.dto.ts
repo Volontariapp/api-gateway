@@ -38,6 +38,12 @@ export class CreateEventRequestDTO implements CreateEventRequest {
   })
   tagIds!: string[];
 
+  @ApiProperty({ required: false, example: '76c5b964-b5a1-43e3-85e2-040683457e56' })
+  coverFileId?: string;
+
+  @ApiProperty({ example: '5d0e4a3c-7f0b-4b76-9a52-0d1f4f3b9e11' })
+  idempotencyKey!: string;
+
   toCommand(): CreateEventCommand {
     const startAt = GrpcDateMapper.toTimestamp(this.startAt);
     const endAt = GrpcDateMapper.toTimestamp(this.endAt);
@@ -61,6 +67,8 @@ export class CreateEventRequestDTO implements CreateEventRequest {
       awardedImpactScore: this.awardedImpactScore,
       maxParticipants: this.maxParticipants,
       tagIds: this.tagIds,
+      coverFileId: this.coverFileId,
+      idempotencyKey: this.idempotencyKey,
     };
   }
 }
