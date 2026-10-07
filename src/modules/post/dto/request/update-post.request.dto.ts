@@ -5,7 +5,9 @@ import { CreatePostRequestDTO } from './create-post.request.dto.js';
 import type { UpdatePostRequest } from '@volontariapp/contracts';
 
 export class UpdatePostRequestDTO
-  extends PartialType(OmitType(CreatePostRequestDTO, ['toCommand'] as const))
+  extends PartialType(
+    OmitType(CreatePostRequestDTO, ['toCommand', 'idempotencyKey', 'fileIds'] as const),
+  )
   implements UpdatePostRequest
 {
   @ApiProperty({ example: 'uuid-123' })

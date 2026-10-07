@@ -34,6 +34,7 @@ export const createBadgeRequestFactory = (
   dto.slug = `badge-${uuid}`;
   dto.description = `Description for badge ${uuid}`;
   dto.iconPath = `/icons/badge-${uuid}.png`;
+  dto.idempotencyKey = randomUUID();
   Object.assign(dto, overrides);
   return dto;
 };

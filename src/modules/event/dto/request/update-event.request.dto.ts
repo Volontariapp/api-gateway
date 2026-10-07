@@ -7,7 +7,9 @@ import { CreateEventRequestDTO } from './create-event.request.dto.js';
 import { INVALID_DATE_PARAMETERS } from '@volontariapp/errors-nest';
 
 export class UpdateEventRequestDTO
-  extends PartialType(OmitType(CreateEventRequestDTO, ['toCommand'] as const))
+  extends PartialType(
+    OmitType(CreateEventRequestDTO, ['toCommand', 'idempotencyKey', 'coverFileId'] as const),
+  )
   implements UpdateEventRequest
 {
   id!: string;
