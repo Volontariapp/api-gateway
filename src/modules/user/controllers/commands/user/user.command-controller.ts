@@ -56,6 +56,11 @@ export class UserCommandController extends BaseUserGrpcController {
     this.logger.log(`Deleting current user account: ${user.id}`);
     const command: DeleteUserCommand = {};
     const metadata = req['internalMetadata'] as Metadata;
-    return this.userService.deleteUser(command, metadata);
+    return this.userService.deleteUser(command, metadata).pipe(
+      map(() => ({
+        success: true,
+        message: 'Demande de suppression de compte prise en compte',
+      })),
+    );
   }
 }

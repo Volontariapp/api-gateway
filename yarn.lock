@@ -4140,14 +4140,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@volontariapp/auth@npm:^3.3.13":
-  version: 3.3.13
-  resolution: "@volontariapp/auth@npm:3.3.13"
+"@volontariapp/auth@npm:3.3.18-snap-c12e656":
+  version: 3.3.18-snap-c12e656
+  resolution: "@volontariapp/auth@npm:3.3.18-snap-c12e656"
   dependencies:
     "@volontariapp/errors": "npm:0.6.3"
     "@volontariapp/errors-nest": "npm:0.13.3"
     "@volontariapp/logger": "npm:0.3.0"
-    "@volontariapp/shared": "npm:0.9.1"
+    "@volontariapp/shared": "npm:0.14.0-snap-c12e656"
     jose: "npm:^6.2.2"
     reflect-metadata: "npm:^0.2.2"
     rxjs: "npm:^7.8.1"
@@ -4156,7 +4156,7 @@ __metadata:
     "@nestjs/common": ^10.0.0 || ^11.0.0
     "@nestjs/core": ^10.0.0 || ^11.0.0
     "@nestjs/microservices": ^10.0.0 || ^11.0.0
-  checksum: 10c0/73bc79a2cf30b6ba36769da52d98f40b0dad4d1d834edb1e4784b37622845f2de70028c57833b8cf960b942a16718834e7626f0b4f8c0926a7da8f4083e77d85
+  checksum: 10c0/d125efbf5aaa44352e44bc632ae9ba839d464fc20ce9654d8a4aaa4bd93d81d7a25cff18dec20a18788f65cdb57dc6f5ecd1799776ded4333eb6caee1fe1bd25
   languageName: node
   linkType: hard
 
@@ -4357,10 +4357,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@volontariapp/shared@npm:0.9.1, @volontariapp/shared@npm:^0.9.1":
-  version: 0.9.1
-  resolution: "@volontariapp/shared@npm:0.9.1"
-  checksum: 10c0/119c44cacd46d5567b6f00775e4f69a4cf824aeeb45ad4c90c9ac66f47e6590fba8168f5dd54a830ca8a2b56d9af15a4b963e1d8070efc7ef1ed9b55cf53216d
+"@volontariapp/shared@npm:0.14.0-snap-c12e656":
+  version: 0.14.0-snap-c12e656
+  resolution: "@volontariapp/shared@npm:0.14.0-snap-c12e656"
+  checksum: 10c0/b63d739f4a5cd59453562808fa255f80faa68df206ad9ad1af7adf471478f97e93bc4e86113533c944e0e929a2dc43673297c66f7a8396fba1228a17b8d773bf
   languageName: node
   linkType: hard
 
@@ -4822,7 +4822,7 @@ __metadata:
     "@types/jest": "npm:^30.0.0"
     "@types/node": "npm:^22.10.7"
     "@types/supertest": "npm:^6.0.2"
-    "@volontariapp/auth": "npm:^3.3.13"
+    "@volontariapp/auth": "npm:3.3.18-snap-c12e656"
     "@volontariapp/bridge-nest": "npm:^0.3.18"
     "@volontariapp/config": "npm:^3.2.3"
     "@volontariapp/contracts": "npm:^4.3.14"
@@ -4834,7 +4834,7 @@ __metadata:
     "@volontariapp/health-check-nest": "npm:^0.1.38"
     "@volontariapp/logger": "npm:^0.3.0"
     "@volontariapp/monitoring": "npm:^2.1.8"
-    "@volontariapp/shared": "npm:^0.9.1"
+    "@volontariapp/shared": "npm:0.14.0-snap-c12e656"
     "@volontariapp/testing": "npm:^1.0.3"
     axios: "npm:^1.7.9"
     class-transformer: "npm:^0.5.1"
