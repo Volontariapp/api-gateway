@@ -3,12 +3,14 @@ import { of, firstValueFrom } from 'rxjs';
 import { UserCommandController } from '../../../../modules/user/controllers/commands/user/user.command-controller.js';
 import { MockUserClientGrpc } from '../../../helpers/mocks/user-client-grpc.mock.js';
 import type { UserServiceClient } from '@volontariapp/contracts-nest';
+import { createMock } from '@volontariapp/testing';
 import type { AuthUser } from '@volontariapp/auth';
 import { Metadata } from '@grpc/grpc-js';
 
 describe('UserCommandController (Unit)', () => {
   let controller: UserCommandController;
   let mockDeleteUser: ReturnType<typeof jest.fn>;
+  let mockUserService: jest.Mocked<UserServiceClient>;
 
   const mockUser: AuthUser = {
     id: '123e4567-e89b-12d3-a456-426614174000',
@@ -17,9 +19,8 @@ describe('UserCommandController (Unit)', () => {
 
   beforeEach(() => {
     mockDeleteUser = jest.fn().mockReturnValue(of({}));
-    const mockUserService = {
-      deleteUser: mockDeleteUser,
-    } as UserServiceClient;
+    mockUserService = createMock<UserServiceClient>();
+    mockUserService.deleteUser = mockDeleteUser as never;
 
     const mockClient = new MockUserClientGrpc(mockUserService);
     controller = new UserCommandController(mockClient);
