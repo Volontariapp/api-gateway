@@ -76,6 +76,8 @@ async function bootstrap() {
   app.use(new AccessTokenMiddleware().use);
   app.use(new RefreshTokenMiddleware().use);
 
+  app.enableShutdownHooks();
+
   const port = configService.config.port;
   await app.listen(port);
   logger.log('=================================== API Gateway ===================================');
