@@ -4380,12 +4380,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@volontariapp/logger@npm:0.3.1, @volontariapp/logger@npm:^0.3.1":
+"@volontariapp/logger@npm:0.3.1":
   version: 0.3.1
   resolution: "@volontariapp/logger@npm:0.3.1"
   dependencies:
     "@opentelemetry/api": "npm:^1.9.0"
   checksum: 10c0/f903724b0cd168c75e1283b638ba320ea3e9c9281ed658fae10663d8929c16ef0d93672e293236ce2757beda603382278d7c7d795933d073e0937895c9fb589a
+  languageName: node
+  linkType: hard
+
+"@volontariapp/logger@npm:^0.4.0":
+  version: 0.4.0
+  resolution: "@volontariapp/logger@npm:0.4.0"
+  dependencies:
+    "@opentelemetry/api": "npm:^1.9.0"
+  checksum: 10c0/b71ce14a7ac663fe5159cfda89c2223b292186e3deceda9a291e1e0c8317476b2990fe9c0201f191937eee7cb8ac8658ccb7f083ba8527eecb96b17615cd23bc
   languageName: node
   linkType: hard
 
@@ -4883,7 +4892,7 @@ __metadata:
     "@volontariapp/eslint-config": "npm:^2.2.5"
     "@volontariapp/health-check": "npm:^1.0.9"
     "@volontariapp/health-check-nest": "npm:^0.1.40"
-    "@volontariapp/logger": "npm:^0.3.1"
+    "@volontariapp/logger": "npm:^0.4.0"
     "@volontariapp/monitoring": "npm:^2.2.1"
     "@volontariapp/shared": "npm:^0.14.0"
     "@volontariapp/testing": "npm:^1.0.3"
