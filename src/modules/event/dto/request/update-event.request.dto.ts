@@ -7,9 +7,7 @@ import { CreateEventRequestDTO } from './create-event.request.dto.js';
 import { INVALID_DATE_PARAMETERS } from '@volontariapp/errors-nest';
 
 export class UpdateEventRequestDTO
-  extends PartialType(
-    OmitType(CreateEventRequestDTO, ['toCommand', 'idempotencyKey', 'coverFileId'] as const),
-  )
+  extends PartialType(OmitType(CreateEventRequestDTO, ['toCommand', 'idempotencyKey'] as const))
   implements UpdateEventRequest
 {
   id!: string;
@@ -25,12 +23,17 @@ export class UpdateEventRequestDTO
   longitude?: number;
 
   toCommand(): UpdateEventCommand {
-    const { id, startAt, endAt, tagIds, latitude, longitude, ...rest } = this;
+    const { id, startAt, endAt, tagIds, latitude, longitude, coverFileId, ...rest } = this;
 
     const event: Partial<Event> = { ...(rest as unknown as Partial<Event>) };
     const updateMask = (Object.keys(rest) as (keyof typeof rest)[]).filter(
       (k) => this[k] !== undefined,
     ) as string[];
+
+    if (coverFileId !== undefined) {
+      event.coverFileId = coverFileId;
+      updateMask.push('coverFileId');
+    }
 
     if (latitude !== undefined && longitude !== undefined) {
       event.location = { latitude, longitude };

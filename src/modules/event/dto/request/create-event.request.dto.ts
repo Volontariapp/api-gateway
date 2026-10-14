@@ -67,7 +67,7 @@ export class CreateEventRequestDTO implements CreateEventRequest {
       awardedImpactScore: this.awardedImpactScore,
       maxParticipants: this.maxParticipants,
       tagIds: this.tagIds,
-      coverFileId: this.coverFileId,
+      coverFileId: this.coverFileId ?? undefined,
       idempotencyKey: this.idempotencyKey,
     };
   }
