@@ -164,7 +164,10 @@ describe('Post & Comment — Error Cases (E2E)', () => {
     it('should return 409 when creating a post with a duplicate title', async () => {
       const { postId, dto } = await createPost(client);
       try {
-        await client.post('/api/v1/posts').send(dto).expect(409);
+        await client
+          .post('/api/v1/posts')
+          .send(createPostRequestFactory({ title: dto.title }))
+          .expect(409);
       } finally {
         await client.delete(`/api/v1/posts/${postId}`).expect(200);
       }
@@ -315,7 +318,10 @@ describe('Post & Comment — Error Cases (E2E)', () => {
       expect(postId).toBeDefined();
 
       // 3. Duplicate title → 409
-      await userClient.post('/api/v1/posts').send(dto).expect(409);
+      await userClient
+        .post('/api/v1/posts')
+        .send(createPostRequestFactory({ title: dto.title }))
+        .expect(409);
 
       // 4. Get post → 200
       const getRes = await userClient.get(`/api/v1/posts/${postId}`).expect(200);
