@@ -39,7 +39,10 @@ describe('Post Lifecycle (E2E)', () => {
     expect(createBody.post.content).toBe(createDto.content);
 
     // 2. Conflict on creating a post with same title
-    await client.post('/api/v1/posts').send(createDto).expect(409);
+    await client
+      .post('/api/v1/posts')
+      .send(createPostRequestFactory({ title: createDto.title }))
+      .expect(409);
 
     // 3. Get the post
     const getRes = await client.get(`/api/v1/posts/${postId}`).expect(200);
