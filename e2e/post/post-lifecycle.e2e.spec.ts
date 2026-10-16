@@ -72,6 +72,33 @@ describe('Post Lifecycle (E2E)', () => {
     await client.get(`/api/v1/posts/${postId}`).expect(404);
   });
 
+  it('should expose an empty media list and the NONE status for a post without files', async () => {
+    const client = await createTestClient(app).login({ id: randomUUID(), role: UserRoles.ADMIN });
+    const createRes = await client
+      .post('/api/v1/posts')
+      .send(createPostRequestFactory())
+      .expect(201);
+    const created = (createRes.body as PostWebResponse).post;
+
+    try {
+      expect(created.mediaStatus).toBe('NONE');
+      expect(created.media).toEqual([]);
+
+      const getRes = await client.get(`/api/v1/posts/${created.id}`).expect(200);
+      expect((getRes.body as PostWebResponse).post.mediaStatus).toBe('NONE');
+
+      const listRes = await client
+        .get('/api/v1/posts')
+        .query({ authorId: created.authorId })
+        .expect(200);
+      const listed = (listRes.body as ListPostsWebResponse).posts.find((p) => p.id === created.id);
+      expect(listed?.mediaStatus).toBe('NONE');
+      expect(listed?.media).toEqual([]);
+    } finally {
+      await client.delete(`/api/v1/posts/${created.id}`).expect(200);
+    }
+  });
+
   it('should return 404 for operations on non-existent post', async () => {
     const client = await createTestClient(app).login({ id: randomUUID(), role: UserRoles.ADMIN });
     const fakeId = randomUUID();

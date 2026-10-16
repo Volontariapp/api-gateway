@@ -204,6 +204,26 @@ describe('Post & Comment — Error Cases (E2E)', () => {
       await client.post('/api/v1/posts').send({ title: 'A valid title' }).expect(400);
     });
 
+    it('should return 400 when a file id is not a UUID', async () => {
+      await client
+        .post('/api/v1/posts')
+        .send(createPostRequestFactory({ fileIds: ['https://cdn.example.com/a.webp'] }))
+        .expect(400);
+    });
+
+    it('should return 400 when more than 10 files are attached', async () => {
+      const fileIds = Array.from({ length: 11 }, () => randomUUID());
+
+      await client.post('/api/v1/posts').send(createPostRequestFactory({ fileIds })).expect(400);
+    });
+
+    it('should return 400 when the idempotency key is empty', async () => {
+      await client
+        .post('/api/v1/posts')
+        .send(createPostRequestFactory({ idempotencyKey: '' }))
+        .expect(400);
+    });
+
     it('should return 400 when creating a comment with no body', async () => {
       const { postId } = await createPost(client);
       try {

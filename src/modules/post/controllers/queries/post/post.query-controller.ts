@@ -39,6 +39,7 @@ import {
   GetPostResponse,
 } from '@volontariapp/contracts-nest';
 import { WithMetadata } from '../../../../../common/types/grpc.types.js';
+import { PublicFileUrlService } from '../../../../storage/public-file-url.service.js';
 
 @ApiTags('Posts')
 @ApiExtraModels(PostResponseDTO, ListPostsResponseDTO, GetPostResponseDTO)
@@ -56,8 +57,9 @@ export class PostQueryController extends BasePostGrpcController {
   constructor(
     @Inject(POST_PACKAGE) client: ClientGrpc,
     @Inject(EVENT_PACKAGE) private readonly eventClient: ClientGrpc,
+    publicFileUrls: PublicFileUrlService,
   ) {
-    super(client);
+    super(client, publicFileUrls);
   }
 
   onModuleInit() {
@@ -100,7 +102,7 @@ export class PostQueryController extends BasePostGrpcController {
       }
     }
 
-    return ListPostsResponseDTO.fromResponse(res, eventsMap);
+    return ListPostsResponseDTO.fromResponse(res, this.publicFileUrls, eventsMap);
   }
 
   @ApiOperation({ summary: 'Get a post by ID' })
@@ -135,6 +137,6 @@ export class PostQueryController extends BasePostGrpcController {
       }
     }
 
-    return GetPostResponseDTO.fromResponse(res, eventDto);
+    return GetPostResponseDTO.fromResponse(res, this.publicFileUrls, eventDto);
   }
 }
