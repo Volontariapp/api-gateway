@@ -9,6 +9,7 @@ import { GrpcInternalInterceptor } from '@volontariapp/auth';
 import { PostModule } from './modules/post/post.module.js';
 import { SocialModule } from './modules/social/social.module.js';
 import { UserModule } from './modules/user/user.module.js';
+import { StorageModule } from './modules/storage/storage.module.js';
 import { AuthModule } from '@volontariapp/auth';
 import { NodeEnv } from '@volontariapp/config';
 import { HealthModule } from './modules/health/health.module.js';
@@ -22,6 +23,7 @@ import { SystemModule } from './modules/system/system.module.js';
     PostModule,
     EventModule,
     SocialModule,
+    StorageModule,
     WsProxyModule,
     SystemModule,
   ],
@@ -36,6 +38,7 @@ export class AppModule {
       PostModule,
       EventModule,
       SocialModule,
+      StorageModule,
       HealthModule,
       WsProxyModule,
       SystemModule,

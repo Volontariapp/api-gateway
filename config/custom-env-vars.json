@@ -15,6 +15,7 @@
     "msPostUrl": "MS_POST_URL",
     "msEventUrl": "MS_EVENT_URL",
     "msSocialUrl": "MS_SOCIAL_URL",
+    "msStorageUrl": "MS_STORAGE_URL",
     "msWsUrl": "MS_WS_URL"
   }
 }

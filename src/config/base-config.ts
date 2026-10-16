@@ -1,6 +1,20 @@
 import { BaseConfig, GatewayAuthConfig, MSURLsConfig } from '@volontariapp/config';
 import { Type } from 'class-transformer';
-import { IsDefined, ValidateNested, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  IsDefined,
+  IsNotEmpty,
+  ValidateNested,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
+
+export class ExtendedMSURLsConfig extends MSURLsConfig {
+  @IsDefined()
+  @IsString()
+  @IsNotEmpty()
+  msStorageUrl!: string;
+}
 
 export class ExtendedAuthConfig extends GatewayAuthConfig {
   @IsOptional()
@@ -28,8 +42,8 @@ export class CustomConfig extends BaseConfig {
 
   @IsDefined()
   @ValidateNested()
-  @Type(() => MSURLsConfig)
-  microServices!: MSURLsConfig;
+  @Type(() => ExtendedMSURLsConfig)
+  declare microServices: ExtendedMSURLsConfig;
 
   @IsDefined()
   @ValidateNested()
