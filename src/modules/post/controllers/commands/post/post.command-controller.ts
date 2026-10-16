@@ -55,7 +55,7 @@ export class PostCommandController extends BasePostGrpcController {
     const metadata = req['internalMetadata'] as Metadata;
     return this.postService
       .createPost(request.toCommand(), metadata)
-      .pipe(map((res) => PostResponseDTO.fromResponse(res)));
+      .pipe(map((res) => PostResponseDTO.fromResponse(res, this.publicFileUrls)));
   }
 
   @ApiOperation({ summary: 'Update a post by ID' })
@@ -74,7 +74,7 @@ export class PostCommandController extends BasePostGrpcController {
 
     return this.postService
       .updatePost(request.toCommand(), metadata)
-      .pipe(map((res) => PostResponseDTO.fromResponse(res)));
+      .pipe(map((res) => PostResponseDTO.fromResponse(res, this.publicFileUrls)));
   }
 
   @ApiOperation({ summary: 'Delete a post by ID' })

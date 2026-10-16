@@ -4364,13 +4364,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@volontariapp/contracts@npm:^4.4.0":
-  version: 4.4.0
-  resolution: "@volontariapp/contracts@npm:4.4.0"
+"@volontariapp/contracts@npm:^4.7.0":
+  version: 4.7.0
+  resolution: "@volontariapp/contracts@npm:4.7.0"
   dependencies:
     "@volontariapp/logger": "npm:0.4.0"
     protobufjs: "npm:^7.5.8"
-  checksum: 10c0/dcbf5767ecd9ab444d61447e6cb77ec50791b0ecf75b67eb7e8ad991120103d966d428f4bb86240810459dcd51ba2442c6247c2c4c5bca1a60bc378e62c5fa09
+  checksum: 10c0/c54ada2f528be64d79186b237621eaf20dda5d227f673723b41f89fbf34f1c01bf4e7f8ea3b15f90307731b85502a149feeaccd30fdb8c8824b340edbd72f4d3
   languageName: node
   linkType: hard
 
@@ -5081,7 +5081,7 @@ __metadata:
     "@volontariapp/auth": "npm:^3.3.19"
     "@volontariapp/bridge-nest": "npm:^0.3.19"
     "@volontariapp/config": "npm:^3.3.1"
-    "@volontariapp/contracts": "npm:^4.4.0"
+    "@volontariapp/contracts": "npm:^4.7.0"
     "@volontariapp/contracts-nest": "npm:^3.3.8"
     "@volontariapp/domain-storage": "npm:^0.12.0"
     "@volontariapp/errors": "npm:^0.6.4"
