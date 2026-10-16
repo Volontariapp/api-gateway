@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { User, UserPublic } from '@volontariapp/contracts-nest';
 import { BadgeDTO } from './badge.dto.js';
+import type { UserAvatarUrlBuilder } from './user-avatar-url.builder.js';
 
 export class OrganisationInfoDTO {
   @ApiProperty({ example: 'W123456789' })
@@ -26,16 +27,28 @@ export class UserPublicDTO {
   @ApiProperty({ required: false, example: '/path/to/logo' })
   logoPath?: string;
 
+  @ApiProperty({ required: false, example: '9b2f1c52-7a63-4d0e-8f41-0c5d2e6a7b13' })
+  avatarFileId?: string;
+
+  @ApiProperty({
+    required: false,
+    example: 'https://cdn.example.com/user-avatar/9b2f1c52-7a63-4d0e-8f41-0c5d2e6a7b13.webp',
+    description: 'Public URL of the avatar, omitted when the user has none',
+  })
+  avatarUrl?: string;
+
   @ApiProperty({ required: false, type: OrganisationInfoDTO })
   organisationInfo?: OrganisationInfoDTO;
 
-  static fromUserPublic(user: UserPublic): UserPublicDTO {
+  static fromUserPublic(user: UserPublic, avatarUrls: UserAvatarUrlBuilder): UserPublicDTO {
     const dto = new UserPublicDTO();
     dto.id = user.id;
     dto.pseudo = user.pseudo;
     dto.totalImpactScore = user.totalImpactScore;
     dto.bio = user.bio;
     dto.logoPath = user.logoPath;
+    dto.avatarFileId = user.avatarFileId;
+    dto.avatarUrl = avatarUrls.forUserAvatar(user.avatarFileId);
     dto.organisationInfo = user.organisationInfo;
     dto.badges = user.badges.map((b) => BadgeDTO.fromBadge(b));
     return dto;
@@ -49,7 +62,7 @@ export class UserDTO extends UserPublicDTO {
   @ApiProperty({ example: 'USER' })
   role!: string;
 
-  static fromUser(user: User): UserDTO {
+  static fromUser(user: User, avatarUrls: UserAvatarUrlBuilder): UserDTO {
     const dto = new UserDTO();
     dto.id = user.id;
     dto.email = user.email;
@@ -58,6 +71,8 @@ export class UserDTO extends UserPublicDTO {
     dto.totalImpactScore = user.totalImpactScore;
     dto.bio = user.bio;
     dto.logoPath = user.logoPath;
+    dto.avatarFileId = user.avatarFileId;
+    dto.avatarUrl = avatarUrls.forUserAvatar(user.avatarFileId);
     dto.organisationInfo = user.organisationInfo;
     dto.badges = user.badges.map((b) => BadgeDTO.fromBadge(b));
     return dto;

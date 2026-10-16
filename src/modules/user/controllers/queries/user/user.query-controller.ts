@@ -41,7 +41,7 @@ export class UserQueryController extends BaseUserGrpcController {
     const metadata = req['internalMetadata'] as Metadata;
     return this.userService
       .getUser(dto.toQuery(), metadata)
-      .pipe(map((res) => UserResponseDTO.fromResponse(res)));
+      .pipe(map((res) => UserResponseDTO.fromResponse(res, this.publicFileUrls)));
   }
 
   @Get(':userId/public')
@@ -56,7 +56,7 @@ export class UserQueryController extends BaseUserGrpcController {
     const metadata = req['internalMetadata'] as Metadata;
     return this.userService
       .getPublicUser({ userId }, metadata)
-      .pipe(map((res) => PublicUserResponseDTO.fromResponse(res)));
+      .pipe(map((res) => PublicUserResponseDTO.fromResponse(res, this.publicFileUrls)));
   }
 
   @Get('event/:eventId/participants')
@@ -73,7 +73,7 @@ export class UserQueryController extends BaseUserGrpcController {
     const { pagination } = query;
     return this.userService
       .getEventParticipantsProfiles({ eventId, pagination }, metadata)
-      .pipe(map((res) => ListUsersPublicResponseDTO.fromResponse(res)));
+      .pipe(map((res) => ListUsersPublicResponseDTO.fromResponse(res, this.publicFileUrls)));
   }
 
   @Get('post/:postId/likers')
@@ -90,6 +90,6 @@ export class UserQueryController extends BaseUserGrpcController {
     const { pagination } = query;
     return this.userService
       .getPostLikersProfiles({ postId, pagination }, metadata)
-      .pipe(map((res) => ListUsersPublicResponseDTO.fromResponse(res)));
+      .pipe(map((res) => ListUsersPublicResponseDTO.fromResponse(res, this.publicFileUrls)));
   }
 }

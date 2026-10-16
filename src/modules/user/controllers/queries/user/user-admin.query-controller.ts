@@ -32,7 +32,7 @@ export class UserAdminQueryController extends BaseUserGrpcController {
     const metadata = req['internalMetadata'] as Metadata;
     return this.userService
       .listUsers(request.toQuery(), metadata)
-      .pipe(map((res) => ListUsersResponseDTO.fromResponse(res)));
+      .pipe(map((res) => ListUsersResponseDTO.fromResponse(res, this.publicFileUrls)));
   }
 
   @ApiOperation({
@@ -50,6 +50,6 @@ export class UserAdminQueryController extends BaseUserGrpcController {
     const metadata = req['internalMetadata'] as Metadata;
     return this.userService
       .adminGetUser(query, metadata)
-      .pipe(map((res) => UserResponseDTO.fromResponse(res)));
+      .pipe(map((res) => UserResponseDTO.fromResponse(res, this.publicFileUrls)));
   }
 }

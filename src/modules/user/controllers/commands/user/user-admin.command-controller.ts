@@ -64,7 +64,7 @@ export class UserAdminCommandController extends BaseUserGrpcController {
         const query: AdminGetUserQuery = { userId };
         return this.userService.adminGetUser(query, metadata);
       }),
-      map((res) => UserResponseDTO.fromResponse(res)),
+      map((res) => UserResponseDTO.fromResponse(res, this.publicFileUrls)),
     );
   }
 

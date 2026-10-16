@@ -42,7 +42,7 @@ export class UserCommandController extends BaseUserGrpcController {
         const query: GetUserQuery = { userId: user.id };
         return this.userService.getUser(query, metadata);
       }),
-      map((res) => UserResponseDTO.fromResponse(res)),
+      map((res) => UserResponseDTO.fromResponse(res, this.publicFileUrls)),
     );
   }
 

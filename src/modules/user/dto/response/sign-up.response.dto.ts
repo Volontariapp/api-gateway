@@ -3,12 +3,13 @@ import { SignUpWebResponse } from '@volontariapp/contracts';
 import { SignUpResponse } from '@volontariapp/contracts-nest';
 import { UserDTO } from '../common/user.dto.js';
 import { AuthResponseDTO } from './auth.response.dto.js';
+import type { UserAvatarUrlBuilder } from '../common/user-avatar-url.builder.js';
 
 export class SignUpResponseDTO implements SignUpWebResponse {
-  static fromResponse(res: SignUpResponse): SignUpResponseDTO {
+  static fromResponse(res: SignUpResponse, avatarUrls: UserAvatarUrlBuilder): SignUpResponseDTO {
     const dto = new SignUpResponseDTO();
     if (res.user) {
-      dto.user = UserDTO.fromUser(res.user);
+      dto.user = UserDTO.fromUser(res.user, avatarUrls);
     }
     if (res.auth) {
       dto.auth = res.auth as AuthResponseDTO;
