@@ -43,4 +43,17 @@ describe('Post response DTOs media exposure (Unit)', () => {
     expect(dto.posts[1].mediaStatus).toBe('PENDING');
     expect(JSON.parse(JSON.stringify(dto.posts[1].media[0]))).not.toHaveProperty('url');
   });
+
+  it('ListPostsResponseDTO should expose the url of a READY post whose status arrives as a name', () => {
+    const dto = ListPostsResponseDTO.fromResponse(
+      {
+        posts: [PostFactory.createWirePost('POST_MEDIA_STATUS_READY')],
+        pagination: { page: 1, limit: 10, total: 1, totalPages: 1 },
+      },
+      urls,
+    );
+
+    expect(dto.posts[0]?.mediaStatus).toBe('READY');
+    expect(dto.posts[0]?.media[0]?.url).toBe(READY_URL);
+  });
 });

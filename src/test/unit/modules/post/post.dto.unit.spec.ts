@@ -94,4 +94,42 @@ describe('PostDTO.fromPost (Unit)', () => {
     expect(dto.createdAt).toEqual(new Date(1_790_000_000 * 1000));
     expect(dto.event).toBe(event);
   });
+
+  describe('with the enum names the gRPC client really delivers', () => {
+    it('exposes media[].url when the status is the name POST_MEDIA_STATUS_READY', () => {
+      const post = PostFactory.createWirePost('POST_MEDIA_STATUS_READY');
+
+      const dto = PostDTO.fromPost(post, new PostMediaUrlBuilderMock());
+
+      expect(dto.mediaStatus).toBe('READY');
+      expect(dto.media[0]?.url).toBe(`${POST_MEDIA_URL_BASE}/${POST_FILE_ID_1}.webp`);
+    });
+
+    it.each([
+      ['POST_MEDIA_STATUS_PENDING', 'PENDING'],
+      ['POST_MEDIA_STATUS_REJECTED', 'REJECTED'],
+    ] as const)('omits the url for the name %s', (name, expected) => {
+      const urls = new PostMediaUrlBuilderMock();
+      const buildUrl = jest.spyOn(urls, 'forPostMedia');
+
+      const dto = PostDTO.fromPost(PostFactory.createWirePost(name), urls);
+
+      expect(dto.mediaStatus).toBe(expected);
+      expect(serialized(dto.media[0])).not.toHaveProperty('url');
+      expect(buildUrl).not.toHaveBeenCalled();
+    });
+
+    it.each(['POST_MEDIA_STATUS_NONE', 'POST_MEDIA_STATUS_UNSPECIFIED', 'UNRECOGNIZED'] as const)(
+      'maps the name %s to NONE without any url',
+      (name) => {
+        const dto = PostDTO.fromPost(
+          PostFactory.createWirePost(name),
+          new PostMediaUrlBuilderMock(),
+        );
+
+        expect(dto.mediaStatus).toBe('NONE');
+        expect(serialized(dto.media[0])).not.toHaveProperty('url');
+      },
+    );
+  });
 });

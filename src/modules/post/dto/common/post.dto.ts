@@ -1,9 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
-import type { Post } from '@volontariapp/contracts-nest';
 import type { PostMediaStatusWeb } from '@volontariapp/contracts';
 import { EventDTO } from '../../../event/dto/common/event.dto.js';
 import { timestampToDate } from '../response/comment.response.dto.js';
-import { POST_MEDIA_STATUSES, PostMediaDTO, toPostMediaStatusWeb } from './post-media.dto.js';
+import {
+  POST_MEDIA_STATUSES,
+  PostMediaDTO,
+  toPostMediaStatusWeb,
+  type PostOnWire,
+} from './post-media.dto.js';
 import type { PostMediaUrlBuilder } from './post-media-url.builder.js';
 
 export class PostDTO {
@@ -38,7 +42,7 @@ export class PostDTO {
   })
   mediaStatus!: PostMediaStatusWeb;
 
-  static fromPost(post: Post, urls: PostMediaUrlBuilder, event?: EventDTO): PostDTO {
+  static fromPost(post: PostOnWire, urls: PostMediaUrlBuilder, event?: EventDTO): PostDTO {
     const dto = new PostDTO();
     dto.id = post.id;
     dto.title = post.title;

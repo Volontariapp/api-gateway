@@ -5,12 +5,13 @@ import { PaginationResponseDTO } from '../../../../common/dto/response/index.js'
 
 import { PostDTO } from '../common/post.dto.js';
 import type { PostMediaUrlBuilder } from '../common/post-media-url.builder.js';
+import type { PostOnWire } from '../common/post-media.dto.js';
 
 import { EventDTO } from '../../../event/dto/common/event.dto.js';
 
 export class ListPostsResponseDTO implements ListPostsWebResponse {
   static fromResponse(
-    response: ListPostsResponse,
+    response: Omit<ListPostsResponse, 'posts'> & { posts: PostOnWire[] },
     urls: PostMediaUrlBuilder,
     eventsMap?: Map<string, EventDTO>,
   ): ListPostsResponseDTO {

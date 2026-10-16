@@ -1,4 +1,8 @@
 import { PostMediaStatus, type Post, type PostMedia } from '@volontariapp/contracts-nest';
+import type {
+  PostOnWire,
+  PostMediaStatusOnWire,
+} from '../../../modules/post/dto/common/post-media.dto.js';
 
 export const POST_FILE_ID_1 = '9b2f1c52-7a63-4d0e-8f41-0c5d2e6a7b13';
 export const POST_FILE_ID_2 = '3c8e7a10-5b2d-4f6a-9d14-7e0b1a2c3d4e';
@@ -30,5 +34,13 @@ export class PostFactory {
     media: PostMedia[] = [PostFactory.createMedia()],
   ): Post {
     return PostFactory.createPost({ media, mediaStatus: status });
+  }
+
+  /** Post tel que le client gRPC de la gateway le décode : `enums: String`, donc le statut est un nom. */
+  static createWirePost(
+    status: PostMediaStatusOnWire,
+    media: PostMedia[] = [PostFactory.createMedia()],
+  ): PostOnWire {
+    return { ...PostFactory.createPost({ media }), mediaStatus: status };
   }
 }

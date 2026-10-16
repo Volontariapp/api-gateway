@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { PostMediaStatus, type PostMedia } from '@volontariapp/contracts-nest';
+import { PostMediaStatus, type Post, type PostMedia } from '@volontariapp/contracts-nest';
 import type { PostMediaStatusWeb, PostMediaWeb } from '@volontariapp/contracts';
 import type { PostMediaUrlBuilder } from './post-media-url.builder.js';
 
@@ -10,16 +10,28 @@ export const POST_MEDIA_STATUSES: readonly PostMediaStatusWeb[] = [
   'REJECTED',
 ];
 
-export function toPostMediaStatusWeb(status: PostMediaStatus): PostMediaStatusWeb {
+/**
+ * Statut tel qu'il arrive du client gRPC. Les types générés le déclarent numérique, mais
+ * `getGrpcOptions` charge les protos avec `enums: String` (contracts-nest, grpc.helpers.ts) :
+ * à l'exécution c'est le nom ('POST_MEDIA_STATUS_READY'). Les deux formes sont acceptées.
+ */
+export type PostMediaStatusOnWire = PostMediaStatus | keyof typeof PostMediaStatus;
+
+/** Post du client gRPC, avec son statut de média sous la forme réellement reçue. */
+export type PostOnWire = Omit<Post, 'mediaStatus'> & { mediaStatus: PostMediaStatusOnWire };
+
+/** Un statut inconnu ou non précisé vaut NONE : il n'ouvre jamais le calcul d'une URL. */
+export function toPostMediaStatusWeb(status: PostMediaStatusOnWire): PostMediaStatusWeb {
   switch (status) {
     case PostMediaStatus.POST_MEDIA_STATUS_PENDING:
+    case 'POST_MEDIA_STATUS_PENDING':
       return 'PENDING';
     case PostMediaStatus.POST_MEDIA_STATUS_READY:
+    case 'POST_MEDIA_STATUS_READY':
       return 'READY';
     case PostMediaStatus.POST_MEDIA_STATUS_REJECTED:
+    case 'POST_MEDIA_STATUS_REJECTED':
       return 'REJECTED';
-    case PostMediaStatus.POST_MEDIA_STATUS_NONE:
-    case PostMediaStatus.POST_MEDIA_STATUS_UNSPECIFIED:
     default:
       return 'NONE';
   }
