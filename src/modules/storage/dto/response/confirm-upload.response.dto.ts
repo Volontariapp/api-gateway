@@ -2,7 +2,7 @@ import { InternalServerErrorException } from '@nestjs/common';
 import { ApiProperty } from '@nestjs/swagger';
 import type { ConfirmUploadResponse } from '@volontariapp/contracts-nest';
 import type { ConfirmUploadWebResponse } from '@volontariapp/contracts';
-import { FileMetadataDTO } from './file-metadata.response.dto.js';
+import { FileMetadataDTO } from '../common/file-metadata.dto.js';
 
 export class ConfirmUploadResponseDTO implements ConfirmUploadWebResponse {
   static fromResponse(response: ConfirmUploadResponse): ConfirmUploadResponseDTO {

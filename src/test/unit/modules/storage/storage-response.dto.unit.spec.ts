@@ -1,9 +1,9 @@
 import { InternalServerErrorException } from '@nestjs/common';
+import { FileMetadataDTO } from '../../../../modules/storage/dto/common/index.js';
 import {
   ConfirmUploadResponseDTO,
-  FileMetadataDTO,
-  FileMetadataResponseDTO,
   GenerateUploadUrlResponseDTO,
+  GetFileMetadataResponseDTO,
 } from '../../../../modules/storage/dto/response/index.js';
 import {
   FILE_ID,
@@ -42,16 +42,16 @@ describe('storage response DTOs (Unit)', () => {
     expect(
       ConfirmUploadResponseDTO.fromResponse(createConfirmUploadResponseFactory()).file.id,
     ).toBe(FILE_ID);
-    expect(FileMetadataResponseDTO.fromResponse(createFileMetadataResponseFactory()).file.id).toBe(
-      FILE_ID,
-    );
+    expect(
+      GetFileMetadataResponseDTO.fromResponse(createFileMetadataResponseFactory()).file.id,
+    ).toBe(FILE_ID);
   });
 
   it('should fail when ms-storage returns no file', () => {
     expect(() => ConfirmUploadResponseDTO.fromResponse({ file: undefined })).toThrow(
       InternalServerErrorException,
     );
-    expect(() => FileMetadataResponseDTO.fromResponse({ file: undefined })).toThrow(
+    expect(() => GetFileMetadataResponseDTO.fromResponse({ file: undefined })).toThrow(
       InternalServerErrorException,
     );
   });
