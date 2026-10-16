@@ -17,5 +17,8 @@
     "msSocialUrl": "MS_SOCIAL_URL",
     "msStorageUrl": "MS_STORAGE_URL",
     "msWsUrl": "MS_WS_URL"
+  },
+  "storage": {
+    "publicBaseUrl": "S3_PUBLIC_BASE_URL"
   }
 }

@@ -6,6 +6,7 @@ import { CustomApiError, USER_ALREADY_EXISTS } from '@volontariapp/errors-nest';
 import type { ClientGrpc } from '@nestjs/microservices';
 import { Public, UseRefreshToken } from '@volontariapp/auth';
 import { WithMetadata } from '../../../../common/types/grpc.types.js';
+import { PublicFileUrlService } from '../../../storage/public-file-url.service.js';
 import { USER_PACKAGE } from '../../../../grpc/grpc-packages.js';
 import { USER_SERVICE_NAME, UserServiceClient } from '@volontariapp/contracts-nest';
 import {
@@ -21,7 +22,10 @@ export class UserAuthController implements OnModuleInit {
   private readonly logger = new Logger({ context: UserAuthController.name });
   private userService!: WithMetadata<UserServiceClient>;
 
-  constructor(@Inject(USER_PACKAGE) private client: ClientGrpc) {}
+  constructor(
+    @Inject(USER_PACKAGE) private client: ClientGrpc,
+    private readonly publicFileUrls: PublicFileUrlService,
+  ) {}
 
   onModuleInit() {
     this.userService = this.client.getService<UserServiceClient>(USER_SERVICE_NAME);
@@ -36,7 +40,7 @@ export class UserAuthController implements OnModuleInit {
     this.logger.log(`Registering new user: ${request.email}`);
     return this.userService
       .signUp(request.toCommand())
-      .pipe(map((res) => SignUpResponseDTO.fromResponse(res)));
+      .pipe(map((res) => SignUpResponseDTO.fromResponse(res, this.publicFileUrls)));
   }
 
   @ApiOperation({ summary: 'Login with email and password' })

@@ -34,6 +34,12 @@ export class ExtendedAuthConfig extends GatewayAuthConfig {
   refreshTokenExpiresIn?: string | number;
 }
 
+export class StorageConfig {
+  @IsOptional()
+  @IsString()
+  publicBaseUrl?: string;
+}
+
 export class CustomConfig extends BaseConfig {
   @IsDefined()
   @Type(() => Number)
@@ -49,4 +55,9 @@ export class CustomConfig extends BaseConfig {
   @ValidateNested()
   @Type(() => ExtendedAuthConfig)
   auth!: ExtendedAuthConfig;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => StorageConfig)
+  storage?: StorageConfig;
 }

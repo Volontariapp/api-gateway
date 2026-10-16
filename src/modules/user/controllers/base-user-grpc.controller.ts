@@ -3,11 +3,15 @@ import type { ClientGrpc } from '@nestjs/microservices';
 import { WithMetadata } from '../../../common/types/grpc.types.js';
 import { USER_PACKAGE } from '../../../grpc/grpc-packages.js';
 import { USER_SERVICE_NAME, UserServiceClient } from '@volontariapp/contracts-nest';
+import { PublicFileUrlService } from '../../storage/public-file-url.service.js';
 
 export abstract class BaseUserGrpcController implements OnModuleInit {
   protected userService!: WithMetadata<UserServiceClient>;
 
-  constructor(@Inject(USER_PACKAGE) protected client: ClientGrpc) {}
+  constructor(
+    @Inject(USER_PACKAGE) protected client: ClientGrpc,
+    protected readonly publicFileUrls: PublicFileUrlService,
+  ) {}
 
   onModuleInit() {
     this.userService = this.client.getService<UserServiceClient>(USER_SERVICE_NAME);

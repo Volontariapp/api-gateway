@@ -1531,6 +1531,48 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@msgpackr-extract/msgpackr-extract-darwin-arm64@npm:3.0.4":
+  version: 3.0.4
+  resolution: "@msgpackr-extract/msgpackr-extract-darwin-arm64@npm:3.0.4"
+  conditions: os=darwin & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@msgpackr-extract/msgpackr-extract-darwin-x64@npm:3.0.4":
+  version: 3.0.4
+  resolution: "@msgpackr-extract/msgpackr-extract-darwin-x64@npm:3.0.4"
+  conditions: os=darwin & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@msgpackr-extract/msgpackr-extract-linux-arm64@npm:3.0.4":
+  version: 3.0.4
+  resolution: "@msgpackr-extract/msgpackr-extract-linux-arm64@npm:3.0.4"
+  conditions: os=linux & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@msgpackr-extract/msgpackr-extract-linux-arm@npm:3.0.4":
+  version: 3.0.4
+  resolution: "@msgpackr-extract/msgpackr-extract-linux-arm@npm:3.0.4"
+  conditions: os=linux & cpu=arm
+  languageName: node
+  linkType: hard
+
+"@msgpackr-extract/msgpackr-extract-linux-x64@npm:3.0.4":
+  version: 3.0.4
+  resolution: "@msgpackr-extract/msgpackr-extract-linux-x64@npm:3.0.4"
+  conditions: os=linux & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@msgpackr-extract/msgpackr-extract-win32-x64@npm:3.0.4":
+  version: 3.0.4
+  resolution: "@msgpackr-extract/msgpackr-extract-win32-x64@npm:3.0.4"
+  conditions: os=win32 & cpu=x64
+  languageName: node
+  linkType: hard
+
 "@napi-rs/wasm-runtime@npm:^1.1.4":
   version: 1.1.4
   resolution: "@napi-rs/wasm-runtime@npm:1.1.4"
@@ -4233,6 +4275,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@volontariapp/bridge@npm:1.0.10":
+  version: 1.0.10
+  resolution: "@volontariapp/bridge@npm:1.0.10"
+  dependencies:
+    "@types/geojson": "npm:^7946.0.16"
+    "@volontariapp/config": "npm:3.3.2"
+    "@volontariapp/errors": "npm:0.6.5"
+    "@volontariapp/logger": "npm:0.4.0"
+    ioredis: "npm:^5.10.1"
+    neo4j-driver: "npm:^6.0.1"
+    pg: "npm:^8.20.0"
+    reflect-metadata: "npm:^0.2.2"
+    typeorm: "npm:^0.3.28"
+  checksum: 10c0/50c5cb93ae5151759c253b3927b40d16547cf94b6d8c34d184c7a2e0f12a1c3ac9c022eb681983474766ff714572cd6856c3f571e5c9ec83d4a4503f40932bc5
+  languageName: node
+  linkType: hard
+
 "@volontariapp/bridge@npm:1.0.9":
   version: 1.0.9
   resolution: "@volontariapp/bridge@npm:1.0.9"
@@ -4265,6 +4324,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@volontariapp/config@npm:3.3.2":
+  version: 3.3.2
+  resolution: "@volontariapp/config@npm:3.3.2"
+  dependencies:
+    "@volontariapp/logger": "npm:0.4.0"
+    class-transformer: "npm:^0.5.1"
+    class-validator: "npm:^0.15.1"
+    ioredis: "npm:^5.10.1"
+    neo4j-driver: "npm:^6.0.1"
+    reflect-metadata: "npm:^0.2.2"
+    typeorm: "npm:^0.3.28"
+  checksum: 10c0/12e5fe7a289f834953a99266f363cda1caa72372ee2407331a08f6d80bbdb6f1a18119b3eb28184bbe72313fda834e76ea945b99d8d94598712b94b7a041e669
+  languageName: node
+  linkType: hard
+
 "@volontariapp/contracts-nest@npm:^3.3.8":
   version: 3.3.8
   resolution: "@volontariapp/contracts-nest@npm:3.3.8"
@@ -4280,6 +4354,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@volontariapp/contracts@npm:4.5.0":
+  version: 4.5.0
+  resolution: "@volontariapp/contracts@npm:4.5.0"
+  dependencies:
+    "@volontariapp/logger": "npm:0.4.0"
+    protobufjs: "npm:^7.5.8"
+  checksum: 10c0/91eca135b8558b83b8dee74b5a745f9696a8ca0524fe1ffc4c4482034459113c383c197b849f4b4c1ba7ff9707db99c67b2cc72de571dbc10a76698e4c4dbcac
+  languageName: node
+  linkType: hard
+
 "@volontariapp/contracts@npm:^4.4.0":
   version: 4.4.0
   resolution: "@volontariapp/contracts@npm:4.4.0"
@@ -4287,6 +4371,49 @@ __metadata:
     "@volontariapp/logger": "npm:0.4.0"
     protobufjs: "npm:^7.5.8"
   checksum: 10c0/dcbf5767ecd9ab444d61447e6cb77ec50791b0ecf75b67eb7e8ad991120103d966d428f4bb86240810459dcd51ba2442c6247c2c4c5bca1a60bc378e62c5fa09
+  languageName: node
+  linkType: hard
+
+"@volontariapp/database@npm:3.10.5":
+  version: 3.10.5
+  resolution: "@volontariapp/database@npm:3.10.5"
+  dependencies:
+    "@opentelemetry/api": "npm:^1.9.0"
+    "@volontariapp/bridge": "npm:1.0.10"
+    "@volontariapp/config": "npm:3.3.2"
+    "@volontariapp/errors": "npm:0.6.5"
+    "@volontariapp/logger": "npm:0.4.0"
+    "@volontariapp/messaging": "npm:2.25.5"
+    "@volontariapp/shared": "npm:0.15.0"
+    class-transformer: "npm:^0.5.1"
+    class-validator: "npm:^0.14.1"
+    pg: "npm:^8.20.0"
+    reflect-metadata: "npm:^0.2.2"
+  peerDependencies:
+    typeorm: ^0.3.28
+  checksum: 10c0/1012160e0627cb83882eddad319a627841e619b1150b5d8c31704b943388266069bfe38820cd471bbb3d1119e13a632f40f73cfc2b86fb6868c189056d82c170
+  languageName: node
+  linkType: hard
+
+"@volontariapp/domain-storage@npm:^0.12.0":
+  version: 0.12.0
+  resolution: "@volontariapp/domain-storage@npm:0.12.0"
+  dependencies:
+    "@nestjs/common": "npm:^11.0.1"
+    "@volontariapp/database": "npm:3.10.5"
+    "@volontariapp/errors": "npm:0.6.5"
+    "@volontariapp/logger": "npm:0.4.0"
+    "@volontariapp/messaging": "npm:2.25.5"
+    "@volontariapp/outbox": "npm:0.10.9"
+  peerDependencies:
+    reflect-metadata: ^0.2.2
+    typeorm: ^0.3.28
+  peerDependenciesMeta:
+    reflect-metadata:
+      optional: true
+    typeorm:
+      optional: true
+  checksum: 10c0/6b2c4258bb4abb97bf3c93d5960ef9437024454b60de5d0ff92a23ec1a8b570c366496f1f01d0ad95abade6eaca93bee3305c3164c5c131637edd600e770558c
   languageName: node
   linkType: hard
 
@@ -4433,6 +4560,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@volontariapp/messaging@npm:2.25.5":
+  version: 2.25.5
+  resolution: "@volontariapp/messaging@npm:2.25.5"
+  dependencies:
+    "@volontariapp/contracts": "npm:4.5.0"
+    "@volontariapp/shared": "npm:0.15.0"
+  checksum: 10c0/69e132d66c5229fb52910f4ce9562bcd16c27456ca8a397906b894fb32110a123e2ff76a3e1272a8b1427493e2bce008ebe95e3c46cba2acac564608db677c76
+  languageName: node
+  linkType: hard
+
 "@volontariapp/monitoring@npm:^2.2.1":
   version: 2.2.1
   resolution: "@volontariapp/monitoring@npm:2.2.1"
@@ -4452,6 +4589,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@volontariapp/outbox@npm:0.10.9":
+  version: 0.10.9
+  resolution: "@volontariapp/outbox@npm:0.10.9"
+  dependencies:
+    "@volontariapp/config": "npm:3.3.2"
+    "@volontariapp/database": "npm:3.10.5"
+    "@volontariapp/errors": "npm:0.6.5"
+    "@volontariapp/logger": "npm:0.4.0"
+    "@volontariapp/messaging": "npm:2.25.5"
+    "@volontariapp/shared": "npm:0.15.0"
+    "@volontariapp/testing": "npm:1.0.3"
+    bullmq: "npm:^5.76.5"
+    ioredis: "npm:^5.10.1"
+  checksum: 10c0/2cf48dbc831c94fa665dab2ea5475ed80a44e97e0ef91e74b6012269c843af9f3450e3f618fe1d8e015b018847c287678cf74ac0d1f6f00f1203a6a1ab116d1f
+  languageName: node
+  linkType: hard
+
 "@volontariapp/shared@npm:0.14.0, @volontariapp/shared@npm:^0.14.0":
   version: 0.14.0
   resolution: "@volontariapp/shared@npm:0.14.0"
@@ -4459,7 +4613,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@volontariapp/testing@npm:^1.0.3":
+"@volontariapp/shared@npm:0.15.0":
+  version: 0.15.0
+  resolution: "@volontariapp/shared@npm:0.15.0"
+  checksum: 10c0/4fd41731cf78bbab8d8d34b26812cf09215aa4ac1594de243abea2b455ac5babfb22e33d2bed989ad78fbb0644136add2cd2321ae2bc76af80b66fd12fbfcb47
+  languageName: node
+  linkType: hard
+
+"@volontariapp/testing@npm:1.0.3, @volontariapp/testing@npm:^1.0.3":
   version: 1.0.3
   resolution: "@volontariapp/testing@npm:1.0.3"
   dependencies:
@@ -4922,6 +5083,7 @@ __metadata:
     "@volontariapp/config": "npm:^3.3.1"
     "@volontariapp/contracts": "npm:^4.4.0"
     "@volontariapp/contracts-nest": "npm:^3.3.8"
+    "@volontariapp/domain-storage": "npm:^0.12.0"
     "@volontariapp/errors": "npm:^0.6.4"
     "@volontariapp/errors-nest": "npm:^0.14.0"
     "@volontariapp/eslint-config": "npm:^2.2.5"
@@ -5386,6 +5548,25 @@ __metadata:
   languageName: node
   linkType: hard
 
+"bullmq@npm:^5.76.5":
+  version: 5.81.5
+  resolution: "bullmq@npm:5.81.5"
+  dependencies:
+    cron-parser: "npm:4.9.0"
+    ioredis: "npm:5.11.1"
+    msgpackr: "npm:2.0.5"
+    node-abort-controller: "npm:3.1.1"
+    semver: "npm:7.8.5"
+    tslib: "npm:2.8.1"
+  peerDependencies:
+    redis: ">=5.0.0"
+  peerDependenciesMeta:
+    redis:
+      optional: true
+  checksum: 10c0/13b33748e8e0ef3c76156c1a235578eacec9a93a841680b1fba7372eb3e92830537fcc0be8d7b108676a6d09477986ed69624a03b5e6198b627a678aa4457288
+  languageName: node
+  linkType: hard
+
 "busboy@npm:^1.6.0":
   version: 1.6.0
   resolution: "busboy@npm:1.6.0"
@@ -5541,6 +5722,17 @@ __metadata:
   version: 0.5.1
   resolution: "class-transformer@npm:0.5.1"
   checksum: 10c0/19809914e51c6db42c036166839906420bb60367df14e15f49c45c8c1231bf25ae661ebe94736ee29cc688b77101ef851a8acca299375cc52fc141b64acde18a
+  languageName: node
+  linkType: hard
+
+"class-validator@npm:^0.14.1":
+  version: 0.14.4
+  resolution: "class-validator@npm:0.14.4"
+  dependencies:
+    "@types/validator": "npm:^13.15.3"
+    libphonenumber-js: "npm:^1.11.1"
+    validator: "npm:^13.15.22"
+  checksum: 10c0/1d415261aad7bdd72528db76e814195ca627a9d33f159752554dbbf71b8360359d3061a8edd16ac951a9a4fb86e0495cdf8badf82ec44e2dcc187ab496f37c5a
   languageName: node
   linkType: hard
 
@@ -5835,6 +6027,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"cron-parser@npm:4.9.0":
+  version: 4.9.0
+  resolution: "cron-parser@npm:4.9.0"
+  dependencies:
+    luxon: "npm:^3.2.1"
+  checksum: 10c0/348622bdcd1a15695b61fc33af8a60133e5913a85cf99f6344367579e7002896514ba3b0a9d6bb569b02667d6b06836722bf2295fcd101b3de378f71d37bed0b
+  languageName: node
+  linkType: hard
+
 "cross-spawn@npm:^7.0.3, cross-spawn@npm:^7.0.6":
   version: 7.0.6
   resolution: "cross-spawn@npm:7.0.6"
@@ -5982,6 +6183,13 @@ __metadata:
   version: 2.0.0
   resolution: "depd@npm:2.0.0"
   checksum: 10c0/58bd06ec20e19529b06f7ad07ddab60e504d9e0faca4bd23079fac2d279c3594334d736508dc350e06e510aba5e22e4594483b3a6562ce7c17dd797f4cc4ad2c
+  languageName: node
+  linkType: hard
+
+"detect-libc@npm:^2.0.1":
+  version: 2.1.2
+  resolution: "detect-libc@npm:2.1.2"
+  checksum: 10c0/acc675c29a5649fa1fb6e255f993b8ee829e510b6b56b0910666949c80c364738833417d0edb5f90e4e46be17228b0f2b66a010513984e18b15deeeac49369c4
   languageName: node
   linkType: hard
 
@@ -7495,6 +7703,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"ioredis@npm:5.11.1":
+  version: 5.11.1
+  resolution: "ioredis@npm:5.11.1"
+  dependencies:
+    "@ioredis/commands": "npm:1.10.0"
+    cluster-key-slot: "npm:1.1.1"
+    debug: "npm:4.4.3"
+    denque: "npm:2.1.0"
+    redis-errors: "npm:1.2.0"
+    redis-parser: "npm:3.0.0"
+    standard-as-callback: "npm:2.1.0"
+  checksum: 10c0/a8b27043cf2c045dfc93f40a32ce24cf9f8b57799a37f4234c4b925c365ccf131629590f94a512f546fda2ba8ed034009c94c4933ecd44c50bc166636d929fd6
+  languageName: node
+  linkType: hard
+
 "ioredis@npm:^5.10.1":
   version: 5.11.0
   resolution: "ioredis@npm:5.11.0"
@@ -8690,6 +8913,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"luxon@npm:^3.2.1":
+  version: 3.7.2
+  resolution: "luxon@npm:3.7.2"
+  checksum: 10c0/ed8f0f637826c08c343a29dd478b00628be93bba6f068417b1d8896b61cb61c6deacbe1df1e057dbd9298334044afa150f9aaabbeb3181418ac8520acfdc2ae2
+  languageName: node
+  linkType: hard
+
 "magic-string@npm:0.30.17":
   version: 0.30.17
   resolution: "magic-string@npm:0.30.17"
@@ -8918,6 +9148,49 @@ __metadata:
   languageName: node
   linkType: hard
 
+"msgpackr-extract@npm:^3.0.4":
+  version: 3.0.4
+  resolution: "msgpackr-extract@npm:3.0.4"
+  dependencies:
+    "@msgpackr-extract/msgpackr-extract-darwin-arm64": "npm:3.0.4"
+    "@msgpackr-extract/msgpackr-extract-darwin-x64": "npm:3.0.4"
+    "@msgpackr-extract/msgpackr-extract-linux-arm": "npm:3.0.4"
+    "@msgpackr-extract/msgpackr-extract-linux-arm64": "npm:3.0.4"
+    "@msgpackr-extract/msgpackr-extract-linux-x64": "npm:3.0.4"
+    "@msgpackr-extract/msgpackr-extract-win32-x64": "npm:3.0.4"
+    node-gyp: "npm:latest"
+    node-gyp-build-optional-packages: "npm:5.2.2"
+  dependenciesMeta:
+    "@msgpackr-extract/msgpackr-extract-darwin-arm64":
+      optional: true
+    "@msgpackr-extract/msgpackr-extract-darwin-x64":
+      optional: true
+    "@msgpackr-extract/msgpackr-extract-linux-arm":
+      optional: true
+    "@msgpackr-extract/msgpackr-extract-linux-arm64":
+      optional: true
+    "@msgpackr-extract/msgpackr-extract-linux-x64":
+      optional: true
+    "@msgpackr-extract/msgpackr-extract-win32-x64":
+      optional: true
+  bin:
+    download-msgpackr-prebuilds: bin/download-prebuilds.js
+  checksum: 10c0/582a9d17abbf3019e600e948736695056280ce401fd0235ee2474e95f9952208b9f6cce4d0e355b03b7d3c5630e6c3d11fe5fc27fdedb2311cce48de464338d8
+  languageName: node
+  linkType: hard
+
+"msgpackr@npm:2.0.5":
+  version: 2.0.5
+  resolution: "msgpackr@npm:2.0.5"
+  dependencies:
+    msgpackr-extract: "npm:^3.0.4"
+  dependenciesMeta:
+    msgpackr-extract:
+      optional: true
+  checksum: 10c0/7ac9820cecd44d24d2ef07994405a277509f004d4fb0a77d04e10e9071d0599e86ad53a9daf673e801518230774bdaca72b1fdcff2b516584ab58bd19362e6ad
+  languageName: node
+  linkType: hard
+
 "multer@npm:2.1.1":
   version: 2.1.1
   resolution: "multer@npm:2.1.1"
@@ -9005,7 +9278,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-abort-controller@npm:^3.0.1":
+"node-abort-controller@npm:3.1.1, node-abort-controller@npm:^3.0.1":
   version: 3.1.1
   resolution: "node-abort-controller@npm:3.1.1"
   checksum: 10c0/f7ad0e7a8e33809d4f3a0d1d65036a711c39e9d23e0319d80ebe076b9a3b4432b4d6b86a7fab65521de3f6872ffed36fc35d1327487c48eb88c517803403eda3
@@ -9044,6 +9317,19 @@ __metadata:
     encoding:
       optional: true
   checksum: 10c0/b55786b6028208e6fbe594ccccc213cab67a72899c9234eb59dba51062a299ea853210fcf526998eaa2867b0963ad72338824450905679ff0fa304b8c5093ae8
+  languageName: node
+  linkType: hard
+
+"node-gyp-build-optional-packages@npm:5.2.2":
+  version: 5.2.2
+  resolution: "node-gyp-build-optional-packages@npm:5.2.2"
+  dependencies:
+    detect-libc: "npm:^2.0.1"
+  bin:
+    node-gyp-build-optional-packages: bin.js
+    node-gyp-build-optional-packages-optional: optional.js
+    node-gyp-build-optional-packages-test: build-test.js
+  checksum: 10c0/c81128c6f91873381be178c5eddcbdf66a148a6a89a427ce2bcd457593ce69baf2a8662b6d22cac092d24aa9c43c230dec4e69b3a0da604503f4777cd77e282b
   languageName: node
   linkType: hard
 
@@ -10056,6 +10342,15 @@ __metadata:
     ajv-formats: "npm:^2.1.1"
     ajv-keywords: "npm:^5.1.0"
   checksum: 10c0/1c8d2c480a026d7c02ab2ecbe5919133a096d6a721a3f201fa50663e4f30f6d6ba020dfddd93cb828b66b922e76b342e103edd19a62c95c8f60e9079cc403202
+  languageName: node
+  linkType: hard
+
+"semver@npm:7.8.5":
+  version: 7.8.5
+  resolution: "semver@npm:7.8.5"
+  bin:
+    semver: bin/semver.js
+  checksum: 10c0/b1f3127a5be8125a94f37188b361c212466c292c6910adce3ec106cff5dc211ccaedc4739c11bb70fda59d6fc1f040a9bca289f4e093451521a2372e5231fe0c
   languageName: node
   linkType: hard
 

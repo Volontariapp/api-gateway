@@ -8,6 +8,7 @@ import type { AuthUser } from '@volontariapp/auth';
 import { Metadata } from '@grpc/grpc-js';
 import { UpdateUserRequestDTO } from '../../../../modules/user/dto/request/update-user.request.dto.js';
 import { UserFactory } from '../../../helpers/factories/user.factory.js';
+import { PublicFileUrlFactory } from '../../../helpers/factories/public-file-url.factory.js';
 
 describe('UserCommandController (Unit)', () => {
   let controller: UserCommandController;
@@ -25,7 +26,10 @@ describe('UserCommandController (Unit)', () => {
     mockUserService.deleteUser = mockDeleteUser as never;
 
     const mockClient = new MockUserClientGrpc(mockUserService);
-    controller = new UserCommandController(mockClient);
+    controller = new UserCommandController(
+      mockClient,
+      PublicFileUrlFactory.createService('https://cdn.test/pub'),
+    );
     controller.onModuleInit();
   });
 
@@ -50,7 +54,7 @@ describe('UserCommandController (Unit)', () => {
   });
 
   describe('updateMe', () => {
-    it('should relay avatarFileId to ms-user and return the refreshed profile', async () => {
+    it('should relay avatarFileId to ms-user and return the profile with its avatarUrl', async () => {
       const avatarFileId = '9b2f1c52-7a63-4d0e-8f41-0c5d2e6a7b13';
       const metadata = new Metadata();
       const updateSpy = jest.spyOn(mockUserService, 'updateUser').mockReturnValue(of({}));
@@ -65,6 +69,8 @@ describe('UserCommandController (Unit)', () => {
 
       expect(updateSpy).toHaveBeenCalledWith(expect.objectContaining({ avatarFileId }), metadata);
       expect(response.user.id).toBe(mockUser.id);
+      expect(response.user.avatarFileId).toBe(avatarFileId);
+      expect(response.user.avatarUrl).toBe(`https://cdn.test/pub/user-avatar/${avatarFileId}.webp`);
     });
   });
 });

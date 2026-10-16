@@ -10,6 +10,7 @@ import { SOCIAL_PACKAGE, USER_PACKAGE } from '../../../../../grpc/grpc-packages.
 import { USER_SERVICE_NAME, UserServiceClient } from '@volontariapp/contracts-nest';
 import type { WithMetadata } from '../../../../../common/types/grpc.types.js';
 import { ListUsersResponseDTO } from '../../../../user/dto/response/index.js';
+import { PublicFileUrlService } from '../../../../storage/public-file-url.service.js';
 import {
   GetMyFollowsRequestDTO,
   GetMyFollowersRequestDTO,
@@ -26,6 +27,7 @@ export class RelationshipQueryController extends BaseRelationshipGrpcController 
   constructor(
     @Inject(SOCIAL_PACKAGE) client: ClientGrpc,
     @Inject(USER_PACKAGE) private readonly userClient: ClientGrpc,
+    private readonly publicFileUrls: PublicFileUrlService,
   ) {
     super(client);
   }
@@ -44,7 +46,7 @@ export class RelationshipQueryController extends BaseRelationshipGrpcController 
     const { pagination } = query;
     return this.userService
       .getMyFollowsProfiles({ pagination }, metadata)
-      .pipe(map((res) => ListUsersResponseDTO.fromResponse(res)));
+      .pipe(map((res) => ListUsersResponseDTO.fromResponse(res, this.publicFileUrls)));
   }
 
   @Get('followers')
@@ -56,7 +58,7 @@ export class RelationshipQueryController extends BaseRelationshipGrpcController 
     const { pagination } = query;
     return this.userService
       .getMyFollowersProfiles({ pagination }, metadata)
-      .pipe(map((res) => ListUsersResponseDTO.fromResponse(res)));
+      .pipe(map((res) => ListUsersResponseDTO.fromResponse(res, this.publicFileUrls)));
   }
 
   @Get('blocks')

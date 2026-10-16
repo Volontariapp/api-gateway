@@ -27,6 +27,10 @@ export class AppConfigService {
     return this.config.microServices.msWsUrl;
   }
 
+  get publicFileBaseUrl(): string | undefined {
+    return this.config.storage?.publicBaseUrl;
+  }
+
   get loggerFormat(): LoggerFormat {
     return this.config.logger.format;
   }

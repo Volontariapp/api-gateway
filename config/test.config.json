@@ -20,5 +20,8 @@
     "refreshTokenExpiresIn": "7d",
     "internalPrivateKeyPath": "certs/internal.key",
     "internalExpiresIn": "1h"
+  },
+  "storage": {
+    "publicBaseUrl": "http://localhost:9000/volontariapp-public"
   }
 }

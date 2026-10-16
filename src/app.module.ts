@@ -10,6 +10,7 @@ import { PostModule } from './modules/post/post.module.js';
 import { SocialModule } from './modules/social/social.module.js';
 import { UserModule } from './modules/user/user.module.js';
 import { StorageModule } from './modules/storage/storage.module.js';
+import { PublicFileUrlModule } from './modules/storage/public-file-url.module.js';
 import { AuthModule } from '@volontariapp/auth';
 import { NodeEnv } from '@volontariapp/config';
 import { HealthModule } from './modules/health/health.module.js';
@@ -39,6 +40,7 @@ export class AppModule {
       EventModule,
       SocialModule,
       StorageModule,
+      PublicFileUrlModule,
       HealthModule,
       WsProxyModule,
       SystemModule,
