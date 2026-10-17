@@ -3,6 +3,7 @@ import { EntityType } from '@volontariapp/domain-storage/enums';
 import { buildPublicFileUrl } from '@volontariapp/domain-storage/helpers';
 import { Logger } from '@volontariapp/logger';
 import { AppConfigService } from '../../config/app-config.service.js';
+import type { EventCoverUrlBuilder } from '../event/dto/common/event-cover-url.builder.js';
 import type { PostMediaUrlBuilder } from '../post/dto/common/post-media-url.builder.js';
 import type { UserAvatarUrlBuilder } from '../user/dto/common/user-avatar-url.builder.js';
 
@@ -11,7 +12,9 @@ import type { UserAvatarUrlBuilder } from '../user/dto/common/user-avatar-url.bu
  * A missing or invalid configuration never breaks a response: the URL is omitted and logged.
  */
 @Injectable()
-export class PublicFileUrlService implements UserAvatarUrlBuilder, PostMediaUrlBuilder {
+export class PublicFileUrlService
+  implements UserAvatarUrlBuilder, PostMediaUrlBuilder, EventCoverUrlBuilder
+{
   private readonly logger = new Logger({ context: PublicFileUrlService.name });
   private missingBaseUrlLogged = false;
 
@@ -23,6 +26,10 @@ export class PublicFileUrlService implements UserAvatarUrlBuilder, PostMediaUrlB
 
   forPostMedia(fileId: string): string | undefined {
     return this.build(EntityType.POST, 'post media', fileId);
+  }
+
+  forEventCover(fileId?: string): string | undefined {
+    return this.build(EntityType.EVENT_COVER, 'event cover', fileId);
   }
 
   private build(entityType: EntityType, label: string, fileId?: string): string | undefined {
@@ -50,7 +57,7 @@ export class PublicFileUrlService implements UserAvatarUrlBuilder, PostMediaUrlB
     }
     this.missingBaseUrlLogged = true;
     this.logger.warn(
-      'storage.publicBaseUrl (S3_PUBLIC_BASE_URL) is not configured: avatarUrl and media[].url are omitted from responses',
+      'storage.publicBaseUrl (S3_PUBLIC_BASE_URL) is not configured: avatarUrl, media[].url and coverUrl are omitted from responses',
     );
   }
 }

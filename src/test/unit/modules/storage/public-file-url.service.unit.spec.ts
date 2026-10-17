@@ -92,3 +92,26 @@ describe('PublicFileUrlService.forPostMedia (Unit)', () => {
     expect(service.forPostMedia('not-a-uuid')).toBeUndefined();
   });
 });
+
+describe('PublicFileUrlService.forEventCover (Unit)', () => {
+  const COVER_FILE_ID = '76c5b964-b5a1-43e3-85e2-040683457e56';
+
+  it('should build the public event cover URL from the configured base URL', () => {
+    const service = PublicFileUrlFactory.createService('http://localhost:9000/volontariapp-public');
+
+    expect(service.forEventCover(COVER_FILE_ID)).toBe(
+      `http://localhost:9000/volontariapp-public/event-cover/${COVER_FILE_ID}.webp`,
+    );
+  });
+
+  it('should return undefined when the file id is missing or empty', () => {
+    const service = PublicFileUrlFactory.createService('http://localhost:9000/pub');
+
+    expect(service.forEventCover()).toBeUndefined();
+    expect(service.forEventCover('')).toBeUndefined();
+  });
+
+  it('should return undefined instead of failing when no base URL is configured', () => {
+    expect(PublicFileUrlFactory.createService().forEventCover(COVER_FILE_ID)).toBeUndefined();
+  });
+});
