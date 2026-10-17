@@ -59,7 +59,7 @@ export class EventCommandController extends BaseEventGrpcController {
     const metadata = req['internalMetadata'] as Metadata;
     return this.commandService
       .createEvent(request.toCommand(), metadata)
-      .pipe(map((res) => CreateEventResponseDTO.fromResponse(res)));
+      .pipe(map((res) => CreateEventResponseDTO.fromResponse(res, this.publicFileUrls)));
   }
 
   @ApiOperation({
@@ -88,7 +88,7 @@ export class EventCommandController extends BaseEventGrpcController {
     const metadata = req['internalMetadata'] as Metadata;
     return this.commandService
       .updateEvent(request.toCommand(), metadata)
-      .pipe(map((res) => UpdateEventResponseDTO.fromResponse(res)));
+      .pipe(map((res) => UpdateEventResponseDTO.fromResponse(res, this.publicFileUrls)));
   }
 
   @ApiOperation({
@@ -115,7 +115,7 @@ export class EventCommandController extends BaseEventGrpcController {
     const metadata = req['internalMetadata'] as Metadata;
     return this.commandService
       .changeEventState(request.toCommand(), metadata)
-      .pipe(map((res) => ChangeEventStateResponseDTO.fromResponse(res)));
+      .pipe(map((res) => ChangeEventStateResponseDTO.fromResponse(res, this.publicFileUrls)));
   }
 
   @ApiOperation({

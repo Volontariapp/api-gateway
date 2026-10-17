@@ -11,13 +11,17 @@ import {
   TagQueryServiceClient,
 } from '@volontariapp/contracts-nest';
 import { EVENT_PACKAGE } from '../../../grpc/grpc-packages.js';
+import { PublicFileUrlService } from '../../storage/public-file-url.service.js';
 import { WithMetadata } from '../../../common/types/grpc.types.js';
 
 export abstract class BaseEventGrpcController implements OnModuleInit {
   protected commandService!: WithMetadata<EventCommandServiceClient>;
   protected queryService!: WithMetadata<EventQueryServiceClient>;
 
-  constructor(@Inject(EVENT_PACKAGE) protected client: ClientGrpc) {}
+  constructor(
+    @Inject(EVENT_PACKAGE) protected client: ClientGrpc,
+    protected readonly publicFileUrls: PublicFileUrlService,
+  ) {}
 
   onModuleInit() {
     this.commandService = this.client.getService<EventCommandServiceClient>(

@@ -26,6 +26,7 @@ import {
   ListRequirementsResponseDTO,
 } from '../../../dto/response/index.js';
 import { BaseEventGrpcController } from '../../base-grpc.controller.js';
+import { PublicFileUrlService } from '../../../../storage/public-file-url.service.js';
 
 @GatewayController('Events', {
   extraModels: [GetEventResponseDTO],
@@ -41,8 +42,9 @@ export class EventQueryController extends BaseEventGrpcController {
   constructor(
     @Inject(EVENT_PACKAGE) protected readonly eventClient: ClientGrpc,
     @Inject(SOCIAL_PACKAGE) private readonly socialClient: ClientGrpc,
+    publicFileUrls: PublicFileUrlService,
   ) {
-    super(eventClient);
+    super(eventClient, publicFileUrls);
   }
 
   override onModuleInit() {
@@ -106,7 +108,12 @@ export class EventQueryController extends BaseEventGrpcController {
     }
 
     const result = await firstValueFrom(this.queryService.searchEvents(query, metadata));
-    const dto = SearchEventsResponseDTO.fromResponse(result, request.page, request.limit);
+    const dto = SearchEventsResponseDTO.fromResponse(
+      result,
+      this.publicFileUrls,
+      request.page,
+      request.limit,
+    );
     return this.enrichSearchEventsResponse(dto, metadata);
   }
 
@@ -130,7 +137,7 @@ export class EventQueryController extends BaseEventGrpcController {
     const metadata = req['internalMetadata'] as Metadata;
 
     const result = await firstValueFrom(this.queryService.getEvent(request.toQuery(), metadata));
-    const dto = GetEventResponseDTO.fromResponse(result);
+    const dto = GetEventResponseDTO.fromResponse(result, this.publicFileUrls);
     await this.enrichEventWithParticipants(dto.event, metadata);
     return dto;
   }
@@ -162,7 +169,12 @@ export class EventQueryController extends BaseEventGrpcController {
     const result = await firstValueFrom(
       this.queryService.getUserCreatedEvents({ pagination }, metadata),
     );
-    const dto = SearchEventsResponseDTO.fromResponse(result, query.page, query.limit);
+    const dto = SearchEventsResponseDTO.fromResponse(
+      result,
+      this.publicFileUrls,
+      query.page,
+      query.limit,
+    );
     return this.enrichSearchEventsResponse(dto, metadata);
   }
 
@@ -179,7 +191,12 @@ export class EventQueryController extends BaseEventGrpcController {
     const result = await firstValueFrom(
       this.queryService.getUserParticipatedEvents({ pagination }, metadata),
     );
-    const dto = SearchEventsResponseDTO.fromResponse(result, query.page, query.limit);
+    const dto = SearchEventsResponseDTO.fromResponse(
+      result,
+      this.publicFileUrls,
+      query.page,
+      query.limit,
+    );
     return this.enrichSearchEventsResponse(dto, metadata);
   }
 
@@ -196,7 +213,12 @@ export class EventQueryController extends BaseEventGrpcController {
     const result = await firstValueFrom(
       this.queryService.getUserWishedEvents({ pagination }, metadata),
     );
-    const dto = SearchEventsResponseDTO.fromResponse(result, query.page, query.limit);
+    const dto = SearchEventsResponseDTO.fromResponse(
+      result,
+      this.publicFileUrls,
+      query.page,
+      query.limit,
+    );
     return this.enrichSearchEventsResponse(dto, metadata);
   }
 

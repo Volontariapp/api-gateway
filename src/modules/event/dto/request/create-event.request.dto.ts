@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { CreateEventCommand, EventType, GrpcDateMapper } from '@volontariapp/contracts-nest';
 import { CreateEventRequest } from '@volontariapp/contracts';
 import { Type } from 'class-transformer';
+import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 import { INVALID_DATE_PARAMETERS } from '@volontariapp/errors-nest';
 
 export class CreateEventRequestDTO implements CreateEventRequest {
@@ -38,10 +39,21 @@ export class CreateEventRequestDTO implements CreateEventRequest {
   })
   tagIds!: string[];
 
-  @ApiProperty({ required: false, example: '76c5b964-b5a1-43e3-85e2-040683457e56' })
+  @ApiProperty({
+    required: false,
+    example: '76c5b964-b5a1-43e3-85e2-040683457e56',
+    description: 'File id of a confirmed upload (EVENT_COVER), never a URL',
+  })
+  @IsOptional()
+  @IsUUID('all')
   coverFileId?: string;
 
-  @ApiProperty({ example: '5d0e4a3c-7f0b-4b76-9a52-0d1f4f3b9e11' })
+  @ApiProperty({
+    example: '5d0e4a3c-7f0b-4b76-9a52-0d1f4f3b9e11',
+    description: 'One key per form: a replayed request returns the same event',
+  })
+  @IsString()
+  @IsNotEmpty()
   idempotencyKey!: string;
 
   toCommand(): CreateEventCommand {

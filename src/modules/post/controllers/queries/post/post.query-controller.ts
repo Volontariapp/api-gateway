@@ -95,7 +95,7 @@ export class PostQueryController extends BasePostGrpcController {
           this.eventQueryService.getEventsByIds({ ids: eventIds }, metadata),
         );
         for (const ev of eventsRes.events) {
-          eventsMap.set(ev.id, EventDTO.fromResponse(ev));
+          eventsMap.set(ev.id, EventDTO.fromResponse(ev, this.publicFileUrls));
         }
       } catch (err) {
         this.logger.error('Failed to fetch events for posts', err as Error);
@@ -130,7 +130,7 @@ export class PostQueryController extends BasePostGrpcController {
           this.eventQueryService.getEvent({ id: res.post.eventId }, metadata),
         );
         if (eventRes.event) {
-          eventDto = EventDTO.fromResponse(eventRes.event);
+          eventDto = EventDTO.fromResponse(eventRes.event, this.publicFileUrls);
         }
       } catch (err) {
         this.logger.error(`Failed to fetch event for post ${id}`, err as Error);
