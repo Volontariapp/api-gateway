@@ -18,7 +18,8 @@
     "msPostUrl": "localhost:5002",
     "msEventUrl": "localhost:5003",
     "msSocialUrl": "localhost:5004",
-    "msStorageUrl": "localhost:5006"
+    "msStorageUrl": "localhost:5006",
+    "msRankingUrl": "localhost:5007"
   },
   "port": 3000,
   "storage": {

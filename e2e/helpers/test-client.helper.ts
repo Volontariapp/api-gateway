@@ -60,6 +60,14 @@ export class TestClient {
     return req;
   }
 
+  put(url: string) {
+    const req = request(this.getRequestTarget()).put(url);
+    if (this.authHeader) {
+      req.set(this.authHeader);
+    }
+    return req;
+  }
+
   delete(url: string) {
     const req = request(this.getRequestTarget()).delete(url);
     if (this.authHeader) {

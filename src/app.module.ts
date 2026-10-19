@@ -16,6 +16,7 @@ import { NodeEnv } from '@volontariapp/config';
 import { HealthModule } from './modules/health/health.module.js';
 import { WsProxyModule } from './modules/ws-proxy/ws-proxy.module.js';
 import { SystemModule } from './modules/system/system.module.js';
+import { RankingModule } from './modules/ranking/ranking.module.js';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { SystemModule } from './modules/system/system.module.js';
     EventModule,
     SocialModule,
     StorageModule,
+    RankingModule,
     WsProxyModule,
     SystemModule,
   ],
@@ -40,6 +42,7 @@ export class AppModule {
       EventModule,
       SocialModule,
       StorageModule,
+      RankingModule,
       PublicFileUrlModule,
       HealthModule,
       WsProxyModule,

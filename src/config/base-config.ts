@@ -14,6 +14,11 @@ export class ExtendedMSURLsConfig extends MSURLsConfig {
   @IsString()
   @IsNotEmpty()
   msStorageUrl!: string;
+
+  @IsDefined()
+  @IsString()
+  @IsNotEmpty()
+  msRankingUrl!: string;
 }
 
 export class ExtendedAuthConfig extends GatewayAuthConfig {

@@ -8,6 +8,7 @@ import { PostModule } from '../modules/post/post.module.js';
 import { EventModule } from '../modules/event/event.module.js';
 import { SocialModule } from '../modules/social/social.module.js';
 import { HelperModule } from '../modules/helper/helper.module.js';
+import { RankingModule } from '../modules/ranking/ranking.module.js';
 import { ErrorResponseDto } from '@volontariapp/errors-nest';
 
 export interface SwaggerConfig {
@@ -77,6 +78,21 @@ export const swaggerConfigs: SwaggerConfig[] = [
       .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'refresh-token')
       .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'internal-token'),
     modules: [SocialModule],
+  },
+  {
+    path: '/docs/ranking',
+    name: 'ranking',
+    builder: new DocumentBuilder()
+      .setTitle('Ranking - Microservice')
+      .setDescription(
+        'Dedicated documentation for the Ranking domain. Ranked events and post feed, refresh, position and left swipes.\n\n' +
+          '[Back to Global Hub](/docs)',
+      )
+      .setVersion('1.0')
+      .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'access-token')
+      .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'refresh-token')
+      .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'internal-token'),
+    modules: [RankingModule],
   },
   {
     path: '/docs/helpers',
@@ -185,6 +201,7 @@ export const swaggerConfigs: SwaggerConfig[] = [
           '- [📝 ms-post Documentation](/docs/post)\n' +
           '- [👤 ms-user Documentation](/docs/user)\n' +
           '- [🤝 ms-social Documentation](/docs/social)\n' +
+          '- [ms-ranking Documentation](/docs/ranking)\n' +
           '- [🛠️ Helpers & Utils](/docs/helpers)\n\n' +
           '#### 🔐 Admin Hub:\n' +
           '- [🛡️ Admin Dashboard](/docs/admin) — **Requires ADMIN role**',
