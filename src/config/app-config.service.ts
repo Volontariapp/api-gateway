@@ -23,6 +23,10 @@ export class AppConfigService {
     return this.config.microServices.msStorageUrl;
   }
 
+  get msRankingUrl(): string {
+    return this.config.microServices.msRankingUrl;
+  }
+
   get msWsUrl(): string {
     return this.config.microServices.msWsUrl;
   }

@@ -16,6 +16,7 @@
     "msEventUrl": "MS_EVENT_URL",
     "msSocialUrl": "MS_SOCIAL_URL",
     "msStorageUrl": "MS_STORAGE_URL",
+    "msRankingUrl": "MS_RANKING_URL",
     "msWsUrl": "MS_WS_URL"
   },
   "storage": {

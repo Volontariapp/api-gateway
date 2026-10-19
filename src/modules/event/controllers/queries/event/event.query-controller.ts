@@ -5,7 +5,6 @@ import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { CustomApiError, DATABASE_ERROR, EVENT_NOT_FOUND } from '@volontariapp/errors-nest';
 import type { ClientGrpc } from '@nestjs/microservices';
 import { Inject } from '@nestjs/common';
-import { EventDTO } from '../../../dto/common/event.dto.js';
 import type { Metadata } from '@grpc/grpc-js';
 import { EVENT_PACKAGE, SOCIAL_PACKAGE } from '../../../../../grpc/grpc-packages.js';
 import {
@@ -27,6 +26,7 @@ import {
 } from '../../../dto/response/index.js';
 import { BaseEventGrpcController } from '../../base-grpc.controller.js';
 import { PublicFileUrlService } from '../../../../storage/public-file-url.service.js';
+import { EventParticipantsService } from '../../../services/event-participants.service.js';
 
 @GatewayController('Events', {
   extraModels: [GetEventResponseDTO],
@@ -43,6 +43,7 @@ export class EventQueryController extends BaseEventGrpcController {
     @Inject(EVENT_PACKAGE) protected readonly eventClient: ClientGrpc,
     @Inject(SOCIAL_PACKAGE) private readonly socialClient: ClientGrpc,
     publicFileUrls: PublicFileUrlService,
+    private readonly participants: EventParticipantsService,
   ) {
     super(eventClient, publicFileUrls);
   }
@@ -138,7 +139,7 @@ export class EventQueryController extends BaseEventGrpcController {
 
     const result = await firstValueFrom(this.queryService.getEvent(request.toQuery(), metadata));
     const dto = GetEventResponseDTO.fromResponse(result, this.publicFileUrls);
-    await this.enrichEventWithParticipants(dto.event, metadata);
+    await this.participants.enrich(dto.event, metadata);
     return dto;
   }
 
@@ -222,26 +223,11 @@ export class EventQueryController extends BaseEventGrpcController {
     return this.enrichSearchEventsResponse(dto, metadata);
   }
 
-  private async enrichEventWithParticipants(event: EventDTO, metadata: Metadata): Promise<void> {
-    try {
-      const participants = await firstValueFrom(
-        this.participationQueryService.getEventParticipants(
-          { eventId: event.id, pagination: { page: 1, limit: 1 } },
-          metadata,
-        ),
-      );
-      // We add +1 because the creator is an implicit participant but not returned by getEventParticipants
-      event.currentParticipants = (participants.pagination?.total ?? 0) + 1;
-    } catch {
-      this.logger.warn(`Failed to enrich participants for event ${event.id}`);
-    }
-  }
-
   private async enrichSearchEventsResponse(
     dto: SearchEventsResponseDTO,
     metadata: Metadata,
   ): Promise<SearchEventsResponseDTO> {
-    await Promise.all(dto.events.map((e) => this.enrichEventWithParticipants(e, metadata)));
+    await this.participants.enrichAll(dto.events, metadata);
     return dto;
   }
 }

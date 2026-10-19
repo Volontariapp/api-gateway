@@ -3,6 +3,7 @@ import { EventQueryController } from './controllers/queries/event/event.query-co
 import { EventCommandController } from './controllers/commands/event/event.command-controller.js';
 import { TagQueryController } from './controllers/queries/tag/tag.query-controller.js';
 import { TagAdminCommandController } from './controllers/commands/tag/tag-admin.command-controller.js';
+import { EventParticipantsService } from './services/event-participants.service.js';
 
 @Module({
   controllers: [
@@ -11,5 +12,7 @@ import { TagAdminCommandController } from './controllers/commands/tag/tag-admin.
     TagQueryController,
     TagAdminCommandController,
   ],
+  providers: [EventParticipantsService],
+  exports: [EventParticipantsService],
 })
 export class EventModule {}

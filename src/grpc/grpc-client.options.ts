@@ -7,6 +7,7 @@ import {
   USER_PACKAGE,
   SOCIAL_PACKAGE,
   STORAGE_PACKAGE,
+  RANKING_PACKAGE,
 } from './grpc-packages.js';
 
 export const grpcClientOptions: ClientsModuleAsyncOptions = [
@@ -39,5 +40,11 @@ export const grpcClientOptions: ClientsModuleAsyncOptions = [
     inject: [AppConfigService],
     useFactory: (configService: AppConfigService) =>
       getGrpcOptions(GRPC_MICROSERVICES.STORAGE, configService.config.microServices.msStorageUrl),
+  },
+  {
+    name: RANKING_PACKAGE,
+    inject: [AppConfigService],
+    useFactory: (configService: AppConfigService) =>
+      getGrpcOptions(GRPC_MICROSERVICES.RANKING, configService.config.microServices.msRankingUrl),
   },
 ];

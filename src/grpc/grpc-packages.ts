@@ -3,3 +3,4 @@ export const POST_PACKAGE = 'PostPackage';
 export const EVENT_PACKAGE = 'EventPackage';
 export const SOCIAL_PACKAGE = 'SocialPackage';
 export const STORAGE_PACKAGE = 'StoragePackage';
+export const RANKING_PACKAGE = 'RankingPackage';
