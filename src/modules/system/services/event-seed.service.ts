@@ -16,7 +16,7 @@ import {
 import { EVENT_PACKAGE, SOCIAL_PACKAGE } from '../../../grpc/grpc-packages.js';
 import type { WithMetadata } from '../../../common/types/grpc.types.js';
 import { ILE_DE_FRANCE_LOCATIONS } from '../constants/seed-locations.constant.js';
-import { THEMATIC_EVENT_TEMPLATES } from '../constants/seed-templates.constant.js';
+import { generate500DistinctEvents } from '../constants/seed-templates.constant.js';
 import { MediaSeedService } from './media-seed.service.js';
 import type { SeedCountStatsDTO } from '../common/index.js';
 
@@ -50,7 +50,8 @@ export class EventSeedService implements OnModuleInit {
   }
 
   /**
-   * Crée des événements passés (-90j à -1j) et futurs (+1j à +180j) répartis en Île-de-France.
+   * Crée des événements passés (-90j à -1j) et futurs (+1j à +180j) répartis en Île-de-France
+   * avec matériels réels, quantités requises et couvertures uniques.
    */
   async seedEvents(
     userIds: string[],
@@ -76,14 +77,14 @@ export class EventSeedService implements OnModuleInit {
     const futureCount = targetCount - pastCount;
 
     const organizerId = goldenUserIds.get('organizer') ?? userIds[0];
+    const distinctEvents = generate500DistinctEvents(ILE_DE_FRANCE_LOCATIONS);
 
     const createSingleEvent = async (isPast: boolean, index: number) => {
       try {
-        const template = faker.helpers.arrayElement(THEMATIC_EVENT_TEMPLATES);
-        const location = faker.helpers.arrayElement(ILE_DE_FRANCE_LOCATIONS);
-        const titlePrefix = faker.helpers.arrayElement(template.titles);
-        const title = `${titlePrefix} - ${location.city}`;
-        const description = `${faker.helpers.arrayElement(template.descriptions)} Rendez-vous à ${location.name} (${location.address}, ${location.postalCode} ${location.city}).`;
+        const blueprint = distinctEvents[index % distinctEvents.length];
+        const location = ILE_DE_FRANCE_LOCATIONS[index % ILE_DE_FRANCE_LOCATIONS.length];
+        const title = blueprint.title;
+        const description = blueprint.description;
 
         // Calcul des dates passées ou futures
         const nowSec = Math.floor(Date.now() / 1000);
@@ -101,14 +102,14 @@ export class EventSeedService implements OnModuleInit {
         const endSec = startSec + durationSec;
 
         const eventType =
-          template.category === 'ecology' ||
-          template.category === 'garden' ||
-          template.category === 'cycling'
+          blueprint.category === 'ecology' ||
+          blueprint.category === 'garden' ||
+          blueprint.category === 'cycling'
             ? EventType.EVENT_TYPE_ECOLOGY
             : EventType.EVENT_TYPE_SOCIAL;
 
         // Tags associés
-        const tagIds = template.tagSlugs
+        const tagIds = blueprint.tagSlugs
           .map((slug) => tagMap.get(slug))
           .filter((id): id is string => Boolean(id));
 
@@ -122,7 +123,7 @@ export class EventSeedService implements OnModuleInit {
           coverFileId = await this.mediaSeedService.getOrUploadImage(
             tempEntityId,
             EntityType.ENTITY_TYPE_EVENT_COVER,
-            template.imageTheme,
+            blueprint.imageTheme,
             ownerMd,
           );
         }
@@ -136,8 +137,8 @@ export class EventSeedService implements OnModuleInit {
               startAt: { seconds: startSec, nanos: 0 },
               endAt: { seconds: endSec, nanos: 0 },
               type: eventType,
-              maxParticipants: faker.number.int({ min: 10, max: 80 }),
-              awardedImpactScore: faker.number.int({ min: 15, max: 60 }),
+              maxParticipants: blueprint.suggestedMaxParticipants,
+              awardedImpactScore: blueprint.awardedImpactScore,
               tagIds,
               coverFileId,
               idempotencyKey: randomUUID(),
@@ -149,7 +150,7 @@ export class EventSeedService implements OnModuleInit {
         if (res.event?.id) {
           const eventId = res.event.id;
           allEventIds.push(eventId);
-          eventCategoryMap.set(eventId, template.category);
+          eventCategoryMap.set(eventId, blueprint.category);
 
           if (isPast) {
             pastEventIds.push(eventId);
@@ -170,25 +171,24 @@ export class EventSeedService implements OnModuleInit {
             // Ignorer si déjà existant
           }
 
-          // Ajout de prérequis
-          if (template.requirements.length > 0 && Math.random() < 0.6) {
-            const reqName = faker.helpers.arrayElement(template.requirements);
+          // Ajout de tous les matériels requis avec leurs quantités contractuelles (ManageRequirementCommand)
+          for (const material of blueprint.materials) {
             try {
               await lastValueFrom(
                 this.eventCommandService.manageRequirements(
                   {
                     eventId,
                     add: {
-                      name: reqName,
-                      description: `Prérequis : ${reqName}`,
-                      neededQuantity: faker.number.int({ min: 5, max: 20 }),
+                      name: material.name,
+                      description: material.description,
+                      neededQuantity: material.neededQuantity,
                     },
                   },
                   ownerMd,
                 ),
               );
             } catch {
-              // Ignorer les erreurs d'ajout de prérequis
+              // Ignorer les erreurs d'ajout individuel de matériel
             }
           }
         } else {

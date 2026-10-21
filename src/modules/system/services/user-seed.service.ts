@@ -12,7 +12,11 @@ import {
 } from '@volontariapp/contracts-nest';
 import { USER_PACKAGE, SOCIAL_PACKAGE } from '../../../grpc/grpc-packages.js';
 import type { WithMetadata } from '../../../common/types/grpc.types.js';
-import { GOLDEN_PERSONAS, SEED_DEFAULT_PASSWORD } from '../constants/seed-personas.constant.js';
+import {
+  GOLDEN_PERSONAS,
+  SEED_DEFAULT_PASSWORD,
+  generate500Personas,
+} from '../constants/seed-personas.constant.js';
 import type { SeedCountStatsDTO } from '../common/index.js';
 
 export interface SeededUsersResult {
@@ -39,7 +43,7 @@ export class UserSeedService implements OnModuleInit {
   }
 
   /**
-   * Crée les 5 Golden Personas et complète avec des utilisateurs Faker jusqu'à targetCount.
+   * Crée les 5 Golden Personas et complète avec les 500 profils de volontaires jusqu'à targetCount.
    */
   async seedUsers(
     targetCount: number,
@@ -52,6 +56,7 @@ export class UserSeedService implements OnModuleInit {
     );
     const goldenUserIds = new Map<string, string>();
     const userIds: string[] = [];
+    const allPersonas = generate500Personas();
 
     // 1. Création des Golden Personas déterministes
     for (const persona of GOLDEN_PERSONAS) {
@@ -88,16 +93,28 @@ export class UserSeedService implements OnModuleInit {
       }
     }
 
-    // 2. Création des utilisateurs Faker en parallèle par lots
+    // 2. Création des autres profils de la base des 500 personas en parallèle
     const remainingCount = Math.max(0, targetCount - userIds.length);
-    this.logger.log(`Generating ${String(remainingCount)} faker users in batches...`);
+    this.logger.log(
+      `Generating ${String(remainingCount)} realistic volunteer profiles in batches...`,
+    );
 
-    const chunk = async (batchSize: number) => {
-      const promises = Array.from({ length: batchSize }).map(async () => {
+    const chunk = async (startIndex: number, batchSize: number) => {
+      const promises = Array.from({ length: batchSize }).map(async (_, idx) => {
+        const globalIdx = startIndex + idx;
         try {
-          const email = faker.internet.email().toLowerCase();
-          const pseudo = `${faker.person.firstName()}${String(faker.number.int({ min: 10, max: 999 }))}`;
+          let email: string;
+          let pseudo: string;
           const password = SEED_DEFAULT_PASSWORD;
+
+          if (globalIdx < allPersonas.length) {
+            const p = allPersonas[globalIdx];
+            email = p.email;
+            pseudo = p.pseudo;
+          } else {
+            email = faker.internet.email().toLowerCase();
+            pseudo = `${faker.person.firstName()}${String(faker.number.int({ min: 10, max: 999 }))}`;
+          }
 
           const res = await lastValueFrom(
             this.userService.signUp({ email, pseudo, password }, baseMetadata),
@@ -121,7 +138,7 @@ export class UserSeedService implements OnModuleInit {
     let processed = 0;
     while (processed < remainingCount) {
       const currentBatch = Math.min(concurrency, remainingCount - processed);
-      await chunk(currentBatch);
+      await chunk(userIds.length + processed, currentBatch);
       processed += currentBatch;
       if (processed % 100 === 0 || processed === remainingCount) {
         this.logger.log(

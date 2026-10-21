@@ -16,7 +16,10 @@ import {
 } from '@volontariapp/contracts-nest';
 import { POST_PACKAGE, SOCIAL_PACKAGE } from '../../../grpc/grpc-packages.js';
 import type { WithMetadata } from '../../../common/types/grpc.types.js';
-import { COMMENT_TEMPLATES, POST_TEMPLATES } from '../constants/seed-templates.constant.js';
+import {
+  COMMENT_TEMPLATES,
+  generate500DistinctPosts,
+} from '../constants/seed-templates.constant.js';
 import { MediaSeedService } from './media-seed.service.js';
 import type { SeedStatusResponseDTO } from '../common/index.js';
 
@@ -62,6 +65,7 @@ export class PostSeedService implements OnModuleInit {
     );
 
     const allPostIds: string[] = [];
+    const distinctPosts = generate500DistinctPosts();
 
     const createSinglePost = async (index: number) => {
       try {
@@ -77,9 +81,9 @@ export class PostSeedService implements OnModuleInit {
               : faker.helpers.arrayElement(allEventIds);
         }
 
-        const template = faker.helpers.arrayElement(POST_TEMPLATES);
-        const title = `${template.title} #${String(index + 1)}`;
-        const content = `${template.content} ${faker.lorem.paragraph()}`;
+        const blueprint = distinctPosts[index % distinctPosts.length];
+        const title = blueprint.title;
+        const content = blueprint.content;
 
         // 1 Image Unique pour chaque post si activé
         const fileIds: string[] = [];
@@ -88,7 +92,7 @@ export class PostSeedService implements OnModuleInit {
           const fileId = await this.mediaSeedService.getOrUploadImage(
             tempPostId,
             EntityType.ENTITY_TYPE_POST,
-            'post',
+            blueprint.imageTheme,
             authorMd,
           );
           if (fileId) {

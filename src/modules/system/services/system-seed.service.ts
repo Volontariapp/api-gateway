@@ -90,6 +90,10 @@ export class SystemSeedService {
       defaultUsers = 10;
       defaultEvents = 20;
       defaultPosts = 30;
+    } else if (preset === SeedPreset.FIVE_HUNDRED) {
+      defaultUsers = 500;
+      defaultEvents = 500;
+      defaultPosts = 500;
     } else if (preset === SeedPreset.MEGA_1000) {
       defaultUsers = 1000;
       defaultEvents = 1500;

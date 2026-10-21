@@ -4,6 +4,7 @@ import { IsBoolean, IsEnum, IsNumber, IsOptional, Max, Min } from 'class-validat
 export enum SeedPreset {
   QUICK = 'quick',
   STANDARD = 'standard',
+  FIVE_HUNDRED = '500',
   MEGA_1000 = 'mega-1000',
 }
 
@@ -12,7 +13,7 @@ export class SeedOptionsDTO {
     enum: SeedPreset,
     default: SeedPreset.STANDARD,
     description:
-      'Preset de volumétrie : quick (10 users, ~5s), standard (100 users, ~25s), mega-1000 (1000 users, ~2-3 min)',
+      'Preset de volumétrie : quick (10 users, ~5s), standard (100 users, ~25s), 500 (500 users / 500 events / 500 posts), mega-1000 (1000 users, ~2-3 min)',
   })
   @IsOptional()
   @IsEnum(SeedPreset)
