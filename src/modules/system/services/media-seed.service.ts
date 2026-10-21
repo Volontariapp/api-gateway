@@ -1,4 +1,5 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import type { ClientGrpc } from '@nestjs/microservices';
@@ -21,9 +22,15 @@ export class MediaSeedService implements OnModuleInit {
   private isStorageAvailable = true;
 
   constructor(@Inject(STORAGE_PACKAGE) private readonly storageClient: ClientGrpc) {
-    this.cacheDir = join(process.cwd(), '.cache', 'seed-images');
-    if (!existsSync(this.cacheDir)) {
-      mkdirSync(this.cacheDir, { recursive: true });
+    this.cacheDir = join(tmpdir(), 'volontariapp-seed-images');
+    try {
+      if (!existsSync(this.cacheDir)) {
+        mkdirSync(this.cacheDir, { recursive: true });
+      }
+    } catch (e) {
+      this.logger.warn(
+        `Failed to initialize image cache directory: ${e instanceof Error ? e.message : String(e)}`,
+      );
     }
   }
 
@@ -108,8 +115,12 @@ export class MediaSeedService implements OnModuleInit {
     _categoryTheme: string,
   ): Promise<Buffer> {
     const cacheFile = join(this.cacheDir, `${entityId}.jpg`);
-    if (existsSync(cacheFile)) {
-      return readFileSync(cacheFile);
+    try {
+      if (existsSync(cacheFile)) {
+        return readFileSync(cacheFile);
+      }
+    } catch {
+      // Ignore cache read errors
     }
 
     const width = entityType === EntityType.ENTITY_TYPE_EVENT_COVER ? 800 : 600;
@@ -127,7 +138,11 @@ export class MediaSeedService implements OnModuleInit {
       if (res.ok) {
         const arrayBuf = await res.arrayBuffer();
         const buf = Buffer.from(arrayBuf);
-        writeFileSync(cacheFile, buf);
+        try {
+          writeFileSync(cacheFile, buf);
+        } catch {
+          // Ignore cache write errors
+        }
         return buf;
       }
     } catch {
@@ -136,7 +151,11 @@ export class MediaSeedService implements OnModuleInit {
 
     // Image procédurale de secours générée localement en cas d'absence de connexion Internet
     const fallbackBuf = this.generateFallbackJpeg(entityId);
-    writeFileSync(cacheFile, fallbackBuf);
+    try {
+      writeFileSync(cacheFile, fallbackBuf);
+    } catch {
+      // Ignore cache write errors
+    }
     return fallbackBuf;
   }
 
