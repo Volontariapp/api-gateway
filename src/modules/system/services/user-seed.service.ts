@@ -138,7 +138,7 @@ export class UserSeedService implements OnModuleInit {
     let processed = 0;
     while (processed < remainingCount) {
       const currentBatch = Math.min(concurrency, remainingCount - processed);
-      await chunk(userIds.length + processed, currentBatch);
+      await chunk(GOLDEN_PERSONAS.length + processed, currentBatch);
       processed += currentBatch;
       if (processed % 100 === 0 || processed === remainingCount) {
         this.logger.log(
