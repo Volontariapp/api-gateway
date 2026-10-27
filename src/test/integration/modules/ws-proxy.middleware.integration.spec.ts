@@ -172,6 +172,23 @@ describe('WsProxyMiddleware (Integration)', () => {
       expect(spyJwtServiceVerifyAccessToken).not.toHaveBeenCalled();
       expect(spyJwtServiceSignInternal).not.toHaveBeenCalled();
     });
+
+    it('should return 401 instead of crashing when the token is expired', async () => {
+      const spyJwtServiceVerifyAccessToken = jest.spyOn(jwtServiceMock, 'verifyAccessToken');
+      const spyJwtServiceSignInternal = jest.spyOn(jwtServiceMock, 'signInternal');
+      spyJwtServiceVerifyAccessToken.mockRejectedValue(
+        new Error('"exp" claim timestamp check failed'),
+      );
+
+      await request(proxyServer)
+        .get('/socket.io?token=expired-token')
+        .expect(401)
+        .expect((res) => {
+          expect((res.body as { message: string }).message).toBe('Invalid or expired access token');
+        });
+
+      expect(spyJwtServiceSignInternal).not.toHaveBeenCalled();
+    });
   });
 
   describe('Pure WebSocket Upgrade (Bypass Express Use)', () => {
