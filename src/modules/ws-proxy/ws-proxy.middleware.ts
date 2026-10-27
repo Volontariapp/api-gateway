@@ -177,7 +177,13 @@ export class WsProxyMiddleware implements NestMiddleware, OnModuleInit {
       );
 
       if (token) {
-        req.user = await this.jwtService.verifyAccessToken(token);
+        try {
+          req.user = await this.jwtService.verifyAccessToken(token);
+        } catch (verifyError: unknown) {
+          const reason = verifyError instanceof Error ? verifyError.message : 'Unknown error';
+          this.logger.warn(`🚫 [AUTH-FAILED] Access token rejected (${tokenSource}): ${reason}`);
+          throw new UnauthorizedException('Invalid or expired access token');
+        }
         this.logger.log(
           `👤 [AUTH-SUCCESS] Token valid. User ID: ${req.user.id} (${req.user.role})`,
         );
