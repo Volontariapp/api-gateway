@@ -3,9 +3,7 @@ import type {
   AdminDeleteUserParticipateEventWebRequest,
 } from '@volontariapp/contracts';
 
-export class AdminDeleteUserParticipateEventRequestDTO
-  implements AdminDeleteUserParticipateEventWebRequest
-{
+export class AdminDeleteUserParticipateEventRequestDTO implements AdminDeleteUserParticipateEventWebRequest {
   userId!: string;
   eventId!: string;
 

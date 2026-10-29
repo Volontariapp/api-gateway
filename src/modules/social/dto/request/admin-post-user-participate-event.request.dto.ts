@@ -3,9 +3,7 @@ import type {
   AdminPostUserParticipateEventWebRequest,
 } from '@volontariapp/contracts';
 
-export class AdminPostUserParticipateEventRequestDTO
-  implements AdminPostUserParticipateEventWebRequest
-{
+export class AdminPostUserParticipateEventRequestDTO implements AdminPostUserParticipateEventWebRequest {
   userId!: string;
   eventId!: string;
 
