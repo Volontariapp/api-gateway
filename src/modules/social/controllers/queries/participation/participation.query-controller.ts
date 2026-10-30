@@ -1,3 +1,4 @@
+import { map } from 'rxjs';
 import { Controller, Get, Param, Query, Req } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { CustomApiError, DATABASE_ERROR } from '@volontariapp/errors-nest';
@@ -9,8 +10,13 @@ import {
   GetUserParticipationsRequestDTO,
   GetUserWishesRequestDTO,
   GetEventParticipantsRequestDTO,
+  GetEventAttendeesRequestDTO,
 } from '../../../dto/request/index.js';
-import { ExistsResponseDTO, IdsListResponseDTO } from '../../../dto/response/index.js';
+import {
+  ExistsResponseDTO,
+  IdsListResponseDTO,
+  GetEventAttendeesResponseDTO,
+} from '../../../dto/response/index.js';
 
 @GatewayController('Social - Participation - Queries')
 @Controller('social')
@@ -77,5 +83,22 @@ export class ParticipationQueryController extends BaseParticipationGrpcControlle
     const metadata = req['internalMetadata'] as Metadata;
     const { pagination } = query;
     return this.queryService.getEventParticipants({ eventId, pagination }, metadata);
+  }
+
+  @Get('events/:eventId/attendees')
+  @ApiOperation({ summary: 'Get list of attendees with check-in status for an event' })
+  @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
+  @ApiResponse({ status: 200, type: GetEventAttendeesResponseDTO })
+  @CustomApiError(() => DATABASE_ERROR('fetching event attendees', 'details'))
+  getEventAttendees(
+    @Param('eventId') eventId: string,
+    @Query() query: GetEventAttendeesRequestDTO,
+    @Req() req: Record<string, unknown>,
+  ) {
+    const metadata = req['internalMetadata'] as Metadata;
+    query.eventId = eventId;
+    return this.queryService
+      .getEventAttendees(query.toQuery(), metadata)
+      .pipe(map((res) => GetEventAttendeesResponseDTO.from(res)));
   }
 }

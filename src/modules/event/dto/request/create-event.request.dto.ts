@@ -26,8 +26,9 @@ export class CreateEventRequestDTO implements CreateEventRequest {
   @ApiProperty({ enum: EventType, example: EventType.EVENT_TYPE_SOCIAL })
   type!: EventType;
 
-  @ApiProperty({ example: 100 })
-  awardedImpactScore!: number;
+  @ApiProperty({ example: 100, required: false, default: 0 })
+  @IsOptional()
+  awardedImpactScore: number = 0;
 
   @ApiProperty({ example: 50 })
   maxParticipants!: number;

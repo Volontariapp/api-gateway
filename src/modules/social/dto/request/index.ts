@@ -45,3 +45,5 @@ export * from './link-post-to-event.request.dto.js';
 export * from './unlink-post-from-event.request.dto.js';
 export * from './create-user-node.request.dto.js';
 export * from './delete-user-node.request.dto.js';
+export * from './set-event-attendance.request.dto.js';
+export * from './get-event-attendees.request.dto.js';

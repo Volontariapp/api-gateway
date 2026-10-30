@@ -1,5 +1,5 @@
 import { map } from 'rxjs';
-import { Controller, Delete, Param, Post, Req } from '@nestjs/common';
+import { Controller, Delete, Param, Post, Req, Body } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import {
   CustomApiError,
@@ -14,6 +14,7 @@ import type { Metadata } from '@grpc/grpc-js';
 import { GatewayController } from '../../../../../common/decorators/gateway-controller.decorator.js';
 import { BaseParticipationGrpcController } from '../../base-grpc.controller.js';
 import { ActionSuccessResponseDTO } from '../../../dto/response/index.js';
+import { SetEventAttendanceRequestDTO } from '../../../dto/request/index.js';
 
 @GatewayController('Social - Participation - Commands')
 @Controller('social')
@@ -72,5 +73,23 @@ export class ParticipationCommandController extends BaseParticipationGrpcControl
     return this.commandService
       .deleteUserWishEvent({ eventId }, metadata)
       .pipe(map(() => ({ success: true, message: 'Event removed from wishes' })));
+  }
+
+  @Post('events/:eventId/attendance')
+  @ApiOperation({ summary: 'Set attendance check-in for an event' })
+  @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
+  @ApiResponse({ status: 201, type: ActionSuccessResponseDTO })
+  @CustomApiError(() => SOCIAL_EVENT_NOT_FOUND('eventId'))
+  @CustomApiError(() => DATABASE_ERROR('setting event attendance', 'details'))
+  setEventAttendance(
+    @Param('eventId') eventId: string,
+    @Body() body: SetEventAttendanceRequestDTO,
+    @Req() req: Record<string, unknown>,
+  ) {
+    const metadata = req['internalMetadata'] as Metadata;
+    body.eventId = eventId;
+    return this.commandService
+      .setEventAttendance(body.toCommand(), metadata)
+      .pipe(map(() => ({ success: true, message: 'Attendance updated' })));
   }
 }
