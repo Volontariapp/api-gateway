@@ -13,21 +13,27 @@ import { ParticipationQueryController } from '../../../../modules/social/control
 import { SetEventAttendanceRequestDTO } from '../../../../modules/social/dto/request/set-event-attendance.request.dto.js';
 import { GetEventAttendeesRequestDTO } from '../../../../modules/social/dto/request/get-event-attendees.request.dto.js';
 import { MockServicesClientGrpc } from '../../../helpers/mocks/services-client-grpc.mock.js';
+import {
+  PARTICIPATION_EVENT_ID as eventId,
+  createGetEventAttendeesResponseFactory,
+  createSetEventAttendanceCommandFactory,
+  createSetEventAttendanceResponseFactory,
+} from '../../../helpers/factories/participation.factory.js';
 
 describe('Participation Controllers (Unit)', () => {
-  const eventId = '123e4567-e89b-12d3-a456-426614174000';
   const metadata = new Metadata();
   const mockReq = { internalMetadata: metadata };
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
 
   describe('ParticipationCommandController', () => {
     let controller: ParticipationCommandController;
     let mockCommandService: jest.Mocked<ParticipationCommandServiceClient>;
-    let setAttendanceMock: ReturnType<typeof jest.fn>;
 
     beforeEach(() => {
-      setAttendanceMock = jest.fn().mockReturnValue(of({}));
       mockCommandService = createMock<ParticipationCommandServiceClient>();
-      mockCommandService.setEventAttendance = setAttendanceMock as never;
 
       const mockClient = new MockServicesClientGrpc({
         [PARTICIPATION_COMMAND_SERVICE_NAME]: mockCommandService,
@@ -39,21 +45,17 @@ describe('Participation Controllers (Unit)', () => {
     });
 
     it('should call setEventAttendance with command payload and return success response', async () => {
+      const setAttendanceSpy = jest
+        .spyOn(mockCommandService, 'setEventAttendance')
+        .mockReturnValue(of(createSetEventAttendanceResponseFactory()));
+      const command = createSetEventAttendanceCommandFactory();
       const dto = new SetEventAttendanceRequestDTO();
-      dto.checkedUserIds = ['user-1', 'user-2'];
-      dto.uncheckedUserIds = ['user-3'];
+      dto.checkedUserIds = command.checkedUserIds;
+      dto.uncheckedUserIds = command.uncheckedUserIds;
 
-      const response$ = controller.setEventAttendance(eventId, dto, mockReq);
-      const response = await firstValueFrom(response$);
+      const response = await firstValueFrom(controller.setEventAttendance(eventId, dto, mockReq));
 
-      expect(setAttendanceMock).toHaveBeenCalledWith(
-        {
-          eventId,
-          checkedUserIds: ['user-1', 'user-2'],
-          uncheckedUserIds: ['user-3'],
-        },
-        metadata,
-      );
+      expect(setAttendanceSpy).toHaveBeenCalledWith(command, metadata);
       expect(response).toEqual({
         success: true,
         message: 'Attendance updated',
@@ -64,33 +66,9 @@ describe('Participation Controllers (Unit)', () => {
   describe('ParticipationQueryController', () => {
     let controller: ParticipationQueryController;
     let mockQueryService: jest.Mocked<ParticipationQueryServiceClient>;
-    let getAttendeesMock: ReturnType<typeof jest.fn>;
 
     beforeEach(() => {
-      getAttendeesMock = jest.fn().mockReturnValue(
-        of({
-          attendees: [
-            {
-              userId: 'user-1',
-              registeredAt: { seconds: 1717200000, nanos: 0 },
-              checkedInAt: { seconds: 1717203600, nanos: 0 },
-            },
-            {
-              userId: 'user-2',
-              registeredAt: { seconds: 1717200100, nanos: 0 },
-              checkedInAt: undefined,
-            },
-          ],
-          pagination: {
-            total: 2,
-            page: 1,
-            limit: 10,
-            totalPages: 1,
-          },
-        }),
-      );
       mockQueryService = createMock<ParticipationQueryServiceClient>();
-      mockQueryService.getEventAttendees = getAttendeesMock as never;
 
       const mockClient = new MockServicesClientGrpc({
         [PARTICIPATION_COMMAND_SERVICE_NAME]: createMock<ParticipationCommandServiceClient>(),
@@ -102,17 +80,16 @@ describe('Participation Controllers (Unit)', () => {
     });
 
     it('should map attendees gRPC timestamps to Dates and return paginated list', async () => {
+      const getAttendeesSpy = jest
+        .spyOn(mockQueryService, 'getEventAttendees')
+        .mockReturnValue(of(createGetEventAttendeesResponseFactory()));
       const dto = new GetEventAttendeesRequestDTO();
       dto.pagination = { page: 1, limit: 10 };
 
-      const response$ = controller.getEventAttendees(eventId, dto, mockReq);
-      const response = await firstValueFrom(response$);
+      const response = await firstValueFrom(controller.getEventAttendees(eventId, dto, mockReq));
 
-      expect(getAttendeesMock).toHaveBeenCalledWith(
-        {
-          eventId,
-          pagination: { page: 1, limit: 10 },
-        },
+      expect(getAttendeesSpy).toHaveBeenCalledWith(
+        { eventId, pagination: { page: 1, limit: 10 } },
         metadata,
       );
       expect(response.attendees).toHaveLength(2);
