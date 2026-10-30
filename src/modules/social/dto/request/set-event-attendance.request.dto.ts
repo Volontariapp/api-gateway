@@ -1,6 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsArray, IsOptional, IsUUID } from 'class-validator';
+import { ArrayMaxSize, IsArray, IsOptional, IsUUID } from 'class-validator';
 import { SetEventAttendanceCommand } from '@volontariapp/contracts';
+
+/** Mirrors ms-social MAX_ATTENDANCE_BATCH_SIZE; ms-social stays the authority. */
+export const MAX_ATTENDANCE_BATCH_SIZE = 500;
 
 export class SetEventAttendanceRequestDTO implements Omit<SetEventAttendanceCommand, 'eventId'> {
   @ApiProperty({
@@ -9,6 +12,7 @@ export class SetEventAttendanceRequestDTO implements Omit<SetEventAttendanceComm
     type: [String],
   })
   @IsArray()
+  @ArrayMaxSize(MAX_ATTENDANCE_BATCH_SIZE)
   @IsUUID('4', { each: true })
   checkedUserIds!: string[];
 
@@ -19,6 +23,7 @@ export class SetEventAttendanceRequestDTO implements Omit<SetEventAttendanceComm
   })
   @IsOptional()
   @IsArray()
+  @ArrayMaxSize(MAX_ATTENDANCE_BATCH_SIZE)
   @IsUUID('4', { each: true })
   uncheckedUserIds: string[] = [];
 

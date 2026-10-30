@@ -2,7 +2,6 @@ import { map } from 'rxjs';
 import { Controller, Get, Param, Query, Req } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { CustomApiError, DATABASE_ERROR } from '@volontariapp/errors-nest';
-import { GrpcDateMapper } from '@volontariapp/contracts-nest';
 import type { Metadata } from '@grpc/grpc-js';
 import { GatewayController } from '../../../../../common/decorators/gateway-controller.decorator.js';
 import { BaseParticipationGrpcController } from '../../base-grpc.controller.js';
@@ -98,15 +97,8 @@ export class ParticipationQueryController extends BaseParticipationGrpcControlle
   ) {
     const metadata = req['internalMetadata'] as Metadata;
     query.eventId = eventId;
-    return this.queryService.getEventAttendees(query.toQuery(), metadata).pipe(
-      map((res) => ({
-        attendees: res.attendees.map((a) => ({
-          userId: a.userId,
-          registeredAt: GrpcDateMapper.toDate(a.registeredAt),
-          checkedInAt: GrpcDateMapper.toDate(a.checkedInAt),
-        })),
-        pagination: res.pagination,
-      })),
-    );
+    return this.queryService
+      .getEventAttendees(query.toQuery(), metadata)
+      .pipe(map((res) => GetEventAttendeesResponseDTO.from(res)));
   }
 }

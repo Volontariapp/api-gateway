@@ -78,7 +78,7 @@ export class ParticipationCommandController extends BaseParticipationGrpcControl
   @Post('events/:eventId/attendance')
   @ApiOperation({ summary: 'Set attendance check-in for an event' })
   @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
-  @ApiResponse({ status: 200, type: ActionSuccessResponseDTO })
+  @ApiResponse({ status: 201, type: ActionSuccessResponseDTO })
   @CustomApiError(() => SOCIAL_EVENT_NOT_FOUND('eventId'))
   @CustomApiError(() => DATABASE_ERROR('setting event attendance', 'details'))
   setEventAttendance(
