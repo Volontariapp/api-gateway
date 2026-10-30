@@ -77,6 +77,9 @@ export abstract class EventBaseDTO {
 
   @ApiProperty({ example: '76c5b964-b5a1-43e3-85e2-040683457e56' })
   organizerId!: string;
+
+  @ApiProperty({ example: 1, required: false })
+  scoringVersion?: number;
 }
 
 export class EventResponseDTO extends EventBaseDTO implements IEventDTO {
