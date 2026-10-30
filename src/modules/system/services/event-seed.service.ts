@@ -25,6 +25,8 @@ export interface SeededEventsResult {
   futureEventIds: string[];
   allEventIds: string[];
   eventCategoryMap: Map<string, string>; // eventId -> category
+  eventOwnerMap: Map<string, string>; // eventId -> ownerId (organisateur)
+  eventCapacityMap: Map<string, number>; // eventId -> maxParticipants (>= 1)
 }
 
 @Injectable()
@@ -72,6 +74,8 @@ export class EventSeedService implements OnModuleInit {
     const futureEventIds: string[] = [];
     const allEventIds: string[] = [];
     const eventCategoryMap = new Map<string, string>();
+    const eventOwnerMap = new Map<string, string>();
+    const eventCapacityMap = new Map<string, number>();
 
     const pastCount = Math.floor(targetCount * 0.4);
     const futureCount = targetCount - pastCount;
@@ -115,6 +119,8 @@ export class EventSeedService implements OnModuleInit {
 
         const ownerId = Math.random() < 0.4 ? organizerId : faker.helpers.arrayElement(userIds);
         const ownerMd = await getMetadata(baseMetadata, ownerId);
+        // Le scoring exige une capacite >= 1 (bonus de remplissage)
+        const capacity = Math.max(1, blueprint.suggestedMaxParticipants);
 
         // Upload d'image unique si activé
         const tempEntityId = randomUUID();
@@ -137,8 +143,9 @@ export class EventSeedService implements OnModuleInit {
               startAt: { seconds: startSec, nanos: 0 },
               endAt: { seconds: endSec, nanos: 0 },
               type: eventType,
-              maxParticipants: blueprint.suggestedMaxParticipants,
-              awardedImpactScore: blueprint.awardedImpactScore,
+              maxParticipants: capacity,
+              // Le score n'est plus saisi : ms-event applique scoringVersion et le calcul a FINISHED
+              awardedImpactScore: 0,
               tagIds,
               coverFileId,
               idempotencyKey: randomUUID(),
@@ -151,6 +158,8 @@ export class EventSeedService implements OnModuleInit {
           const eventId = res.event.id;
           allEventIds.push(eventId);
           eventCategoryMap.set(eventId, blueprint.category);
+          eventOwnerMap.set(eventId, ownerId);
+          eventCapacityMap.set(eventId, capacity);
 
           if (isPast) {
             pastEventIds.push(eventId);
@@ -167,8 +176,9 @@ export class EventSeedService implements OnModuleInit {
             await lastValueFrom(
               this.participationCommandService.postUserEvent({ userId: ownerId, eventId }, ownerMd),
             );
-          } catch {
-            // Ignorer si déjà existant
+          } catch (e) {
+            const msg = e instanceof Error ? e.message : String(e);
+            this.logger.debug(`Event node or organizer link not created for ${eventId}: ${msg}`);
           }
 
           // Ajout de tous les matériels requis avec leurs quantités contractuelles (ManageRequirementCommand)
@@ -226,6 +236,13 @@ export class EventSeedService implements OnModuleInit {
       `Events seed complete: ${String(allEventIds.length)} events (${String(pastEventIds.length)} past, ${String(futureEventIds.length)} future).`,
     );
 
-    return { pastEventIds, futureEventIds, allEventIds, eventCategoryMap };
+    return {
+      pastEventIds,
+      futureEventIds,
+      allEventIds,
+      eventCategoryMap,
+      eventOwnerMap,
+      eventCapacityMap,
+    };
   }
 }

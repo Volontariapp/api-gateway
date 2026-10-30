@@ -36,6 +36,24 @@ export class SeedStatusResponseDTO {
   @ApiProperty({ type: SeedCountStatsDTO })
   media!: SeedCountStatsDTO;
 
+  @ApiProperty({
+    type: SeedCountStatsDTO,
+    description: 'Presents coches par les organisateurs (un compte par utilisateur coche)',
+  })
+  attendances!: SeedCountStatsDTO;
+
+  @ApiProperty({
+    type: SeedCountStatsDTO,
+    description: 'Evenements passes passes a FINISHED (declenche le calcul des points)',
+  })
+  finishedEvents!: SeedCountStatsDTO;
+
+  @ApiProperty({
+    type: SeedCountStatsDTO,
+    description: 'Evenements passes passes a CANCELLED (aucun point)',
+  })
+  cancelledEvents!: SeedCountStatsDTO;
+
   @ApiProperty({ example: 12500, description: 'Durée totale du seed en millisecondes' })
   durationMs!: number;
 }
@@ -51,6 +69,9 @@ export function createInitialSeedStatus(): SeedStatusResponseDTO {
     wishes: { success: 0, failed: 0 },
     follows: { success: 0, failed: 0 },
     media: { success: 0, failed: 0 },
+    attendances: { success: 0, failed: 0 },
+    finishedEvents: { success: 0, failed: 0 },
+    cancelledEvents: { success: 0, failed: 0 },
     durationMs: 0,
   };
 }

@@ -59,6 +59,9 @@ describe('SystemSeedController (Unit)', () => {
         wishes: { success: 15, failed: 0 },
         follows: { success: 25, failed: 0 },
         media: { success: 20, failed: 0 },
+        attendances: { success: 70, failed: 0 },
+        finishedEvents: { success: 18, failed: 0 },
+        cancelledEvents: { success: 1, failed: 0 },
         durationMs: 4200,
       };
 

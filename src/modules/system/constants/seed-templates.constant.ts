@@ -14,7 +14,6 @@ export interface SeedEventBlueprint {
   tagSlugs: string[];
   materials: SeedMaterialRequirement[];
   suggestedMaxParticipants: number;
-  awardedImpactScore: number;
 }
 
 export interface SeedPostBlueprint {
@@ -454,7 +453,6 @@ export function generate500DistinctEvents(locations: SeedLocation[]): SeedEventB
       tagSlugs: template.tagSlugs,
       materials,
       suggestedMaxParticipants: 15 + ((i * 7) % 65), // entre 15 et 80
-      awardedImpactScore: 15 + ((i * 5) % 45), // entre 15 et 60
     });
   }
 
