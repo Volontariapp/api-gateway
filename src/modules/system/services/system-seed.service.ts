@@ -155,18 +155,24 @@ export class SystemSeedService {
       }
 
       // 3. Créer les événements passés (-90j à -1j) et futurs (+1j à +180j) avec tags et images
-      const { pastEventIds, futureEventIds, allEventIds, eventCategoryMap } =
-        await this.eventSeedService.seedEvents(
-          userIds,
-          goldenUserIds,
-          tagMap,
-          options.eventCount,
-          options.concurrency,
-          options.seedMedia,
-          getMetadata,
-          baseMetadata,
-          status.events,
-        );
+      const {
+        pastEventIds,
+        futureEventIds,
+        allEventIds,
+        eventCategoryMap,
+        eventOwnerMap,
+        eventCapacityMap,
+      } = await this.eventSeedService.seedEvents(
+        userIds,
+        goldenUserIds,
+        tagMap,
+        options.eventCount,
+        options.concurrency,
+        options.seedMedia,
+        getMetadata,
+        baseMetadata,
+        status.events,
+      );
 
       // 4. Créer les interactions (participations passées cruciales pour le ranking, inscriptions futures, wishes, follows)
       await this.interactionSeedService.seedInteractions(
@@ -175,6 +181,8 @@ export class SystemSeedService {
         pastEventIds,
         futureEventIds,
         eventCategoryMap,
+        eventOwnerMap,
+        eventCapacityMap,
         options.concurrency,
         getMetadata,
         baseMetadata,
@@ -197,6 +205,9 @@ export class SystemSeedService {
       status.durationMs = Date.now() - startTime;
       this.logger.log(
         `🎉 Global Seeding completed successfully in ${(status.durationMs / 1000).toFixed(1)}s!`,
+      );
+      this.logger.log(
+        `Scoring seed: ${String(status.attendances.success)} attendances checked in, ${String(status.finishedEvents.success)} events finished, ${String(status.cancelledEvents.success)} events cancelled (impact scores are credited by the async pipeline).`,
       );
       this.logger.log(`📊 Final Status Report: ${JSON.stringify(status, null, 2)}`);
     } catch (error) {
