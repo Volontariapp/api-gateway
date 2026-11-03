@@ -7,15 +7,15 @@ RUN corepack enable && corepack prepare yarn@4.12.0 --activate
 # 2. RUNNER : Installation des dépendances et exécution des tests
 FROM base AS runner
 
-# On copie tout le projet car les tests E2E ont besoin des sources, 
-# des fichiers de config et des tests eux-mêmes.
-COPY . .
-
-# On s'assure que les certificats sont présents (générés par scripts/generate-certs.sh)
-# Note: Si ils ne sont pas générés localement, le build échouera ici
+# Dépendances d'abord : cette couche n'est invalidée que si les manifestes changent.
+COPY package.json yarn.lock .yarnrc.yml ./
 
 # Installation de TOUTES les dépendances (y compris devDeps pour Jest et ts-jest)
 RUN yarn install --immutable
+
+# Puis tout le projet : les tests E2E ont besoin des sources, des fichiers de config
+# et des tests eux-mêmes. Les certificats sont générés par scripts/generate-certs.sh.
+COPY . .
 
 # Variables d'environnement par défaut pour les tests
 ENV NODE_ENV=test

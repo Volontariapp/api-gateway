@@ -6,9 +6,10 @@ RUN corepack enable && corepack prepare yarn@4.12.0 --activate
 
 # 2. DEVELOPMENT & BUILD : On installe tout et on compile
 FROM base AS builder
-COPY . .
+COPY package.json yarn.lock .yarnrc.yml ./
 # Yarn 4 gère très bien le cache, on installe tout (devDeps incluses pour le build)
 RUN yarn install --immutable
+COPY . .
 RUN yarn build
 # On prépare les modules de prod immédiatement après le build dans le même stage
 RUN yarn workspaces focus --all --production && yarn cache clean --all
