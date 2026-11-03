@@ -15,6 +15,7 @@ import {
   updateUserRequestFactory,
   refreshTokenRequestFactory,
 } from './user-test.factory.js';
+import { isUserInAdminList } from './user-list.helper.js';
 import { UserRoles } from '@volontariapp/shared';
 
 describe('User Lifecycle (E2E)', () => {
@@ -187,12 +188,13 @@ describe('User Lifecycle (E2E)', () => {
       const signUpRes = await client.post('/api/v1/users').send(signUpDto).expect(201);
       const userId = (signUpRes.body as SignUpResponseDTO).user.id;
 
-      const res = await client.get('/api/v1/users').expect(200);
+      const res = await client.get('/api/v1/users?page=1&limit=10').expect(200);
 
       const body = res.body as ListUsersResponseDTO;
       expect(Array.isArray(body.users)).toBe(true);
+      expect(body.users.length).toBeLessThanOrEqual(10);
       expect(body.pagination).toBeDefined();
-      expect(body.users.some((u) => u.id === userId)).toBe(true);
+      expect(await isUserInAdminList(client, userId)).toBe(true);
 
       // Cleanup
       await client.delete(`/api/v1/users/${userId}`).expect(200);
@@ -487,12 +489,9 @@ describe('User Lifecycle (E2E)', () => {
       const orgId = (orgRes.body as SignUpResponseDTO).user.id;
 
       try {
-        // List all users via admin
-        const res = await adminClient.get('/api/v1/users').expect(200);
-        const body = res.body as ListUsersResponseDTO;
-
-        expect(body.users.some((u) => u.id === volunteerId)).toBe(true);
-        expect(body.users.some((u) => u.id === orgId)).toBe(true);
+        // List all users via admin (parcours page par page : la liste n'est plus non bornee)
+        expect(await isUserInAdminList(adminClient, volunteerId)).toBe(true);
+        expect(await isUserInAdminList(adminClient, orgId)).toBe(true);
       } finally {
         // Clean up
         await adminClient.delete(`/api/v1/users/${volunteerId}`).expect(200);
@@ -520,9 +519,7 @@ describe('User Lifecycle (E2E)', () => {
         expect(getBody.user.pseudo).toContain('admin');
 
         // Retrieve all users and verify the new admin is in the list
-        const listRes = await adminClient.get('/api/v1/users').expect(200);
-        const listBody = listRes.body as ListUsersResponseDTO;
-        expect(listBody.users.some((u) => u.id === newAdminId)).toBe(true);
+        expect(await isUserInAdminList(adminClient, newAdminId)).toBe(true);
       } finally {
         // Cleanup
         await adminClient.delete(`/api/v1/users/${newAdminId}`).expect(200);
