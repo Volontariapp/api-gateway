@@ -5,6 +5,7 @@ export * from './get-who-blocked-me.request.dto.js';
 export * from './get-feed.request.dto.js';
 export * from './get-user-posts.request.dto.js';
 export * from './get-user-likes.request.dto.js';
+export * from './get-my-likes.request.dto.js';
 export * from './get-post-likers.request.dto.js';
 export * from './get-user-events.request.dto.js';
 export * from './get-user-participations.request.dto.js';

@@ -1,16 +1,19 @@
 import { IsOptional, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
 import { ListPostsQuery } from '@volontariapp/contracts-nest';
 import { ListPostsRequest } from '@volontariapp/contracts';
+import {
+  DEFAULT_LIMIT,
+  DEFAULT_PAGE,
+  PaginationLimit,
+  PaginationPage,
+} from '../../../../common/pagination/index.js';
 
 export class ListPostsRequestDTO implements ListPostsRequest {
-  @ApiProperty({ example: 10, required: false })
-  @Type(() => Number)
+  @PaginationLimit()
   limit?: number;
 
-  @ApiProperty({ example: 1, required: false })
-  @Type(() => Number)
+  @PaginationPage()
   page?: number;
 
   @ApiProperty({ example: 'uuid-user-123', required: false })
@@ -21,8 +24,8 @@ export class ListPostsRequestDTO implements ListPostsRequest {
   toQuery(): ListPostsQuery {
     return {
       pagination: {
-        limit: this.limit ?? 10,
-        page: this.page ?? 1,
+        limit: this.limit ?? DEFAULT_LIMIT,
+        page: this.page ?? DEFAULT_PAGE,
       },
       authorId: this.authorId,
     };

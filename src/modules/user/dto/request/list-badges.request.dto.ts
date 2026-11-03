@@ -1,10 +1,9 @@
-import { ApiProperty } from '@nestjs/swagger';
 import { ListBadgesRequest } from '@volontariapp/contracts';
 import { ListBadgesQuery } from '@volontariapp/contracts-nest';
-import { PaginationRequestDTO } from '../../../../common/dto/index.js';
+import { NestedPagination, PaginationRequestDTO } from '../../../../common/pagination/index.js';
 
 export class ListBadgesRequestDTO implements ListBadgesRequest {
-  @ApiProperty({ type: PaginationRequestDTO, required: false })
+  @NestedPagination(PaginationRequestDTO)
   pagination?: PaginationRequestDTO;
 
   toQuery(): ListBadgesQuery {

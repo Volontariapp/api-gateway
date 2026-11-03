@@ -1,27 +1,38 @@
-import { ApiProperty } from '@nestjs/swagger';
 import { ListUsersRequest } from '@volontariapp/contracts';
 import { ListUsersQuery } from '@volontariapp/contracts-nest';
-import { PaginationRequestDTO } from '../../../../common/dto/request/index.js';
-import { Type } from 'class-transformer';
+import {
+  LEGACY_MAX_LIMIT,
+  LegacyPaginationRequestDTO,
+  NestedPagination,
+  PaginationLimit,
+  PaginationPage,
+} from '../../../../common/pagination/index.js';
 
+/** Defaut de taille de page de la liste admin quand un seul des deux parametres est fourni. */
+const ADMIN_USERS_DEFAULT_LIMIT = 50;
+
+/**
+ * GET /users (admin). Accepte la forme plate (page et limit, celle de nativapp) et la forme
+ * imbriquee (pagination[page] et pagination[limit]). Plafond legacy : l'ancienne app charge tous les users avec limit=500.
+ */
 export class ListUsersRequestDTO implements ListUsersRequest {
-  @ApiProperty({ type: PaginationRequestDTO, required: false })
-  @Type(() => PaginationRequestDTO)
-  pagination?: PaginationRequestDTO;
+  @NestedPagination(LegacyPaginationRequestDTO)
+  pagination?: LegacyPaginationRequestDTO;
 
-  page?: string | number;
-  limit?: string | number;
+  @PaginationPage()
+  page?: number;
+
+  @PaginationLimit(LEGACY_MAX_LIMIT)
+  limit?: number;
 
   toQuery(): ListUsersQuery {
-    const pageNum =
-      this.pagination?.page ?? (this.page !== undefined ? Number(this.page) : undefined);
-    const limitNum =
-      this.pagination?.limit ?? (this.limit !== undefined ? Number(this.limit) : undefined);
+    const pageNum = this.pagination?.page ?? this.page;
+    const limitNum = this.pagination?.limit ?? this.limit;
 
     return {
       pagination:
         pageNum !== undefined || limitNum !== undefined
-          ? { limit: limitNum ?? 50, page: pageNum ?? 1 }
+          ? { limit: limitNum ?? ADMIN_USERS_DEFAULT_LIMIT, page: pageNum ?? 1 }
           : undefined,
     };
   }

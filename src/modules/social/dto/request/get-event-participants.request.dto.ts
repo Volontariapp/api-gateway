@@ -1,12 +1,9 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
 import { GetEventParticipantsQuery } from '@volontariapp/contracts-nest';
 import { GetEventParticipantsWebRequest } from '@volontariapp/contracts';
-import { PaginationRequestDTO } from '../common/pagination.dto.js';
+import { NestedPagination, PaginationRequestDTO } from '../../../../common/pagination/index.js';
 
 export class GetEventParticipantsRequestDTO implements GetEventParticipantsWebRequest {
-  @ApiPropertyOptional({ type: PaginationRequestDTO })
-  @Type(() => PaginationRequestDTO)
+  @NestedPagination(PaginationRequestDTO)
   pagination?: PaginationRequestDTO;
 
   eventId!: string;
