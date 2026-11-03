@@ -99,7 +99,7 @@ export class EventQueryController extends BaseEventGrpcController {
       eventIds = recommendedResponse.ids;
 
       if (eventIds.length === 0) {
-        return { events: [], totalCount: 0 };
+        return SearchEventsResponseDTO.empty(request.page, request.limit);
       }
     }
 

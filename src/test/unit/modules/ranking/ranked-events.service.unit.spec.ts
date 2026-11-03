@@ -57,8 +57,10 @@ describe('RankedEventsService (Unit)', () => {
     );
     service.onModuleInit();
     jest
-      .spyOn(participationQuery, 'getEventParticipants')
-      .mockReturnValue(of({ ids: [], pagination: { total: 0, page: 1, limit: 1, totalPages: 1 } }));
+      .spyOn(participationQuery, 'countEventParticipants')
+      .mockImplementation(({ eventIds }) =>
+        of({ counts: eventIds.map((eventId) => ({ eventId, participantCount: 0 })) }),
+      );
   });
 
   afterEach(() => {
@@ -85,6 +87,7 @@ describe('RankedEventsService (Unit)', () => {
       of({
         events: [futureEvent(RANKED_EVENT_ID_1), futureEvent(RANKED_EVENT_ID_2)],
         totalCount: 2,
+        pagination: undefined,
       }),
     );
 
@@ -116,7 +119,9 @@ describe('RankedEventsService (Unit)', () => {
     jest.spyOn(rankingQuery, 'getRankingEvents').mockReturnValue(of({ page }));
     jest
       .spyOn(eventQuery, 'searchEvents')
-      .mockReturnValue(of({ events: [started, finished, full], totalCount: 3 }));
+      .mockReturnValue(
+        of({ events: [started, finished, full], totalCount: 3, pagination: undefined }),
+      );
 
     const result = await service.read({ cursor: '', limit: 20 }, metadata, NOW);
 
