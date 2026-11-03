@@ -28,7 +28,7 @@ import {
 } from '../../../helpers/constants/ranking-test.constants.js';
 
 const FRIEND_ID = '11111111-1f5e-4a51-9f3a-1a2b3c4d5e11';
-const PAGINATION = { total: 1, page: 1, limit: 1000, totalPages: 1 };
+const PAGINATION = { total: 1, page: 1, limit: 100, totalPages: 1 };
 
 describe('RankedFeedService (Unit)', () => {
   let rankingQuery: jest.Mocked<WithMetadata<RankingQueryServiceClient>>;
@@ -95,7 +95,7 @@ describe('RankedFeedService (Unit)', () => {
     expect(result.posts.map((p) => p.id)).toEqual([POST_ID_2]);
     expect(result.posts[0]?.reasons).toEqual(['FOLLOWED_AUTHOR']);
     expect(listSpy).toHaveBeenCalledWith({ ids: [POST_ID_3, POST_ID_1, POST_ID_2] }, metadata);
-    expect(myBlocksSpy).toHaveBeenCalledWith({ pagination: { page: 1, limit: 1000 } }, metadata);
+    expect(myBlocksSpy).toHaveBeenCalledWith({ pagination: { page: 1, limit: 100 } }, metadata);
   });
 
   it('should keep the ranking order when nobody is blocked', async () => {

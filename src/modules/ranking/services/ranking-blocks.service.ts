@@ -8,7 +8,7 @@ import {
 } from '@volontariapp/contracts-nest';
 import { SOCIAL_PACKAGE } from '../../../grpc/grpc-packages.js';
 import { WithMetadata } from '../../../common/types/grpc.types.js';
-import { RANKING_BLOCKS_PAGE_LIMIT } from '../constants/ranking.constants.js';
+import { fetchAllPages } from '../../../common/pagination/index.js';
 
 /**
  * Users hidden from the reader: the ones they blocked and the ones who blocked them. Read at each
@@ -28,11 +28,14 @@ export class RankingBlocksService implements OnModuleInit {
   }
 
   async hiddenUserIds(metadata: Metadata): Promise<Set<string>> {
-    const pagination = { page: 1, limit: RANKING_BLOCKS_PAGE_LIMIT };
     const [myBlocks, whoBlockedMe] = await Promise.all([
-      firstValueFrom(this.relationshipQueryService.getMyBlocks({ pagination }, metadata)),
-      firstValueFrom(this.relationshipQueryService.getWhoBlockedMe({ pagination }, metadata)),
+      fetchAllPages((pagination) =>
+        firstValueFrom(this.relationshipQueryService.getMyBlocks({ pagination }, metadata)),
+      ),
+      fetchAllPages((pagination) =>
+        firstValueFrom(this.relationshipQueryService.getWhoBlockedMe({ pagination }, metadata)),
+      ),
     ]);
-    return new Set([...myBlocks.ids, ...whoBlockedMe.ids]);
+    return new Set([...myBlocks, ...whoBlockedMe]);
   }
 }
