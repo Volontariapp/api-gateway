@@ -153,8 +153,9 @@ describe('Event Lifecycle (E2E)', () => {
   it('should list and search multiple events as an admin when onlyAvailable is false', async () => {
     const client = await createTestClient(app).login({ id: randomUUID(), role: UserRoles.ADMIN });
 
-    const event1Dto = createEventRequestFactory({ title: `SearchTest-1-${randomUUID()}` });
-    const event2Dto = createEventRequestFactory({ title: `SearchTest-2-${randomUUID()}` });
+    const runTag = randomUUID();
+    const event1Dto = createEventRequestFactory({ title: `SearchTest-1-${runTag}` });
+    const event2Dto = createEventRequestFactory({ title: `SearchTest-2-${runTag}` });
 
     const res1 = await client.post('/api/v1/events').send(event1Dto).expect(201);
     const res2 = await client.post('/api/v1/events').send(event2Dto).expect(201);
@@ -165,7 +166,7 @@ describe('Event Lifecycle (E2E)', () => {
     try {
       const listRes = await client
         .get('/api/v1/events')
-        .query({ onlyAvailable: false })
+        .query({ onlyAvailable: false, searchTerm: runTag })
         .expect(200);
 
       const listBody = listRes.body as ListEventsWebResponse;
@@ -174,7 +175,7 @@ describe('Event Lifecycle (E2E)', () => {
 
       const searchRes = await client
         .get('/api/v1/events')
-        .query({ searchTerm: `SearchTest-1` })
+        .query({ searchTerm: `SearchTest-1-${runTag}` })
         .expect(200);
 
       const searchBody = searchRes.body as ListEventsWebResponse;
@@ -282,17 +283,23 @@ describe('Event Lifecycle (E2E)', () => {
 
     const eventIdsA: string[] = [];
     const eventIdsB: string[] = [];
+    // Unique tag so the listing below is scoped to this test's events only
+    const runTag = randomUUID();
 
     // User A creates 20 events
     for (let i = 0; i < 20; i++) {
-      const eventDto = createEventRequestFactory({ title: `UserA-Event-${randomUUID()}` });
+      const eventDto = createEventRequestFactory({
+        title: `UserA-Event-${runTag}-${randomUUID()}`,
+      });
       const createRes = await clientA.post('/api/v1/events').send(eventDto).expect(201);
       eventIdsA.push((createRes.body as EventWebResponse).event.id);
     }
 
     // User B creates 20 events
     for (let i = 0; i < 20; i++) {
-      const eventDto = createEventRequestFactory({ title: `UserB-Event-${randomUUID()}` });
+      const eventDto = createEventRequestFactory({
+        title: `UserB-Event-${runTag}-${randomUUID()}`,
+      });
       const createRes = await clientB.post('/api/v1/events').send(eventDto).expect(201);
       eventIdsB.push((createRes.body as EventWebResponse).event.id);
     }
@@ -301,14 +308,14 @@ describe('Event Lifecycle (E2E)', () => {
       // User A retrieves events
       const listRes = await clientA
         .get('/api/v1/events')
-        .query({ onlyAvailable: false, limit: 100 })
+        .query({ onlyAvailable: false, limit: 100, searchTerm: runTag })
         .expect(200);
 
       const listBody = listRes.body as ListEventsWebResponse;
 
-      // We expect at least 40 events to be present and totalCount >= 40
-      expect(listBody.events.length).toBeGreaterThanOrEqual(40);
-      expect(listBody.totalCount).toBeGreaterThanOrEqual(40);
+      // The search term scopes the listing to the 40 events of this test
+      expect(listBody.events).toHaveLength(40);
+      expect(listBody.totalCount).toBe(40);
 
       // Verify User A can see User B's events
       const foundUserBEvents = listBody.events.filter((e) => eventIdsB.includes(e.id));

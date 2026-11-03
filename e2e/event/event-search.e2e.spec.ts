@@ -7,10 +7,8 @@ import { createTestClient } from '../helpers/test-client.helper.js';
 import type { TestClient } from '../helpers/test-client.helper.js';
 import {
   type TestUser,
-  PARIS,
-  LYON,
-  MARSEILLE,
   areaQuery,
+  createSuiteGeo,
   createUser,
   createPublishedEvent,
 } from './event-search.helper.js';
@@ -18,6 +16,10 @@ import {
 describe('Event Search Orchestration (E2E)', () => {
   let app: INestApplication;
   let admin: TestClient;
+
+  const geo = createSuiteGeo();
+  const { paris: PARIS, lyon: LYON, marseille: MARSEILLE } = geo;
+  const scope = geo.scopeQuery;
 
   let mainUser: TestUser;
   let friend1: TestUser;
@@ -143,11 +145,9 @@ describe('Event Search Orchestration (E2E)', () => {
     });
 
     it('2 – should return 0 events when searching in an empty zone', async () => {
-      // Middle of the Atlantic Ocean
+      // 1 km zone where this suite created nothing
       const res = await mainUser.client
-        .get(
-          '/api/v1/events?area[center][latitude]=30&area[center][longitude]=-40&area[radiusMeters]=1000&limit=50&page=1',
-        )
+        .get(`/api/v1/events?${geo.emptyZoneQuery}&limit=50&page=1`)
         .expect(200);
       const body = res.body as ListEventsWebResponse;
 
@@ -161,7 +161,7 @@ describe('Event Search Orchestration (E2E)', () => {
       const body = res.body as ListEventsWebResponse;
 
       expect(body.events).toHaveLength(4);
-      expect(body.totalCount).toBeGreaterThanOrEqual(10);
+      expect(body.totalCount).toBe(10);
     });
 
     it('4 – should paginate correctly: page 2 of Lyon', async () => {
@@ -197,13 +197,23 @@ describe('Event Search Orchestration (E2E)', () => {
       expect(intersection).toHaveLength(0);
     });
 
-    it('7 – should return all 30 events without geo filter', async () => {
+    it('7 – should return all 31 suite events over the three cities', async () => {
       const res = await mainUser.client
-        .get('/api/v1/events?limit=50&onlyAvailable=true')
+        .get(`/api/v1/events?${scope}&limit=50&onlyAvailable=true`)
         .expect(200);
       const body = res.body as ListEventsWebResponse;
 
-      expect(body.totalCount).toBeGreaterThanOrEqual(30);
+      expect(body.totalCount).toBe(31);
+      expect(body.events).toHaveLength(31);
+    });
+
+    it('7b – should accept a search without geo filter (global data, shape only)', async () => {
+      const res = await mainUser.client
+        .get('/api/v1/events?limit=5&onlyAvailable=true')
+        .expect(200);
+      const body = res.body as ListEventsWebResponse;
+
+      expect(body.totalCount).toBeGreaterThanOrEqual(31);
     });
   });
 
@@ -237,11 +247,11 @@ describe('Event Search Orchestration (E2E)', () => {
 
     it('10 – should exclude events I participate in', async () => {
       const res = await mainUser.client
-        .get('/api/v1/events?excludeParticipatedByMe=true&limit=50&page=1')
+        .get(`/api/v1/events?excludeParticipatedByMe=true&${scope}&limit=50&page=1`)
         .expect(200);
       const body = res.body as ListEventsWebResponse;
 
-      expect(body.totalCount).toBeGreaterThanOrEqual(25);
+      expect(body.totalCount).toBe(26);
       const ids = body.events.map((e) => e.id);
       // None of my participated events should appear
       expect(ids).not.toContain(parisEventIds[0]);
@@ -253,11 +263,11 @@ describe('Event Search Orchestration (E2E)', () => {
 
     it('11 – should exclude events I wished', async () => {
       const res = await mainUser.client
-        .get('/api/v1/events?excludeWishedByMe=true&limit=50&page=1')
+        .get(`/api/v1/events?excludeWishedByMe=true&${scope}&limit=50&page=1`)
         .expect(200);
       const body = res.body as ListEventsWebResponse;
 
-      expect(body.totalCount).toBeGreaterThanOrEqual(27);
+      expect(body.totalCount).toBe(28);
       const ids = body.events.map((e) => e.id);
       expect(ids).not.toContain(marseilleEventIds[0]);
       expect(ids).not.toContain(marseilleEventIds[1]);
@@ -266,11 +276,11 @@ describe('Event Search Orchestration (E2E)', () => {
 
     it('12 – should exclude events created by blocked users', async () => {
       const res = await mainUser.client
-        .get('/api/v1/events?excludeBlockedUsers=true&limit=50&page=1')
+        .get(`/api/v1/events?excludeBlockedUsers=true&${scope}&limit=50&page=1`)
         .expect(200);
       const body = res.body as ListEventsWebResponse;
 
-      expect(body.totalCount).toBeGreaterThanOrEqual(29);
+      expect(body.totalCount).toBe(30);
       const ids = body.events.map((e) => e.id);
       expect(ids).not.toContain(parisEventIds[10]);
     });
@@ -371,12 +381,12 @@ describe('Event Search Orchestration (E2E)', () => {
     it('20 – exclude participated + wished + blocked simultaneously', async () => {
       const res = await mainUser.client
         .get(
-          '/api/v1/events?excludeParticipatedByMe=true&excludeWishedByMe=true&excludeBlockedUsers=true&limit=50&page=1',
+          `/api/v1/events?excludeParticipatedByMe=true&excludeWishedByMe=true&excludeBlockedUsers=true&${scope}&limit=50&page=1`,
         )
         .expect(200);
       const body = res.body as ListEventsWebResponse;
 
-      expect(body.totalCount).toBeGreaterThanOrEqual(21);
+      expect(body.totalCount).toBe(22);
       const ids = body.events.map((e) => e.id);
       expect(ids).not.toContain(parisEventIds[0]);
       expect(ids).not.toContain(marseilleEventIds[0]);
@@ -385,11 +395,13 @@ describe('Event Search Orchestration (E2E)', () => {
 
     it('21 – exclude participated + wished (no blocked filter)', async () => {
       const res = await mainUser.client
-        .get('/api/v1/events?excludeParticipatedByMe=true&excludeWishedByMe=true&limit=50&page=1')
+        .get(
+          `/api/v1/events?excludeParticipatedByMe=true&excludeWishedByMe=true&${scope}&limit=50&page=1`,
+        )
         .expect(200);
       const body = res.body as ListEventsWebResponse;
 
-      expect(body.totalCount).toBeGreaterThanOrEqual(22);
+      expect(body.totalCount).toBe(23);
       const ids = body.events.map((e) => e.id);
       // Blocked user event should still appear because we are not excluding blocked users here!
       // Wait, if it's created by blockedUser, does it still appear? Yes.
@@ -415,23 +427,23 @@ describe('Event Search Orchestration (E2E)', () => {
   // ═══════════════════════════════════════════════════════════════════
 
   describe('Edge Cases & Cross-User', () => {
-    it('23 – stranger sees all 30 events (no social interactions)', async () => {
+    it('23 – stranger sees all 31 suite events (no social interactions)', async () => {
       const res = await stranger2.client
-        .get('/api/v1/events?limit=50&page=1&onlyAvailable=true')
+        .get(`/api/v1/events?${scope}&limit=50&page=1&onlyAvailable=true`)
         .expect(200);
       const body = res.body as ListEventsWebResponse;
 
-      expect(body.totalCount).toBeGreaterThanOrEqual(30);
+      expect(body.totalCount).toBe(31);
     });
 
     it('24 – stranger excludeParticipatedByMe returns all (they participate in nothing)', async () => {
       const res = await stranger2.client
-        .get('/api/v1/events?excludeParticipatedByMe=true&limit=50&page=1')
+        .get(`/api/v1/events?excludeParticipatedByMe=true&${scope}&limit=50&page=1`)
         .expect(200);
       const body = res.body as ListEventsWebResponse;
 
       // stranger2 participates in nothing → all events returned
-      expect(body.totalCount).toBeGreaterThanOrEqual(30);
+      expect(body.totalCount).toBe(31);
     });
 
     it('25 – stranger onlyParticipatedByFriends returns empty (no friends)', async () => {
@@ -460,12 +472,12 @@ describe('Event Search Orchestration (E2E)', () => {
 
     it('27 – pagination page=1 limit=1 returns exactly 1 event', async () => {
       const res = await mainUser.client
-        .get('/api/v1/events?limit=1&page=1&onlyAvailable=true')
+        .get(`/api/v1/events?${scope}&limit=1&page=1&onlyAvailable=true`)
         .expect(200);
       const body = res.body as ListEventsWebResponse;
 
       expect(body.events).toHaveLength(1);
-      expect(body.totalCount).toBeGreaterThanOrEqual(30);
+      expect(body.totalCount).toBe(31);
     });
 
     it('28 – social filter + tiny radius = empty', async () => {
@@ -480,9 +492,9 @@ describe('Event Search Orchestration (E2E)', () => {
       expect(body.events).toHaveLength(0);
     });
 
-    it('29 – excludeBlockedUsers alone still returns 29 events', async () => {
+    it('29 – excludeBlockedUsers alone returns the 30 non-blocked suite events', async () => {
       const res = await mainUser.client
-        .get('/api/v1/events?excludeBlockedUsers=true&limit=50&page=1')
+        .get(`/api/v1/events?excludeBlockedUsers=true&${scope}&limit=50&page=1`)
         .expect(200);
       const body = res.body as ListEventsWebResponse;
 
