@@ -23,9 +23,49 @@ export interface CityGeo {
 
 // ─── Geo Constants ──────────────────────────────────────────────────
 
-export const PARIS: CityGeo = { lat: 48.8566, lng: 2.3522, name: 'Paris' };
-export const LYON: CityGeo = { lat: 45.764, lng: 4.8357, name: 'Lyon' };
-export const MARSEILLE: CityGeo = { lat: 43.2965, lng: 5.3698, name: 'Marseille' };
+/** Degrees of latitude between two test cities (about 167 km, far above the 10 km search radius). */
+const CITY_SPACING_DEGREES = 1.5;
+/** Radius covering the three test cities of a suite, and nothing else with overwhelming probability. */
+const SUITE_SCOPE_RADIUS_METERS = 400_000;
+
+export interface SuiteGeo {
+  readonly paris: CityGeo;
+  readonly lyon: CityGeo;
+  readonly marseille: CityGeo;
+  /** Area query covering the three cities of this suite only. */
+  readonly scopeQuery: string;
+  /** Area query (1 km radius) around a point where this suite created nothing. */
+  readonly emptyZoneQuery: string;
+}
+
+function randomBetween(min: number, max: number): number {
+  return min + Math.random() * (max - min);
+}
+
+/**
+ * Builds the three test cities around a random base point, so that parallel suites and
+ * reused stacks never share events in the same geographic area. Every global assertion
+ * (counts, "empty") must go through `scopeQuery` instead of an unfiltered search.
+ */
+export function createSuiteGeo(): SuiteGeo {
+  const baseLat = Number(randomBetween(-50, 50).toFixed(4));
+  const baseLng = Number(randomBetween(-170, 170).toFixed(4));
+  const paris: CityGeo = { lat: baseLat, lng: baseLng, name: 'Paris' };
+  const lyon: CityGeo = { lat: baseLat + CITY_SPACING_DEGREES, lng: baseLng, name: 'Lyon' };
+  const marseille: CityGeo = {
+    lat: baseLat + 2 * CITY_SPACING_DEGREES,
+    lng: baseLng,
+    name: 'Marseille',
+  };
+  const empty: CityGeo = { lat: baseLat + 10, lng: baseLng, name: 'Empty' };
+  return {
+    paris,
+    lyon,
+    marseille,
+    scopeQuery: areaQuery(lyon, SUITE_SCOPE_RADIUS_METERS),
+    emptyZoneQuery: areaQuery(empty, 1_000),
+  };
+}
 
 export function areaQuery(city: CityGeo, radiusMeters = 10_000): string {
   return `area[center][latitude]=${String(city.lat)}&area[center][longitude]=${String(city.lng)}&area[radiusMeters]=${String(radiusMeters)}`;
