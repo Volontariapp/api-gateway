@@ -16,7 +16,7 @@ export class TagQueryController extends BaseTagGrpcController {
 
   @ApiOperation({
     summary: 'List all tags',
-    description: 'Fetch a paginated list of all event tags.',
+    description: 'Fetch the list of event tags (not paginated), optionally filtered by slugs.',
   })
   @ApiResponse({ status: 200, type: GetTagsResponseDTO })
   @Get()

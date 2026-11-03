@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import type { GetEventAttendeesResponse } from '@volontariapp/contracts';
-import { PaginationResponseDTO } from '../common/pagination-response.dto.js';
+import { PaginationResponseDTO } from '../../../../common/dto/response/index.js';
 import { EventAttendeeDTO } from '../common/event-attendee.dto.js';
 
 /**

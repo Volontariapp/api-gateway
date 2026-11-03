@@ -2,6 +2,12 @@ import { ApiProperty } from '@nestjs/swagger';
 import { SearchEventsQuery, EventType, EventState } from '@volontariapp/contracts-nest';
 import { SearchEventsRequest } from '@volontariapp/contracts';
 import { Transform } from 'class-transformer';
+import {
+  DEFAULT_LIMIT,
+  DEFAULT_PAGE,
+  PaginationLimit,
+  PaginationPage,
+} from '../../../../common/pagination/index.js';
 import { GeoCircleDTO } from '../../../../common/dto/common/geo-circle.dto.js';
 
 export class SearchEventsRequestDTO implements SearchEventsRequest {
@@ -77,13 +83,11 @@ export class SearchEventsRequestDTO implements SearchEventsRequest {
   @Transform(({ value }) => value === 'true' || value === true || value === '1')
   onlyCreatedByFriends?: boolean;
 
-  @ApiProperty({ example: 1, required: false, default: 1 })
-  @Transform(({ value }) => parseInt(String(value), 10) || 1)
-  page!: number;
+  @PaginationPage()
+  page: number = DEFAULT_PAGE;
 
-  @ApiProperty({ example: 10, required: false, default: 10 })
-  @Transform(({ value }) => parseInt(String(value), 10) || 10)
-  limit!: number;
+  @PaginationLimit()
+  limit: number = DEFAULT_LIMIT;
 
   toQuery(): SearchEventsQuery {
     return {
@@ -99,8 +103,8 @@ export class SearchEventsRequestDTO implements SearchEventsRequest {
       ids: [],
       excludedIds: [],
       pagination: {
-        page: this.page || 1,
-        limit: this.limit || 10,
+        page: this.page,
+        limit: this.limit,
       },
     };
   }

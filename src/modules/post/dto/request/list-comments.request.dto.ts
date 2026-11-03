@@ -1,17 +1,18 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
-
 import { ListCommentsQuery } from '@volontariapp/contracts-nest';
 import type { ListCommentsRequest } from '@volontariapp/contracts';
+import {
+  DEFAULT_LIMIT,
+  DEFAULT_PAGE,
+  PaginationLimit,
+  PaginationPage,
+} from '../../../../common/pagination/index.js';
 
 export class ListCommentsRequestDTO implements ListCommentsRequest {
-  @ApiPropertyOptional({ example: 1, default: 1 })
-  @Transform(({ value }) => parseInt(value as string, 10))
-  page: number = 1;
+  @PaginationPage()
+  page: number = DEFAULT_PAGE;
 
-  @ApiPropertyOptional({ example: 10, default: 10 })
-  @Transform(({ value }) => parseInt(value as string, 10))
-  limit: number = 10;
+  @PaginationLimit()
+  limit: number = DEFAULT_LIMIT;
 
   postId!: string;
 

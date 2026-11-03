@@ -1,12 +1,9 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
 import { GetUserPostsQuery } from '@volontariapp/contracts-nest';
 import { GetUserPostsWebRequest } from '@volontariapp/contracts';
-import { PaginationRequestDTO } from '../common/pagination.dto.js';
+import { NestedPagination, PaginationRequestDTO } from '../../../../common/pagination/index.js';
 
 export class GetUserPostsRequestDTO implements GetUserPostsWebRequest {
-  @ApiPropertyOptional({ type: PaginationRequestDTO })
-  @Type(() => PaginationRequestDTO)
+  @NestedPagination(PaginationRequestDTO)
   pagination?: PaginationRequestDTO;
 
   toQuery(): GetUserPostsQuery {
