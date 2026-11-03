@@ -20,9 +20,6 @@ export const RANKING_MAX_LIMIT = 50;
 /** Largest batch of swipes accepted at once (RANKING_FEEDBACK_MAX_BATCH, decision 32). */
 export const RANKING_FEEDBACK_MAX_BATCH = 50;
 
-/** Page size used to read the two block sets of the reader in one call each. */
-export const RANKING_BLOCKS_PAGE_LIMIT = 1000;
-
 /** Longest opaque cursor accepted (ms-ranking encodes a short base64url JSON). */
 export const RANKING_CURSOR_MAX_LENGTH = 512;
 

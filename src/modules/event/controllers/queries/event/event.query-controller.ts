@@ -11,6 +11,7 @@ import {
   PARTICIPATION_QUERY_SERVICE_NAME,
   ParticipationQueryServiceClient,
 } from '@volontariapp/contracts-nest';
+import { fetchAllPages } from '../../../../../common/pagination/index.js';
 import { WithMetadata } from '../../../../../common/types/grpc.types.js';
 import { GatewayController } from '../../../../../common/decorators/gateway-controller.decorator.js';
 import { GetEventRequestDTO, SearchEventsRequestDTO } from '../../../dto/request/index.js';
@@ -81,22 +82,23 @@ export class EventQueryController extends BaseEventGrpcController {
     let eventIds: string[] = [];
     if (hasSocialFilters) {
       this.logger.log('Calling ms-social for recommended event ids');
-      const recommendedResponse = await firstValueFrom(
-        this.participationQueryService.getRecommendedEventIds(
-          {
-            excludeCreatedByMe: request.excludeCreatedByMe ?? false,
-            excludeBlockedUsers: request.excludeBlockedUsers ?? false,
-            excludeParticipatedByMe: request.excludeParticipatedByMe ?? false,
-            excludeWishedByMe: request.excludeWishedByMe ?? false,
-            onlyParticipatedByFriends: request.onlyParticipatedByFriends ?? false,
-            onlyWishedByFriends: request.onlyWishedByFriends ?? false,
-            onlyCreatedByFriends: request.onlyCreatedByFriends ?? false,
-            pagination: { page: 1, limit: 1000 },
-          },
-          metadata,
+      const filters = {
+        excludeCreatedByMe: request.excludeCreatedByMe ?? false,
+        excludeBlockedUsers: request.excludeBlockedUsers ?? false,
+        excludeParticipatedByMe: request.excludeParticipatedByMe ?? false,
+        excludeWishedByMe: request.excludeWishedByMe ?? false,
+        onlyParticipatedByFriends: request.onlyParticipatedByFriends ?? false,
+        onlyWishedByFriends: request.onlyWishedByFriends ?? false,
+        onlyCreatedByFriends: request.onlyCreatedByFriends ?? false,
+      };
+      eventIds = await fetchAllPages((pagination) =>
+        firstValueFrom(
+          this.participationQueryService.getRecommendedEventIds(
+            { ...filters, pagination },
+            metadata,
+          ),
         ),
       );
-      eventIds = recommendedResponse.ids;
 
       if (eventIds.length === 0) {
         return SearchEventsResponseDTO.empty(request.page, request.limit);
