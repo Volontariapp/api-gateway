@@ -4,3 +4,4 @@ export * from './ids-list.response.dto.js';
 export * from './event-id.response.dto.js';
 export * from './is-following.response.dto.js';
 export * from './get-event-attendees.response.dto.js';
+export * from './posts-like-summary.response.dto.js';

@@ -48,3 +48,4 @@ export * from './create-user-node.request.dto.js';
 export * from './delete-user-node.request.dto.js';
 export * from './set-event-attendance.request.dto.js';
 export * from './get-event-attendees.request.dto.js';
+export * from './get-posts-like-summary.request.dto.js';

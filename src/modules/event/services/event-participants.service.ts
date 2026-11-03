@@ -11,6 +11,9 @@ import { SOCIAL_PACKAGE } from '../../../grpc/grpc-packages.js';
 import { WithMetadata } from '../../../common/types/grpc.types.js';
 import type { EventDTO } from '../dto/common/event.dto.js';
 
+/** Plafond de ids par appel countEventParticipants (aligne sur ms-social). */
+export const COUNT_BATCH_SIZE = 100;
+
 /**
  * Fills `currentParticipants` from ms-social: ms-event does not count participants. A failure
  * leaves the value received from ms-event and is only logged, so a list is never lost for it.
@@ -29,21 +32,39 @@ export class EventParticipantsService implements OnModuleInit {
   }
 
   async enrich(event: EventDTO, metadata: Metadata): Promise<void> {
-    try {
-      const participants = await firstValueFrom(
-        this.participationQueryService.getEventParticipants(
-          { eventId: event.id, pagination: { page: 1, limit: 1 } },
-          metadata,
-        ),
-      );
-      // We add +1 because the creator is an implicit participant but not returned by getEventParticipants
-      event.currentParticipants = (participants.pagination?.total ?? 0) + 1;
-    } catch {
-      this.logger.warn(`Failed to enrich participants for event ${event.id}`);
-    }
+    await this.enrichAll([event], metadata);
   }
 
+  /** Un appel par lot de 100 ids (ids dedoublonnes) au lieu d un appel par evenement. */
   async enrichAll(events: readonly EventDTO[], metadata: Metadata): Promise<void> {
-    await Promise.all(events.map((event) => this.enrich(event, metadata)));
+    const ids = [...new Set(events.map((event) => event.id))];
+    const chunks: string[][] = [];
+    for (let i = 0; i < ids.length; i += COUNT_BATCH_SIZE) {
+      chunks.push(ids.slice(i, i + COUNT_BATCH_SIZE));
+    }
+    const counts = new Map<string, number>();
+    await Promise.all(
+      chunks.map(async (eventIds) => {
+        try {
+          const response = await firstValueFrom(
+            this.participationQueryService.countEventParticipants({ eventIds }, metadata),
+          );
+          for (const { eventId, participantCount } of response.counts) {
+            counts.set(eventId, participantCount);
+          }
+        } catch {
+          this.logger.warn(
+            `Failed to count participants for ${String(eventIds.length)} events (first: ${eventIds[0]})`,
+          );
+        }
+      }),
+    );
+    for (const event of events) {
+      const count = counts.get(event.id);
+      // +1 : le createur est un participant implicite, non compte par ms-social
+      if (count !== undefined) {
+        event.currentParticipants = count + 1;
+      }
+    }
   }
 }
