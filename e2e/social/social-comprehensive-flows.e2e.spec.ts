@@ -13,6 +13,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { setupAuth } from '../helpers/auth-helper.js';
 import { createTestClient } from '../helpers/test-client.helper.js';
+import { waitForSocialUserNode } from '../helpers/social-node.helper.js';
 import { UserRoles } from '@volontariapp/shared';
 import { signUpRequestFactory } from '../user/user-test.factory.js';
 import type { SignUpResponseDTO } from '../../src/modules/user/dto/response/sign-up.response.dto.js';
@@ -57,9 +58,9 @@ describe('Social Comprehensive User Flows (E2E)', () => {
 
     const postId = randomUUID();
 
-    // 1. Admin creates nodes (users are created by the event, but we can call it to be safe or it just returns 409/201)
-    await adminClient.post(`/api/v1/social/users/${userAId}`);
-    await adminClient.post(`/api/v1/social/users/${userBId}`);
+    // 1. User nodes come from the async pipeline (user.created), the post node is created by hand
+    await waitForSocialUserNode(adminClient, userAId);
+    await waitForSocialUserNode(adminClient, userBId);
     await adminClient.post(`/api/v1/social/posts/${postId}`).expect(201);
 
     // 2. User A logs in
