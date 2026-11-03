@@ -4,6 +4,7 @@ import { EventState, EventType } from '@volontariapp/contracts-nest';
 import { UserRoles } from '@volontariapp/shared';
 import type { TestClient } from '../helpers/test-client.helper.js';
 import { createTestClient } from '../helpers/test-client.helper.js';
+import { waitForSocialUserNode } from '../helpers/social-node.helper.js';
 import { signUpRequestFactory } from '../user/user-test.factory.js';
 import { createEventRequestFactory } from './event-test.factory.js';
 
@@ -33,15 +34,14 @@ export function areaQuery(city: CityGeo, radiusMeters = 10_000): string {
 // ─── Factories ──────────────────────────────────────────────────────
 
 /**
- * Creates a real user (REST) + its social graph node (admin REST),
- * returns a typed TestUser with an authenticated TestClient.
+ * Creates a real user (REST), waits for its social graph node (created by the async
+ * pipeline), returns a typed TestUser with an authenticated TestClient.
  */
 export async function createUser(app: INestApplication, admin: TestClient): Promise<TestUser> {
   const signUpRes = await admin.post('/api/v1/users').send(signUpRequestFactory()).expect(201);
   const userId = (signUpRes.body as { user: { id: string } }).user.id;
 
-  // Create the social graph node (simulates the outbox post-processor)
-  await admin.post(`/api/v1/social/users/${userId}`).send({}).expect(201);
+  await waitForSocialUserNode(admin, userId);
 
   const client = await createTestClient(app).login({ id: userId, role: UserRoles.VOLUNTEER });
   return { id: userId, client };

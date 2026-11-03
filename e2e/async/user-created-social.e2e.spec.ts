@@ -4,13 +4,9 @@ import { UserRoles } from '@volontariapp/shared';
 import { createApp } from '../helpers/create-app.helper.js';
 import type { TestClient } from '../helpers/test-client.helper.js';
 import { createTestClient } from '../helpers/test-client.helper.js';
-import { eventually } from '../helpers/eventually.helper.js';
+import { waitForSocialUserNode } from '../helpers/social-node.helper.js';
 import { signUpRequestFactory } from '../user/user-test.factory.js';
 import type { SignUpResponseDTO } from '../../src/modules/user/dto/response/index.js';
-
-interface SocialUserExistsBody {
-  exists: boolean;
-}
 
 /**
  * Async pipeline: user.created
@@ -38,15 +34,6 @@ describe('Async pipeline: user.created -> ms-social (E2E)', () => {
     const userId = (signUp.body as SignUpResponseDTO).user.id;
     createdUserIds.push(userId);
 
-    const node = await eventually(
-      async () => {
-        const res = await admin.get(`/api/v1/social/users/${userId}`).expect(200);
-        return res.body as SocialUserExistsBody;
-      },
-      (body) => body.exists,
-      { description: `social node for user ${userId}` },
-    );
-
-    expect(node.exists).toBe(true);
+    await expect(waitForSocialUserNode(admin, userId)).resolves.toBeUndefined();
   });
 });

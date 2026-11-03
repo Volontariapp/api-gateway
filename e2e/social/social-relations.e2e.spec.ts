@@ -17,6 +17,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { setupAuth } from '../helpers/auth-helper.js';
 import { createTestClient } from '../helpers/test-client.helper.js';
+import { waitForSocialUserNode } from '../helpers/social-node.helper.js';
 import { UserRoles } from '@volontariapp/shared';
 import { signUpRequestFactory } from '../user/user-test.factory.js';
 import type {
@@ -337,8 +338,8 @@ describe('Social Relations & Interactions (E2E)', () => {
     const signUpResB = await adminClient.post('/api/v1/users').send(signUpDtoB).expect(201);
     const userB = (signUpResB.body as SignUpResponseDTO).user;
 
-    await adminClient.post(`/api/v1/social/users/${userA.id}`).expect(201);
-    await adminClient.post(`/api/v1/social/users/${userB.id}`).expect(201);
+    await waitForSocialUserNode(adminClient, userA.id);
+    await waitForSocialUserNode(adminClient, userB.id);
 
     await adminClient.post(`/api/v1/social/users/${userA.id}/follow/${userB.id}`).expect(201);
 

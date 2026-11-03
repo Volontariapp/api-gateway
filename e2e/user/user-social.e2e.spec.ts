@@ -13,6 +13,7 @@ import { fileURLToPath } from 'node:url';
 import { setupAuth } from '../helpers/auth-helper.js';
 import type { TestClient } from '../helpers/test-client.helper.js';
 import { createTestClient } from '../helpers/test-client.helper.js';
+import { waitForSocialUserNode } from '../helpers/social-node.helper.js';
 import type { ListUsersPublicResponseDTO } from '../../src/modules/user/dto/response/index.js';
 import { signUpRequestFactory } from './user-test.factory.js';
 import type { SignUpResponseDTO } from '../../src/modules/user/dto/response/sign-up.response.dto.js';
@@ -55,7 +56,7 @@ describe('User Social Endpoints (E2E)', () => {
 
     // 2. Create nodes in ms-social
     const eventId = randomUUID();
-    await adminClient.post(`/api/v1/social/users/${userId}`).expect(201);
+    await waitForSocialUserNode(adminClient, userId);
     await adminClient.post(`/api/v1/social/events/${eventId}`).expect(201);
 
     // 3. User participates in the event
@@ -89,7 +90,7 @@ describe('User Social Endpoints (E2E)', () => {
 
     // 2. Create nodes in ms-social
     const postId = randomUUID();
-    await adminClient.post(`/api/v1/social/users/${userId}`).expect(201);
+    await waitForSocialUserNode(adminClient, userId);
     await adminClient.post(`/api/v1/social/posts/${postId}`).expect(201);
 
     // 3. User likes the post
