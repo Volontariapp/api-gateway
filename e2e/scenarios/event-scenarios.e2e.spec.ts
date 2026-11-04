@@ -268,12 +268,9 @@ describe('Scenarios: events (E2E)', () => {
       SCENARIO_TIMEOUT_MS,
     );
 
-    // System gap G1 (README): ws-service waits for 'social_event.deleted_success' and
-    // 'post_event.deleted_success', which no runner emits (post-processor-social emits
-    // 'event_social.deleted'). The EVENT_DELETION gather never succeeds; in production the reaper
-    // fails it after 60 s ('event.deletion_failed'), in this stack (NODE_ENV=test) it stays PENDING.
-    // Fixed by aligning ws-service EVENT_DELETION gather keys: turn it back into `it` then.
-    it.failing(
+    // Gap G1 (README), fixed by ws-service#50 and post-processors-runner#59: the EVENT_DELETION
+    // gather waits for EVENT_SOCIAL_DELETED, which post-processor-social emits.
+    it(
       "the organizer receives 'event.deleted' once the deletion saga completes",
       async () => {
         const organizer = await world.signUp(UserRoles.ORGANIZATION);
