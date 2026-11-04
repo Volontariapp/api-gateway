@@ -145,9 +145,7 @@ describe('Post Lifecycle (E2E)', () => {
       const page1Ids = new Set(page1Body.posts.map((p) => p.id));
       const overlap = page2Body.posts.some((p) => page1Ids.has(p.id));
       expect(overlap).toBe(false);
-      expect(new Set([...page1Ids, ...page2Body.posts.map((p) => p.id)])).toEqual(
-        new Set(postIds),
-      );
+      expect(new Set([...page1Ids, ...page2Body.posts.map((p) => p.id)])).toEqual(new Set(postIds));
     } finally {
       await Promise.all(postIds.map((id) => client.delete(`/api/v1/posts/${id}`).expect(200)));
     }
