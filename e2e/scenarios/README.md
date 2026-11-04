@@ -122,6 +122,15 @@ at all, never a `*_failed` one.
 - **G2, no geocoding failure feedback.** post-processor-event logs and skips when geocoding returns
   nothing (`event-created.post-processor.ts`, after line 100): no `event.geocoding_failed`, so the
   EVENT_CREATION gather waits for the reaper (60 s, disabled in the e2e stack).
+- **G3, a user deleted right after its sign-up keeps its social node.** Found by
+  `user-scenarios` "ordering" (CI run 41809453352). `ms_user.event_queue`: `user.created` written
+  at 09:47:45.069 but pushed at 45.158, `user.deleted` written at 45.090 and pushed at 45.150; on
+  `social:user` the deletion got message id 1793785665145-0 and the creation 1793785665158-0.
+  post-processor-social purged first, then created the node, which stays orphaned. Outbox rows of
+  one batch are claimed with `UPDATE ... WHERE id IN (SELECT ... ORDER BY created_at) RETURNING *`
+  (`npm-packages/packages/database/src/outbox/consumers/outbox.consumer.ts:31-49`): the order of
+  `RETURNING` is not guaranteed (inference, not verified). Even in order, the two consumer groups
+  of post-processor-social (`UserCreatedPostProcessors`, `UserDeletedPostProcessors`) can race.
 - **Observations (inference, not verified at runtime).** `SAGA_GATHER_COMPLETION_MAPPING` sends the
   completion of EVENT_DELETION, POST_DELETION and USER_CREATION to their trigger streams
   (`messaging/src/sagas/gather-registry.ts:32`, `:42`, `:47`), against the rule of the
