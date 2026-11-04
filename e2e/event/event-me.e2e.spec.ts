@@ -13,6 +13,7 @@ import { fileURLToPath } from 'node:url';
 import { setupAuth } from '../helpers/auth-helper.js';
 import type { TestClient } from '../helpers/test-client.helper.js';
 import { createTestClient } from '../helpers/test-client.helper.js';
+import { eventually } from '../helpers/eventually.helper.js';
 import type { SearchEventsResponseDTO } from '../../src/modules/event/dto/response/index.js';
 import { createEventRequestFactory } from './event-test.factory.js';
 import type { EventWebResponse } from '@volontariapp/contracts';
@@ -133,28 +134,36 @@ describe('Event Me Endpoints (E2E)', () => {
         role: UserRoles.ADMIN,
       });
 
-      // Synchronously simulate the async outbox processing for ms-social (create user node)
+      // No real account behind userId: its social node is created by hand, before the events,
+      // so that post-processor-social can link each event to it (CREATED).
       await paginatedClient.post(`/api/v1/social/users/${userId}`).send({}).expect(201);
 
-      const eventIds: string[] = [];
       // Create 25 events
-      for (let i = 0; i < 25; i++) {
-        const eventDto = createEventRequestFactory({
-          title: `Paginated-Event-${String(i)}-${randomUUID()}`,
-        });
-        const createRes = await paginatedClient.post('/api/v1/events').send(eventDto).expect(201);
-        const eventId = (createRes.body as EventWebResponse).event.id;
-        eventIds.push(eventId);
-
-        // Synchronously simulate the async outbox processing for ms-social
-        await paginatedClient.post(`/api/v1/social/events/${eventId}`).send({}).expect(201);
-        await paginatedClient
-          .post(`/api/v1/social/users/${userId}/events/${eventId}/own`)
-          .send({})
-          .expect(201);
-      }
+      const eventIds = await Promise.all(
+        Array.from({ length: 25 }, async (_, i) => {
+          const eventDto = createEventRequestFactory({
+            title: `Paginated-Event-${String(i)}-${randomUUID()}`,
+          });
+          const createRes = await paginatedClient.post('/api/v1/events').send(eventDto).expect(201);
+          return (createRes.body as EventWebResponse).event.id;
+        }),
+      );
 
       try {
+        // Event nodes and CREATED links come from the pipeline (event.created -> outbox-event
+        // -> post-processor-social): wait until the 25 events are linked to the user.
+        await eventually(
+          async () => {
+            const res = await paginatedClient
+              .get('/api/v1/events/created/me')
+              .query({ page: 1, limit: 10 })
+              .expect(200);
+            return res.body as SearchEventsResponseDTO;
+          },
+          (body) => body.pagination.total === eventIds.length,
+          { description: `CREATED links of the ${String(eventIds.length)} events of ${userId}` },
+        );
+
         // Fetch Page 1 (limit 10)
         const resPage1 = await paginatedClient
           .get('/api/v1/events/created/me')

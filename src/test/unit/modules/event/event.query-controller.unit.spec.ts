@@ -75,6 +75,36 @@ describe('EventQueryController.listEvents (Unit)', () => {
     );
   });
 
+  it('should drop the recommended ids that are not UUIDs before searching', async () => {
+    const validIds = IdsPageFactory.createIds(2);
+    jest
+      .spyOn(participationQuery, 'getRecommendedEventIds')
+      .mockReturnValue(
+        of({ ids: [validIds[0], '', 'not-a-uuid', validIds[1]], pagination: undefined }),
+      );
+    const searchSpy = jest
+      .spyOn(eventQuery, 'searchEvents')
+      .mockReturnValue(of({ events: [], totalCount: 0, pagination: undefined }));
+    const request = Object.assign(new SearchEventsRequestDTO(), { excludeParticipatedByMe: true });
+
+    await controller.listEvents(request, req);
+
+    expect(searchSpy).toHaveBeenCalledWith(expect.objectContaining({ ids: validIds }), metadata);
+  });
+
+  it('should answer an empty page without calling ms-event when no recommended id is a UUID', async () => {
+    jest
+      .spyOn(participationQuery, 'getRecommendedEventIds')
+      .mockReturnValue(of({ ids: [''], pagination: undefined }));
+    const searchSpy = jest.spyOn(eventQuery, 'searchEvents');
+    const request = Object.assign(new SearchEventsRequestDTO(), { excludeWishedByMe: true });
+
+    const result = await controller.listEvents(request, req);
+
+    expect(result.events).toEqual([]);
+    expect(searchSpy).not.toHaveBeenCalled();
+  });
+
   it('should answer an empty page without calling ms-event when no id is recommended', async () => {
     jest
       .spyOn(participationQuery, 'getRecommendedEventIds')

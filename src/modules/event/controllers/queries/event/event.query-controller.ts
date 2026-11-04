@@ -1,5 +1,6 @@
 import { Controller, Get, Param, Query, Req } from '@nestjs/common';
 import { firstValueFrom } from 'rxjs';
+import { isUUID } from 'class-validator';
 import { Logger } from '@volontariapp/logger';
 import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { CustomApiError, DATABASE_ERROR, EVENT_NOT_FOUND } from '@volontariapp/errors-nest';
@@ -91,7 +92,7 @@ export class EventQueryController extends BaseEventGrpcController {
         onlyWishedByFriends: request.onlyWishedByFriends ?? false,
         onlyCreatedByFriends: request.onlyCreatedByFriends ?? false,
       };
-      eventIds = await fetchAllPages((pagination) =>
+      const recommendedIds = await fetchAllPages((pagination) =>
         firstValueFrom(
           this.participationQueryService.getRecommendedEventIds(
             { ...filters, pagination },
@@ -99,6 +100,15 @@ export class EventQueryController extends BaseEventGrpcController {
           ),
         ),
       );
+      // ms-event rejects the whole search (INVALID_ARGUMENT, 400) when one id is not a UUID. A
+      // SocialEvent node read while another request deletes it can come back without its eventId
+      // (empty string on the wire): drop such ids instead of failing the listing.
+      eventIds = recommendedIds.filter((id) => isUUID(id));
+      if (eventIds.length < recommendedIds.length) {
+        this.logger.warn(
+          `Dropped ${String(recommendedIds.length - eventIds.length)} recommended event ids that are not UUIDs`,
+        );
+      }
 
       if (eventIds.length === 0) {
         return SearchEventsResponseDTO.empty(request.page, request.limit);

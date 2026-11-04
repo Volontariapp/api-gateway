@@ -8,8 +8,8 @@
  *   - Authorization checks (403 / 401)
  *
  * Setup strategy:
- *   - Events are created via ms-event (POST /api/v1/events) and their social node
- *     is registered synchronously (POST /api/v1/social/events/:id), bypassing the async outbox.
+ *   - Events are created via ms-event (POST /api/v1/events); the test waits for their social
+ *     node, written by the async pipeline (outbox-event -> post-processor-social).
  *   - Social post nodes are created directly via the admin endpoint
  *     POST /api/v1/social/posts/:id without going through ms-post (which requires
  *     a running ms-post instance not available in this E2E environment).

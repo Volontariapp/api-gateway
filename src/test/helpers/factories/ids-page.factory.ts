@@ -1,9 +1,15 @@
 import type { IdsPageResponse } from '../../../common/pagination/index.js';
 
 export class IdsPageFactory {
-  /** `count` ids distincts, numerotes de `start` (id-0, id-1, ...). */
+  /**
+   * `count` ids distincts au format UUID (les ids d'evenements sont valides comme tels par ms-event),
+   * numerotes de `start` dans le dernier groupe (00000000-0000-4000-8000-000000000000, ...0001, ...).
+   */
   static createIds(count: number, start = 0): string[] {
-    return Array.from({ length: count }, (_, i) => `id-${String(start + i)}`);
+    return Array.from(
+      { length: count },
+      (_, i) => `00000000-0000-4000-8000-${String(start + i).padStart(12, '0')}`,
+    );
   }
 
   /** Reponse de la page `page` (base 1) d'un ensemble de `total` ids, pages de `limit`. */
