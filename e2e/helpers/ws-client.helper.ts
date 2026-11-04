@@ -57,6 +57,31 @@ export function connectGatewaySocket(
   });
 }
 
+/** Every payload of one socket event received since `recordSocketEvents` was called. */
+export interface SocketEventRecorder<T> {
+  readonly payloads: readonly T[];
+  stop(): void;
+}
+
+/**
+ * Records every `event` received on `socket` from now on. Use it when the expected ids are only
+ * known after the action (attach first, the pipeline may be faster than the HTTP response), or to
+ * count notifications; read it with `eventually`, never after a fixed sleep.
+ */
+export function recordSocketEvents<T>(socket: Socket, event: string): SocketEventRecorder<T> {
+  const payloads: T[] = [];
+  const onEvent = (payload: T): void => {
+    payloads.push(payload);
+  };
+  socket.on(event, onEvent);
+  return {
+    payloads,
+    stop: () => {
+      socket.off(event, onEvent);
+    },
+  };
+}
+
 /**
  * Waits for the first `event` whose payload satisfies `predicate`. Rejects on timeout, or
  * as soon as the server closes the socket (ws-service disconnects an unauthorized client).
