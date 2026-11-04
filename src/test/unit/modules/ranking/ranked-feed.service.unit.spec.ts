@@ -14,7 +14,7 @@ import { GrpcStatus } from '@volontariapp/errors';
 import { createMock } from '@volontariapp/testing';
 import type { WithMetadata } from '../../../../common/types/grpc.types.js';
 import { RankedFeedService } from '../../../../modules/ranking/services/ranked-feed.service.js';
-import { RankingBlocksService } from '../../../../modules/ranking/services/ranking-blocks.service.js';
+import { HiddenUsersService } from '../../../../modules/event/services/hidden-users.service.js';
 import { MockServicesClientGrpc } from '../../../helpers/mocks/services-client-grpc.mock.js';
 import { PublicFileUrlFactory } from '../../../helpers/factories/public-file-url.factory.js';
 import { PostFactory } from '../../../helpers/factories/post.factory.js';
@@ -41,7 +41,7 @@ describe('RankedFeedService (Unit)', () => {
     rankingQuery = createMock<WithMetadata<RankingQueryServiceClient>>();
     postService = createMock<WithMetadata<PostServiceClient>>();
     relationshipQuery = createMock<WithMetadata<RelationshipQueryServiceClient>>();
-    const blocks = new RankingBlocksService(
+    const blocks = new HiddenUsersService(
       new MockServicesClientGrpc({ [RELATIONSHIP_QUERY_SERVICE_NAME]: relationshipQuery }),
     );
     blocks.onModuleInit();

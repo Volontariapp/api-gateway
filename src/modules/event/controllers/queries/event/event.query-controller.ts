@@ -1,19 +1,12 @@
 import { Controller, Get, Param, Query, Req } from '@nestjs/common';
 import { firstValueFrom } from 'rxjs';
-import { isUUID } from 'class-validator';
 import { Logger } from '@volontariapp/logger';
 import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { CustomApiError, DATABASE_ERROR, EVENT_NOT_FOUND } from '@volontariapp/errors-nest';
 import type { ClientGrpc } from '@nestjs/microservices';
 import { Inject } from '@nestjs/common';
 import type { Metadata } from '@grpc/grpc-js';
-import { EVENT_PACKAGE, SOCIAL_PACKAGE } from '../../../../../grpc/grpc-packages.js';
-import {
-  PARTICIPATION_QUERY_SERVICE_NAME,
-  ParticipationQueryServiceClient,
-} from '@volontariapp/contracts-nest';
-import { fetchAllPages } from '../../../../../common/pagination/index.js';
-import { WithMetadata } from '../../../../../common/types/grpc.types.js';
+import { EVENT_PACKAGE } from '../../../../../grpc/grpc-packages.js';
 import { GatewayController } from '../../../../../common/decorators/gateway-controller.decorator.js';
 import { GetEventRequestDTO, SearchEventsRequestDTO } from '../../../dto/request/index.js';
 import {
@@ -29,6 +22,7 @@ import {
 import { BaseEventGrpcController } from '../../base-grpc.controller.js';
 import { PublicFileUrlService } from '../../../../storage/public-file-url.service.js';
 import { EventParticipantsService } from '../../../services/event-participants.service.js';
+import { EventSocialFilterService } from '../../../services/event-social-filter.service.js';
 
 @GatewayController('Events', {
   extraModels: [GetEventResponseDTO],
@@ -39,22 +33,13 @@ export class EventQueryController extends BaseEventGrpcController {
     context: EventQueryController.name,
   });
 
-  private participationQueryService!: WithMetadata<ParticipationQueryServiceClient>;
-
   constructor(
     @Inject(EVENT_PACKAGE) protected readonly eventClient: ClientGrpc,
-    @Inject(SOCIAL_PACKAGE) private readonly socialClient: ClientGrpc,
     publicFileUrls: PublicFileUrlService,
     private readonly participants: EventParticipantsService,
+    private readonly socialFilter: EventSocialFilterService,
   ) {
     super(eventClient, publicFileUrls);
-  }
-
-  override onModuleInit() {
-    super.onModuleInit();
-    this.participationQueryService = this.socialClient.getService<ParticipationQueryServiceClient>(
-      PARTICIPATION_QUERY_SERVICE_NAME,
-    );
   }
 
   @ApiOperation({
@@ -71,53 +56,16 @@ export class EventQueryController extends BaseEventGrpcController {
   async listEvents(@Query() request: SearchEventsRequestDTO, @Req() req: Record<string, unknown>) {
     this.logger.log('Listing events');
     const metadata = req['internalMetadata'] as Metadata;
-    const hasSocialFilters =
-      request.excludeCreatedByMe ??
-      request.excludeBlockedUsers ??
-      request.excludeParticipatedByMe ??
-      request.excludeWishedByMe ??
-      request.onlyParticipatedByFriends ??
-      request.onlyWishedByFriends ??
-      request.onlyCreatedByFriends;
-
-    let eventIds: string[] = [];
-    if (hasSocialFilters) {
-      this.logger.log('Calling ms-social for recommended event ids');
-      const filters = {
-        excludeCreatedByMe: request.excludeCreatedByMe ?? false,
-        excludeBlockedUsers: request.excludeBlockedUsers ?? false,
-        excludeParticipatedByMe: request.excludeParticipatedByMe ?? false,
-        excludeWishedByMe: request.excludeWishedByMe ?? false,
-        onlyParticipatedByFriends: request.onlyParticipatedByFriends ?? false,
-        onlyWishedByFriends: request.onlyWishedByFriends ?? false,
-        onlyCreatedByFriends: request.onlyCreatedByFriends ?? false,
-      };
-      const recommendedIds = await fetchAllPages((pagination) =>
-        firstValueFrom(
-          this.participationQueryService.getRecommendedEventIds(
-            { ...filters, pagination },
-            metadata,
-          ),
-        ),
-      );
-      // ms-event rejects the whole search (INVALID_ARGUMENT, 400) when one id is not a UUID. A
-      // SocialEvent node read while another request deletes it can come back without its eventId
-      // (empty string on the wire): drop such ids instead of failing the listing.
-      eventIds = recommendedIds.filter((id) => isUUID(id));
-      if (eventIds.length < recommendedIds.length) {
-        this.logger.warn(
-          `Dropped ${String(recommendedIds.length - eventIds.length)} recommended event ids that are not UUIDs`,
-        );
-      }
-
-      if (eventIds.length === 0) {
-        return SearchEventsResponseDTO.empty(request.page, request.limit);
-      }
+    const scope = await this.socialFilter.resolve(request, metadata);
+    if (scope.kind === 'empty') {
+      return SearchEventsResponseDTO.empty(request.page, request.limit);
     }
 
     const query = request.toQuery();
-    if (eventIds.length > 0) {
-      query.ids = eventIds;
+    if (scope.kind === 'ids') {
+      query.ids = scope.ids;
+    } else if (scope.kind === 'excluded') {
+      query.excludedIds = scope.excludedIds;
     }
 
     const result = await firstValueFrom(this.queryService.searchEvents(query, metadata));

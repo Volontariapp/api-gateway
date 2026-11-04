@@ -7,18 +7,18 @@ import {
 } from '@volontariapp/contracts-nest';
 import { createMock } from '@volontariapp/testing';
 import type { WithMetadata } from '../../../../common/types/grpc.types.js';
-import { RankingBlocksService } from '../../../../modules/ranking/services/ranking-blocks.service.js';
+import { HiddenUsersService } from '../../../../modules/event/services/hidden-users.service.js';
 import { MockServicesClientGrpc } from '../../../helpers/mocks/services-client-grpc.mock.js';
 import { IdsPageFactory } from '../../../helpers/factories/ids-page.factory.js';
 
-describe('RankingBlocksService (Unit)', () => {
+describe('HiddenUsersService (Unit)', () => {
   let relationshipQuery: jest.Mocked<WithMetadata<RelationshipQueryServiceClient>>;
-  let service: RankingBlocksService;
+  let service: HiddenUsersService;
   const metadata = new Metadata();
 
   beforeEach(() => {
     relationshipQuery = createMock<WithMetadata<RelationshipQueryServiceClient>>();
-    service = new RankingBlocksService(
+    service = new HiddenUsersService(
       new MockServicesClientGrpc({ [RELATIONSHIP_QUERY_SERVICE_NAME]: relationshipQuery }),
     );
     service.onModuleInit();

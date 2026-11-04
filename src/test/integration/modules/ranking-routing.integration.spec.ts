@@ -22,6 +22,7 @@ import { EVENT_PACKAGE, RANKING_PACKAGE, SOCIAL_PACKAGE } from '../../../grpc/gr
 import { EventQueryController } from '../../../modules/event/controllers/queries/event/event.query-controller.js';
 import { EventCommandController } from '../../../modules/event/controllers/commands/event/event.command-controller.js';
 import { EventParticipantsService } from '../../../modules/event/services/event-participants.service.js';
+import { EventSocialFilterService } from '../../../modules/event/services/event-social-filter.service.js';
 import { RankingQueryController } from '../../../modules/ranking/controllers/queries/ranking.query-controller.js';
 import { RankingCommandController } from '../../../modules/ranking/controllers/commands/ranking.command-controller.js';
 import { RankedEventsService } from '../../../modules/ranking/services/ranked-events.service.js';
@@ -82,6 +83,7 @@ describe('Ranking routes (Integration)', () => {
         },
         { provide: PublicFileUrlService, useValue: PublicFileUrlFactory.createService() },
         { provide: EventParticipantsService, useValue: participants },
+        { provide: EventSocialFilterService, useValue: createMock<EventSocialFilterService>() },
         { provide: RankedEventsService, useValue: rankedEvents },
         { provide: RankedFeedService, useValue: rankedFeed },
       ],

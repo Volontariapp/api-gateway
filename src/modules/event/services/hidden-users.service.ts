@@ -16,7 +16,7 @@ import { fetchAllPages } from '../../../common/pagination/index.js';
  * An error is not swallowed: serving a feed that may show a blocked author is worse than failing.
  */
 @Injectable()
-export class RankingBlocksService implements OnModuleInit {
+export class HiddenUsersService implements OnModuleInit {
   private relationshipQueryService!: WithMetadata<RelationshipQueryServiceClient>;
 
   constructor(@Inject(SOCIAL_PACKAGE) private readonly socialClient: ClientGrpc) {}
