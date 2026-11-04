@@ -111,7 +111,8 @@ describe('Post Lifecycle (E2E)', () => {
   // ─── Post Pagination ───────────────────────────────────────────────────────
 
   it('should list and paginate multiple posts', async () => {
-    const client = await createTestClient(app).login({ id: randomUUID(), role: UserRoles.ADMIN });
+    const author = { id: randomUUID(), role: UserRoles.ADMIN };
+    const client = await createTestClient(app).login(author);
 
     const postIds: string[] = [];
     for (let i = 0; i < 15; i++) {
@@ -123,19 +124,30 @@ describe('Post Lifecycle (E2E)', () => {
     }
 
     try {
-      const page1Res = await client.get('/api/v1/posts').query({ page: 1, limit: 10 }).expect(200);
+      // Scoped to this test's author: other suites insert posts concurrently (parallel Jest
+      // workers), which shifts offset pages of the global listing and creates overlaps.
+      const page1Res = await client
+        .get('/api/v1/posts')
+        .query({ authorId: author.id, page: 1, limit: 10 })
+        .expect(200);
       const page1Body = page1Res.body as ListPostsWebResponse;
-      expect(page1Body.posts.length).toBeLessThanOrEqual(10);
-      expect(page1Body.totalCount).toBeGreaterThanOrEqual(15);
+      expect(page1Body.posts).toHaveLength(10);
+      expect(page1Body.totalCount).toBe(15);
 
-      const page2Res = await client.get('/api/v1/posts').query({ page: 2, limit: 10 }).expect(200);
+      const page2Res = await client
+        .get('/api/v1/posts')
+        .query({ authorId: author.id, page: 2, limit: 10 })
+        .expect(200);
       const page2Body = page2Res.body as ListPostsWebResponse;
-      expect(page2Body.posts.length).toBeGreaterThan(0);
+      expect(page2Body.posts).toHaveLength(5);
 
-      // No overlap between pages
+      // No overlap between pages, and together they are exactly the posts created here
       const page1Ids = new Set(page1Body.posts.map((p) => p.id));
       const overlap = page2Body.posts.some((p) => page1Ids.has(p.id));
       expect(overlap).toBe(false);
+      expect(new Set([...page1Ids, ...page2Body.posts.map((p) => p.id)])).toEqual(
+        new Set(postIds),
+      );
     } finally {
       await Promise.all(postIds.map((id) => client.delete(`/api/v1/posts/${id}`).expect(200)));
     }
