@@ -11,9 +11,9 @@ import { createTestClient } from '../helpers/test-client.helper.js';
 import type { TestClient } from '../helpers/test-client.helper.js';
 
 /**
- * The CI compose (ci-tools) does not start ms-ranking yet and the e2e matrix validator does not
- * know it: the scenarios that reach ms-ranking only run when E2E_RANKING_ENABLED=true. The routing
- * checks below need no ms-ranking and always run.
+ * The scenarios that reach ms-ranking only run when E2E_RANKING_ENABLED=true: ci-tools sets it on
+ * api-gateway-e2e once its compose starts ms-ranking, so a repo whose ci-tools submodule predates
+ * it skips them. The routing checks below need no ms-ranking and always run.
  */
 const describeWithRanking = process.env.E2E_RANKING_ENABLED === 'true' ? describe : describe.skip;
 
@@ -69,14 +69,21 @@ describe('Ranking routes (E2E)', () => {
       expect((res.body as { code: string }).code).toBe('FALLBACK_ACTIVATED');
     });
 
-    it('should accept a refresh and throttle the sixth one in a minute', async () => {
-      const throttled: boolean[] = [];
-      for (let i = 0; i < 6; i++) {
-        const listKind = i % 2 === 0 ? 'EVENT' : 'POST';
-        const res = await client.post('/api/v1/ranking/refresh').send({ listKind }).expect(200);
-        throttled.push((res.body as RequestRankingRefreshWebResponse).refreshThrottled);
-      }
-      expect(throttled).toEqual([false, false, false, false, false, true]);
+    it('should accept five refreshes and throttle the sixth one in a minute', async () => {
+      // The REFRESH bucket refills one token every 12 s: the six requests are sent together so
+      // that a slow stack cannot refill it between them. Which one is throttled is not ordered.
+      const responses = await Promise.all(
+        Array.from({ length: 6 }, (_, i) =>
+          client
+            .post('/api/v1/ranking/refresh')
+            .send({ listKind: i % 2 === 0 ? 'EVENT' : 'POST' })
+            .expect(200),
+        ),
+      );
+      const throttled = responses.map(
+        (res) => (res.body as RequestRankingRefreshWebResponse).refreshThrottled,
+      );
+      expect(throttled.filter((value) => value)).toHaveLength(1);
     });
 
     it('should accept the first position and ignore a second one within a minute', async () => {

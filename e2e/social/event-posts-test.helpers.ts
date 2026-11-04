@@ -1,12 +1,13 @@
 import type { TestClient } from '../helpers/test-client.helper.js';
+import { waitForSocialEventNode } from '../helpers/social-node.helper.js';
 import type { EventWebResponse, IdsListWebResponse } from '@volontariapp/contracts';
 import { createEventRequestFactory } from '../event/event-test.factory.js';
 
 // ─── Event helpers ────────────────────────────────────────────────────────────
 
 /**
- * Creates an event in ms-event (via API Gateway) and registers its node
- * in ms-social synchronously (bypasses the async outbox for test determinism).
+ * Creates an event in ms-event (via API Gateway) and waits for its node in ms-social, written by
+ * the pipeline (event.created -> outbox-event -> post-processor-social).
  */
 export async function createEventWithSocialNode(
   adminClient: TestClient,
@@ -15,7 +16,7 @@ export async function createEventWithSocialNode(
   const res = await adminClient.post('/api/v1/events').send(eventReq).expect(201);
   const eventId = (res.body as EventWebResponse).event.id;
 
-  await adminClient.post(`/api/v1/social/events/${eventId}`).expect(201);
+  await waitForSocialEventNode(adminClient, eventId);
 
   return { eventId };
 }
