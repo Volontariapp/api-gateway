@@ -183,7 +183,7 @@ describe('Scenarios: events (E2E)', () => {
     );
 
     it(
-      'finishing an event is final: the state is FINISHED and a second transition is refused',
+      'finishing an event is final: a repeat is a no-op and leaving FINISHED is refused',
       async () => {
         const organizer = await world.signUp(UserRoles.ORGANIZATION);
         const volunteer = await world.signUp();
@@ -196,10 +196,15 @@ describe('Scenarios: events (E2E)', () => {
         const finished = await volunteer.client.get(`/api/v1/events/${eventId}`).expect(200);
         expect(String((finished.body as EventWebResponse).event.state)).toContain('FINISHED');
 
-        // A second event.finished would credit the impact score twice: the transition is refused.
-        const again = await changeState(organizer, eventId, EventState.EVENT_STATE_FINISHED);
-        expect(again.status).toBeGreaterThanOrEqual(400);
-        expect(again.status).toBeLessThan(500);
+        // A transition to the current state is a no-op (domain-event EventService.changeState): no
+        // second event.finished, so the impact score is not credited twice.
+        await changeState(organizer, eventId, EventState.EVENT_STATE_FINISHED).expect(200);
+        const still = await volunteer.client.get(`/api/v1/events/${eventId}`).expect(200);
+        expect(String((still.body as EventWebResponse).event.state)).toContain('FINISHED');
+
+        const reopen = await changeState(organizer, eventId, EventState.EVENT_STATE_PUBLISHED);
+        expect(reopen.status).toBeGreaterThanOrEqual(400);
+        expect(reopen.status).toBeLessThan(500);
       },
       SCENARIO_TIMEOUT_MS,
     );
