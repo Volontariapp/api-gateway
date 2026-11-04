@@ -6,14 +6,13 @@ import {
   EVENT_QUERY_SERVICE_NAME,
   TAG_COMMAND_SERVICE_NAME,
   TAG_QUERY_SERVICE_NAME,
-  PARTICIPATION_QUERY_SERVICE_NAME,
   type EventQueryServiceClient,
-  type ParticipationQueryServiceClient,
 } from '@volontariapp/contracts-nest';
 import { createMock } from '@volontariapp/testing';
 import type { WithMetadata } from '../../../../common/types/grpc.types.js';
 import { EventQueryController } from '../../../../modules/event/controllers/queries/event/event.query-controller.js';
 import type { EventParticipantsService } from '../../../../modules/event/services/event-participants.service.js';
+import type { EventSocialFilterService } from '../../../../modules/event/services/event-social-filter.service.js';
 import { SearchEventsRequestDTO } from '../../../../modules/event/dto/request/index.js';
 import { MockServicesClientGrpc } from '../../../helpers/mocks/services-client-grpc.mock.js';
 import { PublicFileUrlFactory } from '../../../helpers/factories/public-file-url.factory.js';
@@ -21,14 +20,15 @@ import { IdsPageFactory } from '../../../helpers/factories/ids-page.factory.js';
 
 describe('EventQueryController.listEvents (Unit)', () => {
   let eventQuery: jest.Mocked<WithMetadata<EventQueryServiceClient>>;
-  let participationQuery: jest.Mocked<WithMetadata<ParticipationQueryServiceClient>>;
+  let socialFilter: jest.Mocked<EventSocialFilterService>;
   let controller: EventQueryController;
   const metadata = new Metadata();
   const req = { internalMetadata: metadata };
+  const emptySearch = { events: [], totalCount: 0, pagination: undefined };
 
   beforeEach(() => {
     eventQuery = createMock<WithMetadata<EventQueryServiceClient>>();
-    participationQuery = createMock<WithMetadata<ParticipationQueryServiceClient>>();
+    socialFilter = createMock<EventSocialFilterService>();
     const participants = createMock<EventParticipantsService>();
     jest.spyOn(participants, 'enrichAll').mockResolvedValue(undefined);
     controller = new EventQueryController(
@@ -38,9 +38,9 @@ describe('EventQueryController.listEvents (Unit)', () => {
         [TAG_COMMAND_SERVICE_NAME]: {},
         [TAG_QUERY_SERVICE_NAME]: {},
       }),
-      new MockServicesClientGrpc({ [PARTICIPATION_QUERY_SERVICE_NAME]: participationQuery }),
       PublicFileUrlFactory.createService(),
       participants,
+      socialFilter,
     );
     controller.onModuleInit();
   });
@@ -50,69 +50,49 @@ describe('EventQueryController.listEvents (Unit)', () => {
     jest.restoreAllMocks();
   });
 
-  it('should read all the recommended ids page by page and search them together', async () => {
-    const recommendedSpy = jest
-      .spyOn(participationQuery, 'getRecommendedEventIds')
-      .mockImplementation(({ pagination }) =>
-        of(IdsPageFactory.createPage(250, pagination?.page ?? 1, pagination?.limit ?? 100)),
-      );
-    const searchSpy = jest
-      .spyOn(eventQuery, 'searchEvents')
-      .mockReturnValue(of({ events: [], totalCount: 0, pagination: undefined }));
-    const request = Object.assign(new SearchEventsRequestDTO(), { excludeCreatedByMe: true });
+  it('should restrict the search to the resolved ids', async () => {
+    const ids = IdsPageFactory.createIds(3);
+    jest.spyOn(socialFilter, 'resolve').mockResolvedValue({ kind: 'ids', ids });
+    const searchSpy = jest.spyOn(eventQuery, 'searchEvents').mockReturnValue(of(emptySearch));
 
-    await controller.listEvents(request, req);
+    await controller.listEvents(new SearchEventsRequestDTO(), req);
 
-    expect(recommendedSpy).toHaveBeenCalledTimes(3);
-    expect(recommendedSpy).toHaveBeenNthCalledWith(
-      3,
-      expect.objectContaining({ excludeCreatedByMe: true, pagination: { page: 3, limit: 100 } }),
-      metadata,
-    );
     expect(searchSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ ids: IdsPageFactory.createIds(250) }),
+      expect.objectContaining({ ids, excludedIds: [] }),
       metadata,
     );
   });
 
-  it('should drop the recommended ids that are not UUIDs before searching', async () => {
-    const validIds = IdsPageFactory.createIds(2);
-    jest
-      .spyOn(participationQuery, 'getRecommendedEventIds')
-      .mockReturnValue(
-        of({ ids: [validIds[0], '', 'not-a-uuid', validIds[1]], pagination: undefined }),
-      );
-    const searchSpy = jest
-      .spyOn(eventQuery, 'searchEvents')
-      .mockReturnValue(of({ events: [], totalCount: 0, pagination: undefined }));
-    const request = Object.assign(new SearchEventsRequestDTO(), { excludeParticipatedByMe: true });
+  it('should send the resolved exclusions as excludedIds', async () => {
+    const excludedIds = IdsPageFactory.createIds(2);
+    jest.spyOn(socialFilter, 'resolve').mockResolvedValue({ kind: 'excluded', excludedIds });
+    const searchSpy = jest.spyOn(eventQuery, 'searchEvents').mockReturnValue(of(emptySearch));
 
-    await controller.listEvents(request, req);
+    await controller.listEvents(new SearchEventsRequestDTO(), req);
 
-    expect(searchSpy).toHaveBeenCalledWith(expect.objectContaining({ ids: validIds }), metadata);
+    expect(searchSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ ids: [], excludedIds }),
+      metadata,
+    );
   });
 
-  it('should answer an empty page without calling ms-event when no recommended id is a UUID', async () => {
-    jest
-      .spyOn(participationQuery, 'getRecommendedEventIds')
-      .mockReturnValue(of({ ids: [''], pagination: undefined }));
-    const searchSpy = jest.spyOn(eventQuery, 'searchEvents');
-    const request = Object.assign(new SearchEventsRequestDTO(), { excludeWishedByMe: true });
+  it('should search without restriction when there is no social filter', async () => {
+    jest.spyOn(socialFilter, 'resolve').mockResolvedValue({ kind: 'none' });
+    const searchSpy = jest.spyOn(eventQuery, 'searchEvents').mockReturnValue(of(emptySearch));
 
-    const result = await controller.listEvents(request, req);
+    await controller.listEvents(new SearchEventsRequestDTO(), req);
 
-    expect(result.events).toEqual([]);
-    expect(searchSpy).not.toHaveBeenCalled();
+    expect(searchSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ ids: [], excludedIds: [] }),
+      metadata,
+    );
   });
 
-  it('should answer an empty page without calling ms-event when no id is recommended', async () => {
-    jest
-      .spyOn(participationQuery, 'getRecommendedEventIds')
-      .mockReturnValue(of({ ids: [], pagination: undefined }));
+  it('should answer an empty page without calling ms-event when nothing can match', async () => {
+    jest.spyOn(socialFilter, 'resolve').mockResolvedValue({ kind: 'empty' });
     const searchSpy = jest.spyOn(eventQuery, 'searchEvents');
-    const request = Object.assign(new SearchEventsRequestDTO(), { excludeWishedByMe: true });
 
-    const result = await controller.listEvents(request, req);
+    const result = await controller.listEvents(new SearchEventsRequestDTO(), req);
 
     expect(result.events).toEqual([]);
     expect(searchSpy).not.toHaveBeenCalled();

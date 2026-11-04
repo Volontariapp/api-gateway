@@ -19,7 +19,7 @@ import { orderByRanking } from '../helpers/ranking-order.helper.js';
 import { RankedPostDTO } from '../dto/common/ranked-post.dto.js';
 import { GetRankingFeedResponseDTO } from '../dto/response/get-ranking-feed.response.dto.js';
 import type { RankingPageOnWire } from '../types/ranking-wire.type.js';
-import { RankingBlocksService } from './ranking-blocks.service.js';
+import { HiddenUsersService } from '../../event/services/hidden-users.service.js';
 
 /**
  * GET /ranking/feed: the order comes from ms-ranking, the content from ms-post.ListPostsByIds, and
@@ -35,7 +35,7 @@ export class RankedFeedService implements OnModuleInit {
     @Inject(RANKING_PACKAGE) private readonly rankingClient: ClientGrpc,
     @Inject(POST_PACKAGE) private readonly postClient: ClientGrpc,
     private readonly publicFileUrls: PublicFileUrlService,
-    private readonly blocks: RankingBlocksService,
+    private readonly blocks: HiddenUsersService,
   ) {}
 
   onModuleInit() {
