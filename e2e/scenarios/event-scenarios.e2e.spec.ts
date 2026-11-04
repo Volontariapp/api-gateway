@@ -272,7 +272,7 @@ describe('Scenarios: events (E2E)', () => {
     // 'post_event.deleted_success', which no runner emits (post-processor-social emits
     // 'event_social.deleted'). The EVENT_DELETION gather never succeeds; in production the reaper
     // fails it after 60 s ('event.deletion_failed'), in this stack (NODE_ENV=test) it stays PENDING.
-    // Turn it back into `it` once the feedback events are aligned.
+    // Fixed by aligning ws-service EVENT_DELETION gather keys: turn it back into `it` then.
     it.failing(
       "the organizer receives 'event.deleted' once the deletion saga completes",
       async () => {

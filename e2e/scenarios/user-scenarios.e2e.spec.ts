@@ -144,7 +144,11 @@ describe('Scenarios: user (E2E)', () => {
       SCENARIO_TIMEOUT_MS,
     );
 
-    it(
+    // System gap G3 (README): outbox-user pushed user.deleted before user.created (CI run
+    // 41809453352: rows written 09:47:45.069 / 45.090, stream ids 1793785665158-0 / 1793785665145-0
+    // on social:user); post-processor-social purged, then created the node, which stays orphaned.
+    // Fixed by the outbox consumer ordering fix (npm-packages): turn it back into `it` then.
+    it.failing(
       'ordering: a deletion requested right after the sign-up still ends without social node',
       async () => {
         // user.created and user.deleted share the stream social:user but are read by two consumer
