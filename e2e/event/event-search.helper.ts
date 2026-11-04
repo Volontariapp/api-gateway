@@ -4,7 +4,7 @@ import { EventState, EventType } from '@volontariapp/contracts-nest';
 import { UserRoles } from '@volontariapp/shared';
 import type { TestClient } from '../helpers/test-client.helper.js';
 import { createTestClient } from '../helpers/test-client.helper.js';
-import { waitForSocialUserNode } from '../helpers/social-node.helper.js';
+import { waitForSocialEventNode, waitForSocialUserNode } from '../helpers/social-node.helper.js';
 import { signUpRequestFactory } from '../user/user-test.factory.js';
 import { createEventRequestFactory } from './event-test.factory.js';
 
@@ -89,7 +89,7 @@ export async function createUser(app: INestApplication, admin: TestClient): Prom
 
 /**
  * Creates an event via REST, publishes it, sets its GPS coords via the
- * admin update endpoint, and registers its social graph node.
+ * admin update endpoint, waits for its social graph node and links it to `organizerId`.
  */
 export async function createPublishedEvent(
   admin: TestClient,
@@ -116,8 +116,10 @@ export async function createPublishedEvent(
     .send({ latitude: options.lat, longitude: options.lng })
     .expect(200);
 
-  // Register event node in social graph + link organizer
-  await admin.post(`/api/v1/social/events/${eventId}`).send({}).expect(201);
+  // The event node comes from the pipeline (event.created -> outbox-event ->
+  // post-processor-social). Its CREATED link goes to the creator (`admin`, which has no social
+  // node), so the link to `organizerId` is still written here.
+  await waitForSocialEventNode(admin, eventId);
   await admin
     .post(`/api/v1/social/users/${organizerId}/events/${eventId}/own`)
     .send({})

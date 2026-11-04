@@ -37,13 +37,11 @@ describe('Event Search Orchestration (E2E)', () => {
     app = await createApp();
     admin = await createTestClient(app).login({ id: randomUUID(), role: UserRoles.ADMIN });
 
-    mainUser = await createUser(app, admin);
-    friend1 = await createUser(app, admin);
-    friend2 = await createUser(app, admin);
-    friend3 = await createUser(app, admin);
-    blockedUser = await createUser(app, admin);
-    stranger1 = await createUser(app, admin);
-    stranger2 = await createUser(app, admin);
+    // Each user (and each event below) waits for its social node from the async pipeline:
+    // the waits run in parallel so that the setup stays well under its timeout.
+    [mainUser, friend1, friend2, friend3, blockedUser, stranger1, stranger2] = await Promise.all(
+      Array.from({ length: 7 }, () => createUser(app, admin)),
+    );
 
     for (const friend of [friend1, friend2, friend3]) {
       await mainUser.client.post(`/api/v1/social/follow/${friend.id}`).expect(201);
@@ -58,18 +56,16 @@ describe('Event Search Orchestration (E2E)', () => {
       city: typeof PARIS,
       count: number,
       organizerId: string,
-    ): Promise<string[]> => {
-      const ids: string[] = [];
-      for (let i = 0; i < count; i++) {
-        const eventId = await createPublishedEvent(admin, organizerId, {
-          localisationName: city.name,
-          lat: city.lat,
-          lng: city.lng,
-        });
-        ids.push(eventId);
-      }
-      return ids;
-    };
+    ): Promise<string[]> =>
+      Promise.all(
+        Array.from({ length: count }, () =>
+          createPublishedEvent(admin, organizerId, {
+            localisationName: city.name,
+            lat: city.lat,
+            lng: city.lng,
+          }),
+        ),
+      );
 
     parisEventIds.push(...(await createCityEvents(PARIS, 10, mainUser.id)));
     parisEventIds.push(...(await createCityEvents(PARIS, 1, blockedUser.id))); // index 10

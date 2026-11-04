@@ -26,6 +26,7 @@ import {
 } from './event-test.factory.js';
 import { setupAuth } from '../helpers/auth-helper.js';
 import { createTestClient } from '../helpers/test-client.helper.js';
+import { waitForSocialEventNode } from '../helpers/social-node.helper.js';
 
 describe('Event Lifecycle (E2E)', () => {
   let app: INestApplication;
@@ -345,9 +346,10 @@ describe('Event Lifecycle (E2E)', () => {
     const eventId = (createRes.body as EventWebResponse).event.id;
 
     try {
-      // Simulate Outbox creating the nodes in ms-social
+      // The admin has no real account: its social node is created by hand. The event node
+      // comes from the pipeline (event.created -> outbox-event -> post-processor-social).
       await adminClient.post(`/api/v1/social/users/${adminId}`).expect(201);
-      await adminClient.post(`/api/v1/social/events/${eventId}`).expect(201);
+      await waitForSocialEventNode(adminClient, eventId);
 
       // Initial fetch
       const getRes1 = await adminClient.get(`/api/v1/events/${eventId}`).expect(200);
