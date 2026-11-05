@@ -172,21 +172,6 @@ describe('Scenarios: user (E2E)', () => {
     );
   });
 
-  describe('needs post-processor-post, post-processor-event, post-processor-storage, outbox-storage, outbox-ws and post-processor-user', () => {
-    it.todo(
-      "the deleted user's own socket receives 'user.deleted' (isEmitter: true) once the 5 domains acknowledged (USER_DELETION gather)",
-    );
-    it.todo(
-      "the user's posts and events disappear from REST and search after user.deleted (post-processor-post, post-processor-event)",
-    );
-    it.todo(
-      'the users row is physically deleted after user.deletion_successfull (outbox-ws -> post-processor-user finalizeDeletion)',
-    );
-    it.todo(
-      "a domain that fails its purge sends 'user.deletion_failed' to the user and the account stays PENDING_DELETION",
-    );
-  });
-
   describe('needs post-processor-user and ms-storage scan workers', () => {
     it.todo(
       "user.badge_awarded: a user who earns a badge receives 'user.badge_awarded' and the badge is listed on GET /users/me",
