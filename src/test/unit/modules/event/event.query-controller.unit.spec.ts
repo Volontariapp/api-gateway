@@ -63,15 +63,18 @@ describe('EventQueryController.listEvents (Unit)', () => {
     );
   });
 
-  it('should send the resolved exclusions as excludedIds', async () => {
+  it('should send the resolved exclusions as excludedIds and excludedOrganizerIds', async () => {
     const excludedIds = IdsPageFactory.createIds(2);
-    jest.spyOn(socialFilter, 'resolve').mockResolvedValue({ kind: 'excluded', excludedIds });
+    const excludedOrganizerIds = IdsPageFactory.createIds(1, 5);
+    jest
+      .spyOn(socialFilter, 'resolve')
+      .mockResolvedValue({ kind: 'excluded', excludedIds, excludedOrganizerIds });
     const searchSpy = jest.spyOn(eventQuery, 'searchEvents').mockReturnValue(of(emptySearch));
 
     await controller.listEvents(new SearchEventsRequestDTO(), req);
 
     expect(searchSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ ids: [], excludedIds }),
+      expect.objectContaining({ ids: [], excludedIds, excludedOrganizerIds }),
       metadata,
     );
   });
@@ -83,7 +86,7 @@ describe('EventQueryController.listEvents (Unit)', () => {
     await controller.listEvents(new SearchEventsRequestDTO(), req);
 
     expect(searchSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ ids: [], excludedIds: [] }),
+      expect.objectContaining({ ids: [], excludedIds: [], excludedOrganizerIds: [] }),
       metadata,
     );
   });

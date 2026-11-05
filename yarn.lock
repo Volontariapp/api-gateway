@@ -4489,9 +4489,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@volontariapp/contracts-nest@npm:^3.4.3":
-  version: 3.4.3
-  resolution: "@volontariapp/contracts-nest@npm:3.4.3"
+"@volontariapp/contracts-nest@npm:^3.4.4":
+  version: 3.4.4
+  resolution: "@volontariapp/contracts-nest@npm:3.4.4"
   dependencies:
     "@volontariapp/logger": "npm:0.4.0"
     protobufjs: "npm:^7.5.8"
@@ -4500,7 +4500,7 @@ __metadata:
     "@nestjs/core": ^11.0.0
     "@nestjs/microservices": ^11.0.0
     rxjs: ^7.0.0
-  checksum: 10c0/305fefd64aad882654aaa436871b6b7a9374d1c4c1a3872c9b187da6666957c71697f6a783155de81bd7916d508cadbf8131f7098b0bf6a6985a2f798141f71b
+  checksum: 10c0/9b90e98bf3f516ecc90e9629d9e2458ed819396d051f37f6eaf7bbfae4f9ef22c1400538ce8847f886e1d4540130ab563720293744b0fc6540d784710681fa08
   languageName: node
   linkType: hard
 
@@ -4514,13 +4514,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@volontariapp/contracts@npm:^4.8.4":
-  version: 4.8.4
-  resolution: "@volontariapp/contracts@npm:4.8.4"
+"@volontariapp/contracts@npm:^4.8.5":
+  version: 4.8.5
+  resolution: "@volontariapp/contracts@npm:4.8.5"
   dependencies:
     "@volontariapp/logger": "npm:0.4.0"
     protobufjs: "npm:^7.5.8"
-  checksum: 10c0/e88de8dc7ce37ddf62dfdbe438f2cb60db01e6de06824db98c07a87b4fd2155dd26a837cbacca379e78744c98c4195539df763217082e9311932819ffc96d0ca
+  checksum: 10c0/52518d7dfddb8c6656a4053ab695f196c9ba66a0cc5d0d3d9692d1d08e56a733947362a7e77125a873b0fb8dfb7cb1f518e88c9ca7a3e9d8b44dbb5d93c669f7
   languageName: node
   linkType: hard
 
@@ -5134,8 +5134,8 @@ __metadata:
     "@volontariapp/auth": "npm:^3.3.24"
     "@volontariapp/bridge-nest": "npm:^0.3.21"
     "@volontariapp/config": "npm:^3.3.2"
-    "@volontariapp/contracts": "npm:^4.8.4"
-    "@volontariapp/contracts-nest": "npm:^3.4.3"
+    "@volontariapp/contracts": "npm:^4.8.5"
+    "@volontariapp/contracts-nest": "npm:^3.4.4"
     "@volontariapp/domain-storage": "npm:^0.12.13"
     "@volontariapp/errors": "npm:^0.6.5"
     "@volontariapp/errors-nest": "npm:^0.14.0"

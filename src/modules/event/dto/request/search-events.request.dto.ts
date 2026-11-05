@@ -102,6 +102,7 @@ export class SearchEventsRequestDTO implements SearchEventsRequest {
       statuses: this.statuses ?? [],
       ids: [],
       excludedIds: [],
+      excludedOrganizerIds: [],
       pagination: {
         page: this.page,
         limit: this.limit,

@@ -14,6 +14,7 @@ export function buildRankedEventsSearchQuery(ids: readonly string[]): SearchEven
     organizerId: '',
     ids: [...ids],
     excludedIds: [],
+    excludedOrganizerIds: [],
     statuses: [EventState.EVENT_STATE_PUBLISHED],
     pagination: { page: 1, limit: ids.length },
   };
