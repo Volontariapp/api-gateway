@@ -142,6 +142,15 @@ at all, never a `*_failed` one.
   `markDeleted`), post-processors-runner#65 and workers-runners#55 (`CleanupFilesHandler`). The
   periodic trigger of the purge (CronJob) is still to do. Scenario: "the files of the deleted user
   are purged" in `user-deletion-scenarios.e2e.spec.ts`.
+- **G7, avatar (or cover, post media) answered 503 on the first call to ms-storage.** Not a slow
+  gRPC connection: in compose, ms-user, ms-post and ms-event started before the `ms-storage`
+  container existed (ms-storage waits for clamd and minio), so Docker DNS could not resolve
+  `ms-storage` and `ConfirmFileAttachment` failed (`UNAVAILABLE: Name resolution failed for target
+  dns:ms-storage:5006`). Proved by the channel log of storage-client 0.3.10 (npm-packages#291,
+  `Storage channel not READY after 30000ms (TRANSIENT_FAILURE)`); opening the channel at startup
+  made it fail on every run, until ci-tools#74 made the three services wait for ms-storage
+  (`service_healthy`). In Kubernetes the Service name always resolves. Scenario: the whole
+  `user-deletion-scenarios.e2e.spec.ts` (avatar set in its `beforeAll`).
 - **G9, the files of a deleted post or event, of a replaced avatar or cover, stayed downloadable.**
   post-processor-storage releases them (`releaseForEntity` on `post.deleted` / `event.deleted`,
   `releaseFile` on `*_replaced`: status `ORPHANED`), but only `releaseForOwner` wrote the
