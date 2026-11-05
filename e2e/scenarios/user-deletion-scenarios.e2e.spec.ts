@@ -443,17 +443,29 @@ describe('Scenarios: account deletion saga (E2E)', () => {
     TEST_TIMEOUT_MS,
   );
 
-  // Gap G5 (README): user.deleted only marks the files ORPHANED; the purge that deletes their
-  // objects (storage.cleanup_files, docs/stockage-fichiers/07, section 3) is not implemented, so
-  // the avatar stays downloadable from its public URL. The bounded wait keeps the failure short.
-  it.failing(
-    'storage: the avatar of the deleted user is no longer downloadable from its public URL',
+  // Gap G5 (README), fixed: releaseForOwner writes a storage.cleanup_files job (domain-storage
+  // 0.13.0) -> outbox-storage -> BullMQ -> worker-storage CleanupFilesHandler deletes the objects,
+  // then marks the rows DELETED.
+  it(
+    'storage: the files of the deleted user are purged, the avatar is no longer downloadable',
     async () => {
       await eventually(
         () => readPublicObjectStatus(fx.avatarPublicUrl),
         (status) => status === 404 || status === 403,
-        { timeoutMs: 15_000, description: `public object of avatar ${fx.avatarFileId} removed` },
+        {
+          timeoutMs: SAGA_WAIT_MS,
+          description: `public object of avatar ${fx.avatarFileId} removed`,
+        },
       );
+      for (const fileId of [fx.avatarFileId, fx.postMediaFileId, fx.coverFileId]) {
+        await eventually(
+          () => readFile(fx.leaving.client, fileId),
+          (read) =>
+            read.status === 404 ||
+            (read.file !== undefined && fileStatusName(read.file.status) === FILE_STATUS_DELETED),
+          { timeoutMs: SAGA_WAIT_MS, description: `file ${fileId} purged (DELETED)` },
+        );
+      }
     },
     TEST_TIMEOUT_MS,
   );
