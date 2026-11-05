@@ -7,6 +7,6 @@
   "ms-ranking": "main",
   "ws-service": "main",
   "outbox-runners": "main",
-  "post-processors-runner": "main",
-  "workers-runners": "main"
+  "post-processors-runner": "chore/domain-storage-0.13.0",
+  "workers-runners": "feat/storage-purge-orphaned-files"
 }

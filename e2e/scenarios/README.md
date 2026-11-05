@@ -134,12 +134,14 @@ at all, never a `*_failed` one.
   `user.created` checks it after creating the node, so any order ends without a node. Scenario:
   "ordering" in `user-scenarios.e2e.spec.ts`. The outbox batch order is fixed separately in
   `@volontariapp/database`.
-- **G5, the files of a deleted account stay downloadable.** post-processor-storage releases them
-  on `user.deleted` (`releaseForOwner`: status `ORPHANED`), but the purge that deletes their objects
-  (`storage.cleanup_files`, `docs/stockage-fichiers/07-nettoyage-et-orphelins.md`, section 3) is not
-  implemented: `worker-storage` only has `scan-file.handler.ts`. The avatar keeps answering 200 at its
-  public URL. Scenario: `it.failing` "the avatar of the deleted user is no longer downloadable" in
-  `user-deletion-scenarios.e2e.spec.ts`.
+- **G5, the files of a deleted account stayed downloadable (fixed).** post-processor-storage
+  released them on `user.deleted` (`releaseForOwner`: status `ORPHANED`), but the purge that deletes
+  their objects (`storage.cleanup_files`, `docs/stockage-fichiers/07-nettoyage-et-orphelins.md`,
+  section 3) was not implemented: the avatar kept answering 200 at its public URL. Fixed by
+  npm-packages#290 (domain-storage 0.13.0: `releaseForOwner` writes the job, `listPurgeCandidates`,
+  `markDeleted`), post-processors-runner#65 and workers-runners#55 (`CleanupFilesHandler`). The
+  periodic trigger of the purge (CronJob) is still to do. Scenario: "the files of the deleted user
+  are purged" in `user-deletion-scenarios.e2e.spec.ts`.
 - **Observations (inference, not verified at runtime).** `SAGA_GATHER_COMPLETION_MAPPING` sends the
   completion of EVENT_DELETION, POST_DELETION and USER_CREATION to their trigger streams
   (`messaging/src/sagas/gather-registry.ts:32`, `:42`, `:47`), against the rule of the
