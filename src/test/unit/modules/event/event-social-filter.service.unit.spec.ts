@@ -124,26 +124,28 @@ describe('EventSocialFilterService (Unit)', () => {
     expect(scope).toEqual({
       kind: 'excluded',
       excludedIds: [...IdsPageFactory.createIds(3, 0), ...wished],
+      excludedOrganizerIds: [],
     });
   });
 
-  it('should exclude the events created by every hidden user', async () => {
-    jest.spyOn(hiddenUsers, 'hiddenUserIds').mockResolvedValue(new Set(['blocked', 'blocker']));
-    const byUser: Record<string, string[]> = {
-      blocked: IdsPageFactory.createIds(1, 0),
-      blocker: IdsPageFactory.createIds(1, 1),
-    };
-    const adminSpy = jest
-      .spyOn(participationQuery, 'adminGetUserEvent')
-      .mockImplementation(({ userId }) => of({ ids: byUser[userId], pagination: undefined }));
+  it('should send every hidden user, in both directions, as an excluded organizer', async () => {
+    const hidden = IdsPageFactory.createIds(2, 7);
+    jest.spyOn(hiddenUsers, 'hiddenUserIds').mockResolvedValue(new Set(hidden));
 
     const scope = await service.resolve(searchWith({ excludeBlockedUsers: true }), metadata);
 
-    expect(adminSpy).toHaveBeenCalledWith(
-      { userId: 'blocked', pagination: { page: 1, limit: 100 } },
-      metadata,
-    );
-    expect(scope).toEqual({ kind: 'excluded', excludedIds: IdsPageFactory.createIds(2) });
+    expect(scope).toEqual({ kind: 'excluded', excludedIds: [], excludedOrganizerIds: hidden });
+  });
+
+  it('should not look up hidden users without excludeBlockedUsers', async () => {
+    const hiddenSpy = jest.spyOn(hiddenUsers, 'hiddenUserIds');
+    jest
+      .spyOn(participationQuery, 'getUserWishEvent')
+      .mockReturnValue(of({ ids: [], pagination: undefined }));
+
+    await service.resolve(searchWith({ excludeWishedByMe: true }), metadata);
+
+    expect(hiddenSpy).not.toHaveBeenCalled();
   });
 
   it('should not restrict the search when there is nothing to exclude', async () => {
@@ -166,6 +168,7 @@ describe('EventSocialFilterService (Unit)', () => {
     expect(scope).toEqual({
       kind: 'excluded',
       excludedIds: IdsPageFactory.createIds(MAX_SEARCH_IDS),
+      excludedOrganizerIds: [],
     });
   });
 });

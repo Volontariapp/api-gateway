@@ -14,7 +14,7 @@ import { fetchAllPages } from '../../../common/pagination/index.js';
 import type { SearchEventsRequestDTO } from '../dto/request/index.js';
 import { HiddenUsersService } from './hidden-users.service.js';
 
-/** Cap of `ids` and `excludedIds` in SearchEvents (ms-event MAX_SEARCH_IDS). */
+/** Cap of `ids`, `excludedIds` and `excludedOrganizerIds` in SearchEvents (ms-event MAX_SEARCH_IDS). */
 export const MAX_SEARCH_IDS = 1000;
 
 /**
@@ -22,13 +22,14 @@ export const MAX_SEARCH_IDS = 1000;
  * - `none`: no social filter, the search is not restricted;
  * - `empty`: nothing can match, ms-event is not called;
  * - `ids`: only these events (an `only*ByFriends` filter, exclusions applied by ms-social);
- * - `excluded`: every event but these (`exclude*` filters only).
+ * - `excluded`: every event but these ids and the events of these organizers (`exclude*` filters
+ *   only; blocked users, in both directions, are sent as organizers and filtered by ms-event).
  */
 export type SocialSearchScope =
   | { kind: 'none' }
   | { kind: 'empty' }
   | { kind: 'ids'; ids: string[] }
-  | { kind: 'excluded'; excludedIds: string[] };
+  | { kind: 'excluded'; excludedIds: string[]; excludedOrganizerIds: string[] };
 
 /**
  * Turns the social filters of a search into ids for ms-event. The `exclude*` filters alone select
@@ -61,8 +62,17 @@ export class EventSocialFilterService implements OnModuleInit {
       return ids.length === 0 ? { kind: 'empty' } : { kind: 'ids', ids };
     }
 
-    const excludedIds = this.capped(await this.excludedIds(request, metadata), 'excludedIds');
-    return excludedIds.length === 0 ? { kind: 'none' } : { kind: 'excluded', excludedIds };
+    const [excludedIds, excludedOrganizerIds] = await Promise.all([
+      this.excludedIds(request, metadata).then((ids) => this.capped(ids, 'excludedIds')),
+      request.excludeBlockedUsers === true
+        ? this.hiddenUsers
+            .hiddenUserIds(metadata)
+            .then((ids) => this.capped([...ids], 'excludedOrganizerIds'))
+        : Promise.resolve<string[]>([]),
+    ]);
+    return excludedIds.length === 0 && excludedOrganizerIds.length === 0
+      ? { kind: 'none' }
+      : { kind: 'excluded', excludedIds, excludedOrganizerIds };
   }
 
   private async recommendedIds(
@@ -106,24 +116,8 @@ export class EventSocialFilterService implements OnModuleInit {
             ),
           )
         : [],
-      request.excludeBlockedUsers === true ? this.eventsOfHiddenUsers(metadata) : [],
     ]);
     return [...new Set(sets.flat())];
-  }
-
-  /** Events created by a user the reader blocked or who blocked the reader. */
-  private async eventsOfHiddenUsers(metadata: Metadata): Promise<string[]> {
-    const hidden = [...(await this.hiddenUsers.hiddenUserIds(metadata))];
-    const perUser = await Promise.all(
-      hidden.map((userId) =>
-        fetchAllPages((pagination) =>
-          firstValueFrom(
-            this.participationQueryService.adminGetUserEvent({ userId, pagination }, metadata),
-          ),
-        ),
-      ),
-    );
-    return perUser.flat();
   }
 
   /**
@@ -132,7 +126,7 @@ export class EventSocialFilterService implements OnModuleInit {
    * back without its eventId (empty string on the wire): such ids are dropped, and a longer list is
    * cut with a warning rather than failing the search.
    */
-  private capped(ids: string[], field: 'ids' | 'excludedIds'): string[] {
+  private capped(ids: string[], field: 'ids' | 'excludedIds' | 'excludedOrganizerIds'): string[] {
     const valid = ids.filter((id) => isUUID(id));
     if (valid.length < ids.length) {
       this.logger.warn(`Dropped ${String(ids.length - valid.length)} ${field} that are not UUIDs`);

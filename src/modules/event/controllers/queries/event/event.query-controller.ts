@@ -66,6 +66,7 @@ export class EventQueryController extends BaseEventGrpcController {
       query.ids = scope.ids;
     } else if (scope.kind === 'excluded') {
       query.excludedIds = scope.excludedIds;
+      query.excludedOrganizerIds = scope.excludedOrganizerIds;
     }
 
     const result = await firstValueFrom(this.queryService.searchEvents(query, metadata));
