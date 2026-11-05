@@ -142,6 +142,14 @@ at all, never a `*_failed` one.
   `markDeleted`), post-processors-runner#65 and workers-runners#55 (`CleanupFilesHandler`). The
   periodic trigger of the purge (CronJob) is still to do. Scenario: "the files of the deleted user
   are purged" in `user-deletion-scenarios.e2e.spec.ts`.
+- **G9, the files of a deleted post or event, of a replaced avatar or cover, stayed downloadable.**
+  post-processor-storage releases them (`releaseForEntity` on `post.deleted` / `event.deleted`,
+  `releaseFile` on `*_replaced`: status `ORPHANED`), but only `releaseForOwner` wrote the
+  `storage.cleanup_files` job (`npm-packages/packages/domain-storage/src/repositories/postgres-file.repository.ts`),
+  so nothing purged them. Scenario: `storage-release-scenarios.e2e.spec.ts`. Caveat: the purge
+  takes every `ORPHANED` file (`listPurgeCandidates` is global), so a cleanup job written by a
+  parallel suite (any deleted user who had files) can purge these files too; the deterministic
+  proof of the bug is the domain-storage integration test, the scenario proves the fix end to end.
 - **Observations (inference, not verified at runtime).** `SAGA_GATHER_COMPLETION_MAPPING` sends the
   completion of EVENT_DELETION, POST_DELETION and USER_CREATION to their trigger streams
   (`messaging/src/sagas/gather-registry.ts:32`, `:42`, `:47`), against the rule of the
