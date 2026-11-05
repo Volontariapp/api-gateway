@@ -5,7 +5,7 @@
   "ms-post": "main",
   "ms-storage": "main",
   "ms-ranking": "main",
-  "ws-service": "main",
+  "ws-service": "fix/gather-state-atomic-update",
   "outbox-runners": "main",
   "post-processors-runner": "main",
   "workers-runners": "main"
