@@ -7,6 +7,6 @@
   "ms-ranking": "main",
   "ws-service": "main",
   "outbox-runners": "main",
-  "post-processors-runner": "main",
+  "post-processors-runner": "fix/storage-release-cleanup-domain-storage",
   "workers-runners": "main"
 }

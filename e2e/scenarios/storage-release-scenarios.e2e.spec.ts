@@ -107,9 +107,9 @@ describe('Scenarios: files released by a post or a profile (E2E)', () => {
     TEST_TIMEOUT_MS,
   );
 
-  // Gap G9 (README): releaseForEntity and releaseFile move the files to ORPHANED without writing a
-  // storage.cleanup_files job, so nothing purges them and their public URLs keep answering 200.
-  it.failing(
+  // Gap G9 (README), fixed: releaseForEntity and releaseFile write the storage.cleanup_files job
+  // in their transaction (domain-storage 0.14.0), so the released files are purged.
+  it(
     'G9: the media of a deleted post and a replaced avatar are purged, no longer downloadable',
     async () => {
       for (const file of [postMedia, oldAvatar]) {

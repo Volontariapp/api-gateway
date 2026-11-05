@@ -146,7 +146,10 @@ at all, never a `*_failed` one.
   post-processor-storage releases them (`releaseForEntity` on `post.deleted` / `event.deleted`,
   `releaseFile` on `*_replaced`: status `ORPHANED`), but only `releaseForOwner` wrote the
   `storage.cleanup_files` job (`npm-packages/packages/domain-storage/src/repositories/postgres-file.repository.ts`),
-  so nothing purged them. Scenario: `storage-release-scenarios.e2e.spec.ts`. Caveat: the purge
+  so nothing purged them. Fixed by npm-packages#291 (domain-storage 0.14.0: `releaseForEntity`
+  and `releaseFile` write the job in their transaction, `requestPurge` for the periodic trigger)
+  and post-processors-runner#68; periodic trigger: ms-storage#47 (`request-file-purge` command)
+  and its CronJob in the deploy repo. Scenario: `storage-release-scenarios.e2e.spec.ts`. Caveat: the purge
   takes every `ORPHANED` file (`listPurgeCandidates` is global), so a cleanup job written by a
   parallel suite (any deleted user who had files) can purge these files too; the deterministic
   proof of the bug is the domain-storage integration test, the scenario proves the fix end to end.
