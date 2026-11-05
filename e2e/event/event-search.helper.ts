@@ -89,11 +89,11 @@ export async function createUser(app: INestApplication, admin: TestClient): Prom
 
 /**
  * Creates an event via REST, publishes it, sets its GPS coords via the
- * admin update endpoint, waits for its social graph node and links it to `organizerId`.
+ * admin update endpoint and waits for its social graph node.
  */
 export async function createPublishedEvent(
   admin: TestClient,
-  organizerId: string,
+  organizer: TestUser,
   options: { localisationName: string; lat: number; lng: number; type?: EventType },
 ): Promise<string> {
   const dto = createEventRequestFactory({
@@ -101,7 +101,9 @@ export async function createPublishedEvent(
     type: options.type ?? EventType.EVENT_TYPE_SOCIAL,
   });
 
-  const createRes = await admin.post('/api/v1/events').send(dto).expect(201);
+  // Created by the organizer, as in the app: ms-event stores them as `organizerId` and the pipeline
+  // links them (CREATED) in the social graph, so both sources agree on who created the event.
+  const createRes = await organizer.client.post('/api/v1/events').send(dto).expect(201);
   const eventId = (createRes.body as EventWebResponse).event.id;
 
   // Publish
@@ -116,14 +118,9 @@ export async function createPublishedEvent(
     .send({ latitude: options.lat, longitude: options.lng })
     .expect(200);
 
-  // The event node comes from the pipeline (event.created -> outbox-event ->
-  // post-processor-social). Its CREATED link goes to the creator (`admin`, which has no social
-  // node), so the link to `organizerId` is still written here.
+  // The event node and its CREATED link to the organizer come from the pipeline (event.created ->
+  // outbox-event -> post-processor-social).
   await waitForSocialEventNode(admin, eventId);
-  await admin
-    .post(`/api/v1/social/users/${organizerId}/events/${eventId}/own`)
-    .send({})
-    .expect(201);
 
   return eventId;
 }

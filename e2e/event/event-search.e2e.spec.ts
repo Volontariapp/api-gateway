@@ -55,11 +55,11 @@ describe('Event Search Orchestration (E2E)', () => {
     const createCityEvents = async (
       city: typeof PARIS,
       count: number,
-      organizerId: string,
+      organizer: TestUser,
     ): Promise<string[]> =>
       Promise.all(
         Array.from({ length: count }, () =>
-          createPublishedEvent(admin, organizerId, {
+          createPublishedEvent(admin, organizer, {
             localisationName: city.name,
             lat: city.lat,
             lng: city.lng,
@@ -67,10 +67,10 @@ describe('Event Search Orchestration (E2E)', () => {
         ),
       );
 
-    parisEventIds.push(...(await createCityEvents(PARIS, 10, mainUser.id)));
-    parisEventIds.push(...(await createCityEvents(PARIS, 1, blockedUser.id))); // index 10
-    lyonEventIds.push(...(await createCityEvents(LYON, 10, mainUser.id)));
-    marseilleEventIds.push(...(await createCityEvents(MARSEILLE, 10, mainUser.id)));
+    parisEventIds.push(...(await createCityEvents(PARIS, 10, mainUser)));
+    parisEventIds.push(...(await createCityEvents(PARIS, 1, blockedUser))); // index 10
+    lyonEventIds.push(...(await createCityEvents(LYON, 10, mainUser)));
+    marseilleEventIds.push(...(await createCityEvents(MARSEILLE, 10, mainUser)));
 
     // ── 4. Social interactions ───────────────────────────────────────
 
@@ -506,6 +506,46 @@ describe('Event Search Orchestration (E2E)', () => {
     it('30 – unauthenticated request is rejected', async () => {
       const unauthClient = createTestClient(app);
       await unauthClient.get('/api/v1/events?limit=10&page=1').expect(401);
+    });
+  });
+  // ═══════════════════════════════════════════════════════════════════
+  // GROUP 6 – Blocks in both directions (excludeBlockedUsers)
+  // ═══════════════════════════════════════════════════════════════════
+
+  describe('Blocks in both directions', () => {
+    // Own area, so that these events change no count of the groups above.
+    const blockGeo = createSuiteGeo();
+    let reader: TestUser;
+    let blocker: TestUser;
+    let blockerEventId: string;
+
+    beforeAll(async () => {
+      [reader, blocker] = await Promise.all([createUser(app, admin), createUser(app, admin)]);
+      // The organizer blocks the reader: the reader must not see the organizer's events either.
+      await blocker.client.post(`/api/v1/social/block/${reader.id}`).expect(201);
+      blockerEventId = await createPublishedEvent(admin, blocker, {
+        localisationName: blockGeo.paris.name,
+        lat: blockGeo.paris.lat,
+        lng: blockGeo.paris.lng,
+      });
+    }, 120_000);
+
+    it('30 – excludeBlockedUsers hides the events of a user who blocked the reader', async () => {
+      const res = await reader.client
+        .get(`/api/v1/events?excludeBlockedUsers=true&${blockGeo.scopeQuery}&limit=50&page=1`)
+        .expect(200);
+      const ids = (res.body as ListEventsWebResponse).events.map((e) => e.id);
+
+      expect(ids).not.toContain(blockerEventId);
+    });
+
+    it('31 – without excludeBlockedUsers the same event is listed (control)', async () => {
+      const res = await reader.client
+        .get(`/api/v1/events?${blockGeo.scopeQuery}&limit=50&page=1`)
+        .expect(200);
+      const ids = (res.body as ListEventsWebResponse).events.map((e) => e.id);
+
+      expect(ids).toContain(blockerEventId);
     });
   });
 });
