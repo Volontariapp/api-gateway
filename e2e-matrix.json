@@ -7,6 +7,6 @@
   "ms-ranking": "main",
   "ws-service": "main",
   "outbox-runners": "main",
-  "post-processors-runner": "fix/storage-jobs-outbox-entity",
+  "post-processors-runner": "main",
   "workers-runners": "main"
 }
