@@ -1,12 +1,12 @@
 {
   "ms-user": "main",
   "ms-event": "main",
-  "ms-social": "fix/dedupe-database-3.12.1",
+  "ms-social": "main",
   "ms-post": "main",
   "ms-storage": "main",
   "ms-ranking": "main",
   "ws-service": "main",
   "outbox-runners": "main",
-  "post-processors-runner": "feat/event-geocoding-switch",
+  "post-processors-runner": "main",
   "workers-runners": "main"
 }
