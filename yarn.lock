@@ -4414,23 +4414,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@volontariapp/auth@npm:^3.3.24":
-  version: 3.3.24
-  resolution: "@volontariapp/auth@npm:3.3.24"
+"@volontariapp/auth@npm:^3.3.27":
+  version: 3.3.27
+  resolution: "@volontariapp/auth@npm:3.3.27"
   dependencies:
-    "@volontariapp/errors": "npm:0.6.5"
-    "@volontariapp/errors-nest": "npm:0.14.0"
+    "@volontariapp/errors": "npm:0.7.0"
+    "@volontariapp/errors-nest": "npm:0.14.1"
     "@volontariapp/logger": "npm:0.4.0"
-    "@volontariapp/shared": "npm:0.18.0"
-    jose: "npm:^6.2.13"
+    "@volontariapp/shared": "npm:0.19.0"
+    jose: "npm:^6.2.14"
     reflect-metadata: "npm:^0.2.2"
     rxjs: "npm:^7.8.1"
   peerDependencies:
-    "@grpc/grpc-js": ^1.14.6
+    "@grpc/grpc-js": ^1.14.7
     "@nestjs/common": ^10.0.0 || ^11.0.0
     "@nestjs/core": ^10.0.0 || ^11.0.0
     "@nestjs/microservices": ^10.0.0 || ^11.0.0
-  checksum: 10c0/895dcad4b966a0a48100cb70a78eaa7bf196167b889b177643898cf0e86b59f157e90231e51f08f88f309ac7308be58e50ae6a66b5ab6cced0ceedf69f079286
+  checksum: 10c0/44dcd74a6768b18f8a5a89b679364d7c4bccfccfab7cfb86c746a6a03ed738c7b1a3ce3f390fab7337e56e3a5147e692740b975c64fb79cf1d7020480e176bbb
   languageName: node
   linkType: hard
 
@@ -4474,6 +4474,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@volontariapp/bridge@npm:1.0.11":
+  version: 1.0.11
+  resolution: "@volontariapp/bridge@npm:1.0.11"
+  dependencies:
+    "@types/geojson": "npm:^7946.0.16"
+    "@volontariapp/config": "npm:3.3.2"
+    "@volontariapp/errors": "npm:0.7.0"
+    "@volontariapp/logger": "npm:0.4.0"
+    ioredis: "npm:^5.11.1"
+    neo4j-driver: "npm:^6.2.0"
+    pg: "npm:^8.23.1"
+    reflect-metadata: "npm:^0.2.2"
+    typeorm: "npm:^0.3.31"
+  checksum: 10c0/82c96a17c3d085d4e6fa680ad7291da9c2c144b6e264e91e3418e70e27da9ba88a5f3ccd22b73132b8b7ccc598322cc057918663fa4a2eb9af1f8a1e50a97bbc
+  languageName: node
+  linkType: hard
+
 "@volontariapp/config@npm:3.3.2, @volontariapp/config@npm:^3.3.2":
   version: 3.3.2
   resolution: "@volontariapp/config@npm:3.3.2"
@@ -4489,9 +4506,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@volontariapp/contracts-nest@npm:^3.4.4":
-  version: 3.4.4
-  resolution: "@volontariapp/contracts-nest@npm:3.4.4"
+"@volontariapp/contracts-nest@npm:^3.4.6":
+  version: 3.4.6
+  resolution: "@volontariapp/contracts-nest@npm:3.4.6"
   dependencies:
     "@volontariapp/logger": "npm:0.4.0"
     protobufjs: "npm:^7.5.8"
@@ -4500,61 +4517,51 @@ __metadata:
     "@nestjs/core": ^11.0.0
     "@nestjs/microservices": ^11.0.0
     rxjs: ^7.0.0
-  checksum: 10c0/9b90e98bf3f516ecc90e9629d9e2458ed819396d051f37f6eaf7bbfae4f9ef22c1400538ce8847f886e1d4540130ab563720293744b0fc6540d784710681fa08
+  checksum: 10c0/6c9da8c66f7d7f81daee21b42b728f2bcdd60bd1ee546cd6ca02f08b4d80a45df9b34a30a156c92179f42eac2e2ec5b7b46f907c5d85fa7911e1ba73c3dcb1de
   languageName: node
   linkType: hard
 
-"@volontariapp/contracts@npm:4.8.3":
-  version: 4.8.3
-  resolution: "@volontariapp/contracts@npm:4.8.3"
+"@volontariapp/contracts@npm:4.9.0, @volontariapp/contracts@npm:^4.9.0":
+  version: 4.9.0
+  resolution: "@volontariapp/contracts@npm:4.9.0"
   dependencies:
     "@volontariapp/logger": "npm:0.4.0"
     protobufjs: "npm:^7.5.8"
-  checksum: 10c0/955540ab4ed7ba06e3b09334fe358aebbc44c73f70a57a8d47f53ca599ed64ff3bd1b4ce0dc299828c56a273d45324b6c80f917e01286efa2144aa80be04c0a1
+  checksum: 10c0/6d6b9fd54ca9ab5fd4d9d435b8954b59bd0289554b2f7336951746ce10cc8163be0f4d80a1face8d75d8ef7d2afe05b0892a42be02321277b317b9d9b23d2bea
   languageName: node
   linkType: hard
 
-"@volontariapp/contracts@npm:^4.8.5":
-  version: 4.8.5
-  resolution: "@volontariapp/contracts@npm:4.8.5"
-  dependencies:
-    "@volontariapp/logger": "npm:0.4.0"
-    protobufjs: "npm:^7.5.8"
-  checksum: 10c0/52518d7dfddb8c6656a4053ab695f196c9ba66a0cc5d0d3d9692d1d08e56a733947362a7e77125a873b0fb8dfb7cb1f518e88c9ca7a3e9d8b44dbb5d93c669f7
-  languageName: node
-  linkType: hard
-
-"@volontariapp/database@npm:3.11.3":
-  version: 3.11.3
-  resolution: "@volontariapp/database@npm:3.11.3"
+"@volontariapp/database@npm:3.12.7":
+  version: 3.12.7
+  resolution: "@volontariapp/database@npm:3.12.7"
   dependencies:
     "@opentelemetry/api": "npm:^1.9.0"
-    "@volontariapp/bridge": "npm:1.0.10"
+    "@volontariapp/bridge": "npm:1.0.11"
     "@volontariapp/config": "npm:3.3.2"
-    "@volontariapp/errors": "npm:0.6.5"
+    "@volontariapp/errors": "npm:0.7.0"
     "@volontariapp/logger": "npm:0.4.0"
-    "@volontariapp/messaging": "npm:2.30.0"
-    "@volontariapp/shared": "npm:0.18.0"
+    "@volontariapp/messaging": "npm:2.32.1"
+    "@volontariapp/shared": "npm:0.19.0"
     class-transformer: "npm:^0.5.1"
     class-validator: "npm:^0.15.1"
     pg: "npm:^8.23.1"
     reflect-metadata: "npm:^0.2.2"
   peerDependencies:
     typeorm: ^0.3.28
-  checksum: 10c0/8fd88fa31b2f0caa8de248510ce9f701501fc37a4b5747d54b3c99ce7534853c0a5e01147aa4f1cf882728dc427d4795361ed89c829016ae9e4eb16cd87fa79e
+  checksum: 10c0/5ee4729861f63697745441fad1161dabcaf95e45418a0cc12efa0fb43f5f9ac1624adaae3fbfc23480b6bd8afcf4f359ed452f3a3213d34a7e393194b73416f4
   languageName: node
   linkType: hard
 
-"@volontariapp/domain-storage@npm:^0.12.13":
-  version: 0.12.13
-  resolution: "@volontariapp/domain-storage@npm:0.12.13"
+"@volontariapp/domain-storage@npm:^0.14.6":
+  version: 0.14.6
+  resolution: "@volontariapp/domain-storage@npm:0.14.6"
   dependencies:
     "@nestjs/common": "npm:^11.2.8"
-    "@volontariapp/database": "npm:3.11.3"
-    "@volontariapp/errors": "npm:0.6.5"
+    "@volontariapp/database": "npm:3.12.7"
+    "@volontariapp/errors": "npm:0.7.0"
     "@volontariapp/logger": "npm:0.4.0"
-    "@volontariapp/messaging": "npm:2.30.0"
-    "@volontariapp/outbox": "npm:0.10.22"
+    "@volontariapp/messaging": "npm:2.32.1"
+    "@volontariapp/outbox": "npm:0.10.33"
   peerDependencies:
     reflect-metadata: ^0.2.2
     typeorm: ^0.3.31
@@ -4563,7 +4570,7 @@ __metadata:
       optional: true
     typeorm:
       optional: true
-  checksum: 10c0/0c39d7647dc31e29fb1d69b44e5bbad33e2e0f98e9e5184fe82679d01a6b8295edd69ec08c6a43ddcd2dc333a83ce3ea9b593b8a8fa60817451ed1cb695bfd2f
+  checksum: 10c0/f6b4b8bf000466f969ad173c389f53fa71b01e0d86d3c1242eedc73f2fbd5ba39f4abb3a771324e12868c67c027d5cc1f45958766d6db0d3ae6706d922ef2478
   languageName: node
   linkType: hard
 
@@ -4593,12 +4600,47 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@volontariapp/errors-nest@npm:0.14.1":
+  version: 0.14.1
+  resolution: "@volontariapp/errors-nest@npm:0.14.1"
+  dependencies:
+    "@volontariapp/errors": "npm:0.7.0"
+    "@volontariapp/logger": "npm:0.4.0"
+    reflect-metadata: "npm:^0.2.2"
+    rxjs: "npm:^7.8.1"
+  peerDependencies:
+    "@nestjs/common": ^10.0.0 || ^11.0.0
+    "@nestjs/core": ^10.0.0 || ^11.0.0
+    "@nestjs/microservices": ^10.0.0 || ^11.0.0
+    "@nestjs/swagger": ^8.0.0 || ^11.0.0
+  peerDependenciesMeta:
+    "@nestjs/common":
+      optional: true
+    "@nestjs/core":
+      optional: true
+    "@nestjs/microservices":
+      optional: true
+    "@nestjs/swagger":
+      optional: true
+  checksum: 10c0/25127d3d3b92ecdcbb170e85de7f6ca53c639171ed02d53a51214af39a9e5c4bef807d7a529f7abac3206816e2658a9426f5446205a93b2f35c12a0b0b790763
+  languageName: node
+  linkType: hard
+
 "@volontariapp/errors@npm:0.6.5, @volontariapp/errors@npm:^0.6.5":
   version: 0.6.5
   resolution: "@volontariapp/errors@npm:0.6.5"
   dependencies:
     "@volontariapp/logger": "npm:0.4.0"
   checksum: 10c0/58f9346b219a7140459b0142d0ddc4031e51e418a6b5696dfc235107afe4a3aea164b33a2510e82009774694642891d2dbaf93c8976ef67253cc110fffcd4c47
+  languageName: node
+  linkType: hard
+
+"@volontariapp/errors@npm:0.7.0":
+  version: 0.7.0
+  resolution: "@volontariapp/errors@npm:0.7.0"
+  dependencies:
+    "@volontariapp/logger": "npm:0.4.0"
+  checksum: 10c0/a158bb8fc3ddcbb914092778f4ea11cad01a0de823425585ba4ee37d1f5c649ad7bf49af7df7f27391786ebe9d4ecc9d28dbe5ba5879b27e2b14a9e4b0c3181b
   languageName: node
   linkType: hard
 
@@ -4666,13 +4708,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@volontariapp/messaging@npm:2.30.0":
-  version: 2.30.0
-  resolution: "@volontariapp/messaging@npm:2.30.0"
+"@volontariapp/messaging@npm:2.32.1":
+  version: 2.32.1
+  resolution: "@volontariapp/messaging@npm:2.32.1"
   dependencies:
-    "@volontariapp/contracts": "npm:4.8.3"
-    "@volontariapp/shared": "npm:0.18.0"
-  checksum: 10c0/535ce872a4bf60ce763c92b35c20e1839f0c67941f8d3082cdb2b968b34fbdf7302aa115a7a81acc221807c347807de8829aa10f8d52d6e09cb34ae377866f5f
+    "@volontariapp/contracts": "npm:4.9.0"
+    "@volontariapp/shared": "npm:0.19.0"
+  checksum: 10c0/ec0392527555233afc0fb37c64c3491c189b717bbb667d52128451c6ba8bd43c3ceec4c4b232c3053b6952b74c22ec9e2ebd6cffe4d8a5cbbefa0f490829c66b
   languageName: node
   linkType: hard
 
@@ -4695,27 +4737,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@volontariapp/outbox@npm:0.10.22":
-  version: 0.10.22
-  resolution: "@volontariapp/outbox@npm:0.10.22"
+"@volontariapp/outbox@npm:0.10.33":
+  version: 0.10.33
+  resolution: "@volontariapp/outbox@npm:0.10.33"
   dependencies:
     "@volontariapp/config": "npm:3.3.2"
-    "@volontariapp/database": "npm:3.11.3"
-    "@volontariapp/errors": "npm:0.6.5"
+    "@volontariapp/database": "npm:3.12.7"
+    "@volontariapp/errors": "npm:0.7.0"
     "@volontariapp/logger": "npm:0.4.0"
-    "@volontariapp/messaging": "npm:2.30.0"
-    "@volontariapp/shared": "npm:0.18.0"
+    "@volontariapp/messaging": "npm:2.32.1"
+    "@volontariapp/shared": "npm:0.19.0"
     "@volontariapp/testing": "npm:1.0.3"
     bullmq: "npm:^5.76.11"
     ioredis: "npm:^5.11.1"
-  checksum: 10c0/a84db4fd925b8f1da30175e543948325b471d8ec039ad9cabaf97faeceb44076b7c836ed20f2a9c1804d1f265cc97c3cdeddbee396cc2669055cccb3439becaf
+  checksum: 10c0/74b8265f656c27c2df9c1b0281a227c13cb3d53cf0b3837c466ae7b210a1ba539b4398a17d8f07183afe8ab53be1005e8020a43666c3e3a7523b8ace03610db1
   languageName: node
   linkType: hard
 
-"@volontariapp/shared@npm:0.18.0, @volontariapp/shared@npm:^0.18.0":
-  version: 0.18.0
-  resolution: "@volontariapp/shared@npm:0.18.0"
-  checksum: 10c0/6a8f659f808dba21732a1820540c663df27be0412cfecb5be1e1eded5f472154a294b8eda421669fa9f7c0f21359517b6f3cb7f36314571753c0976e57d79303
+"@volontariapp/shared@npm:0.19.0, @volontariapp/shared@npm:^0.19.0":
+  version: 0.19.0
+  resolution: "@volontariapp/shared@npm:0.19.0"
+  checksum: 10c0/a18b506164618969343cf1402041b070ec69e9a500d9f4a60ee4499347f6b7d91c5757af7883e9630da2bb954e39d2045de2c10484238ae43a3cb2ff9db19038
   languageName: node
   linkType: hard
 
@@ -5094,6 +5136,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"ansis@npm:^4.3.1":
+  version: 4.5.0
+  resolution: "ansis@npm:4.5.0"
+  checksum: 10c0/4c52dd5c40f0b2450cae3b581153ec25529e8f849f113658a6353f63ad7b647f2e2b27129ed58f00db554a420f41ec72ce153ec6bdf9db07550855a345482c6c
+  languageName: node
+  linkType: hard
+
 "anymatch@npm:^3.1.3":
   version: 3.1.3
   resolution: "anymatch@npm:3.1.3"
@@ -5131,12 +5180,12 @@ __metadata:
     "@types/jest": "npm:^30.0.0"
     "@types/node": "npm:^22.20.5"
     "@types/supertest": "npm:^7.2.1"
-    "@volontariapp/auth": "npm:^3.3.24"
+    "@volontariapp/auth": "npm:^3.3.27"
     "@volontariapp/bridge-nest": "npm:^0.3.21"
     "@volontariapp/config": "npm:^3.3.2"
-    "@volontariapp/contracts": "npm:^4.8.5"
-    "@volontariapp/contracts-nest": "npm:^3.4.4"
-    "@volontariapp/domain-storage": "npm:^0.12.13"
+    "@volontariapp/contracts": "npm:^4.9.0"
+    "@volontariapp/contracts-nest": "npm:^3.4.6"
+    "@volontariapp/domain-storage": "npm:^0.14.6"
     "@volontariapp/errors": "npm:^0.6.5"
     "@volontariapp/errors-nest": "npm:^0.14.0"
     "@volontariapp/eslint-config": "npm:^2.2.5"
@@ -5144,7 +5193,7 @@ __metadata:
     "@volontariapp/health-check-nest": "npm:^0.1.42"
     "@volontariapp/logger": "npm:^0.4.0"
     "@volontariapp/monitoring": "npm:^2.4.0"
-    "@volontariapp/shared": "npm:^0.18.0"
+    "@volontariapp/shared": "npm:^0.19.0"
     "@volontariapp/testing": "npm:^1.0.3"
     axios: "npm:^1.20.0"
     class-transformer: "npm:^0.5.1"
@@ -6068,6 +6117,13 @@ __metadata:
   version: 1.11.21
   resolution: "dayjs@npm:1.11.21"
   checksum: 10c0/bd97dfdc4bfea3c66268635690313828b386faa040fbc1f829ff42a2bd748b72c9d9b3c8f9616ce9e61fcb78923f1461a462c969c54b1084458ae1b715898fb0
+  languageName: node
+  linkType: hard
+
+"dayjs@npm:^1.11.21":
+  version: 1.11.23
+  resolution: "dayjs@npm:1.11.23"
+  checksum: 10c0/69ab04bf19c676e44ab50cc2fca223d265f3dafd107151ef3b0f3ad74d360c37caa602abe62f87cb25d90bd9f6bee003698af47df5b0dbf10a998b7b5f3bb3f1
   languageName: node
   linkType: hard
 
@@ -8466,10 +8522,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jose@npm:^6.2.13":
-  version: 6.2.14
-  resolution: "jose@npm:6.2.14"
-  checksum: 10c0/3db121220793e391c24803edae1ede848e7a67e2c3d37f9864f3e3e245c4b2d318f176d17f0f8ab02be07e210a3db5453612c8d5716af2deeaaa4e5d50e70641
+"jose@npm:^6.2.14":
+  version: 6.2.15
+  resolution: "jose@npm:6.2.15"
+  checksum: 10c0/0e72e53ead0e01adc4598438f889e753622043806a7ba0c802f7cd7da17466e5a6167a63b4b4e67490944c9f88eb0dd5c81c05aca2c38a72718443632a7b37b5
   languageName: node
   linkType: hard
 
@@ -9120,10 +9176,28 @@ __metadata:
   languageName: node
   linkType: hard
 
+"neo4j-driver-bolt-connection@npm:6.3.0":
+  version: 6.3.0
+  resolution: "neo4j-driver-bolt-connection@npm:6.3.0"
+  dependencies:
+    buffer: "npm:^6.0.3"
+    neo4j-driver-core: "npm:6.3.0"
+    string_decoder: "npm:^1.3.0"
+  checksum: 10c0/ed6b37a2b5468e78669363f289ccdf1dcd473adca86403a82d8e2a421d8992da0c53763fa92c088344fcb5df2537222eb7d4248754b98e6bc61ebb32623e37b6
+  languageName: node
+  linkType: hard
+
 "neo4j-driver-core@npm:6.0.1":
   version: 6.0.1
   resolution: "neo4j-driver-core@npm:6.0.1"
   checksum: 10c0/4072bf5e3047a34222b60c83c4bffe5758153a6f73f803166ff8a09be1a5bc3dc76a91e3d5fef5768d3c8a62b28c6b6ac6bcdec3552f70d951b4c53ce3e3be43
+  languageName: node
+  linkType: hard
+
+"neo4j-driver-core@npm:6.3.0":
+  version: 6.3.0
+  resolution: "neo4j-driver-core@npm:6.3.0"
+  checksum: 10c0/14425c0f2517d70cd955525574bc44c0efcda0ff088ce9c65271f31c1d3aa2c1223bce89adb31a3cc4af2ce95d506857b2322778845bcadefda0481a90cff21d
   languageName: node
   linkType: hard
 
@@ -9135,6 +9209,17 @@ __metadata:
     neo4j-driver-core: "npm:6.0.1"
     rxjs: "npm:^7.8.2"
   checksum: 10c0/d03e6c6fc3207f49a827daa66b92a7e66577eabdee5a8f285d475a77d4d8973414645b74114c6d5281d30e25fd25f596fd0ae835288092482af83f25692a5710
+  languageName: node
+  linkType: hard
+
+"neo4j-driver@npm:^6.2.0":
+  version: 6.3.0
+  resolution: "neo4j-driver@npm:6.3.0"
+  dependencies:
+    neo4j-driver-bolt-connection: "npm:6.3.0"
+    neo4j-driver-core: "npm:6.3.0"
+    rxjs: "npm:^7.8.2"
+  checksum: 10c0/bb5cb4a0e702a6dd364d67c5c7c793a9ff21a7030b96dbc3629ed6b32d55e70b23498b0c3f6b2af8f1f24bb41ddf39a3805692728ce37d7fe8dcca5627115eb2
   languageName: node
   linkType: hard
 
@@ -11110,6 +11195,83 @@ __metadata:
   languageName: node
   linkType: hard
 
+"typeorm@npm:^0.3.31":
+  version: 0.3.31
+  resolution: "typeorm@npm:0.3.31"
+  dependencies:
+    "@sqltools/formatter": "npm:^1.2.5"
+    ansis: "npm:^4.3.1"
+    app-root-path: "npm:^3.1.0"
+    buffer: "npm:^6.0.3"
+    dayjs: "npm:^1.11.21"
+    debug: "npm:^4.4.3"
+    dedent: "npm:^1.7.2"
+    dotenv: "npm:^16.6.1"
+    glob: "npm:^10.5.0"
+    reflect-metadata: "npm:^0.2.2"
+    sha.js: "npm:^2.4.12"
+    sql-highlight: "npm:^6.1.0"
+    tslib: "npm:^2.8.1"
+    uuid: "npm:^11.1.1"
+    yargs: "npm:^17.7.3"
+  peerDependencies:
+    "@google-cloud/spanner": ^5.18.0 || ^6.0.0 || ^7.0.0 || ^8.0.0
+    "@sap/hana-client": ^2.14.22
+    better-sqlite3: ^8.0.0 || ^9.0.0 || ^10.0.0 || ^11.0.0 || ^12.0.0
+    ioredis: ^5.0.4
+    mongodb: ^5.8.0 || ^6.0.0
+    mssql: ^9.1.1 || ^10.0.0 || ^11.0.0 || ^12.0.0
+    mysql2: ^2.2.5 || ^3.0.1
+    oracledb: ^6.3.0 || ^7.0.0
+    pg: ^8.5.1
+    pg-native: ^3.0.0
+    pg-query-stream: ^4.0.0
+    redis: ^3.1.1 || ^4.0.0 || ^5.0.14
+    sql.js: ^1.4.0
+    sqlite3: ^5.0.3 || ^6.0.0
+    ts-node: ^10.7.0
+    typeorm-aurora-data-api-driver: ^2.0.0 || ^3.0.0
+  peerDependenciesMeta:
+    "@google-cloud/spanner":
+      optional: true
+    "@sap/hana-client":
+      optional: true
+    better-sqlite3:
+      optional: true
+    ioredis:
+      optional: true
+    mongodb:
+      optional: true
+    mssql:
+      optional: true
+    mysql2:
+      optional: true
+    oracledb:
+      optional: true
+    pg:
+      optional: true
+    pg-native:
+      optional: true
+    pg-query-stream:
+      optional: true
+    redis:
+      optional: true
+    sql.js:
+      optional: true
+    sqlite3:
+      optional: true
+    ts-node:
+      optional: true
+    typeorm-aurora-data-api-driver:
+      optional: true
+  bin:
+    typeorm: cli.js
+    typeorm-ts-node-commonjs: cli-ts-node-commonjs.js
+    typeorm-ts-node-esm: cli-ts-node-esm.js
+  checksum: 10c0/c49e6fd237e58780b8e0ca1989778c791c38fc737cd9f99dc38dfa43133e1da7350c7b84ebde0462c73e5d8aea4736afdea63a332963b49117d32bc5504d4c46
+  languageName: node
+  linkType: hard
+
 "typescript-eslint@npm:8.20.0":
   version: 8.20.0
   resolution: "typescript-eslint@npm:8.20.0"
@@ -11709,6 +11871,21 @@ __metadata:
     y18n: "npm:^5.0.5"
     yargs-parser: "npm:^21.1.1"
   checksum: 10c0/ccd7e723e61ad5965fffbb791366db689572b80cca80e0f96aad968dfff4156cd7cd1ad18607afe1046d8241e6fb2d6c08bf7fa7bfb5eaec818735d8feac8f05
+  languageName: node
+  linkType: hard
+
+"yargs@npm:^17.7.3":
+  version: 17.7.3
+  resolution: "yargs@npm:17.7.3"
+  dependencies:
+    cliui: "npm:^8.0.1"
+    escalade: "npm:^3.1.1"
+    get-caller-file: "npm:^2.0.5"
+    require-directory: "npm:^2.1.1"
+    string-width: "npm:^4.2.3"
+    y18n: "npm:^5.0.5"
+    yargs-parser: "npm:^21.1.1"
+  checksum: 10c0/7a28572f7e785a57886e34fdbddb9b28756dec552e1453d5f6e7cdd00ad8721a4e8c4321d33683f5e61cacb36ad43258adbb48396b71ec4ed14abee0fc0d0c1f
   languageName: node
   linkType: hard
 

@@ -5,6 +5,7 @@ import { UserAdminQueryController } from './controllers/queries/user/user-admin.
 import { UserCommandController } from './controllers/commands/user/user.command-controller.js';
 import { UserAdminCommandController } from './controllers/commands/user/user-admin.command-controller.js';
 import { BadgeQueryController } from './controllers/queries/badge/badge.query-controller.js';
+import { BadgeProgressQueryController } from './controllers/queries/badge/badge-progress.query-controller.js';
 import { BadgeAdminCommandController } from './controllers/commands/badge/badge-admin.command-controller.js';
 
 @Module({
@@ -15,6 +16,7 @@ import { BadgeAdminCommandController } from './controllers/commands/badge/badge-
     UserCommandController,
     UserAdminCommandController,
     BadgeQueryController,
+    BadgeProgressQueryController,
     BadgeAdminCommandController,
   ],
 })

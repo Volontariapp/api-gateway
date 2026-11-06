@@ -20,6 +20,12 @@ export class BadgeDTO {
   @ApiProperty({ required: false, type: Date })
   awardedAt?: Date;
 
+  @ApiProperty({
+    example: 100,
+    description: 'Points credited to the user when the badge is awarded',
+  })
+  points!: number;
+
   static fromBadge(badge: Badge): BadgeDTO {
     const dto = new BadgeDTO();
     dto.id = badge.id;
@@ -28,6 +34,7 @@ export class BadgeDTO {
     dto.iconPath = badge.iconPath;
     dto.description = badge.description;
     dto.awardedAt = GrpcDateMapper.toDate(badge.awardedAt);
+    dto.points = badge.points;
     return dto;
   }
 }
