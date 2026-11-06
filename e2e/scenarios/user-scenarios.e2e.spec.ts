@@ -172,10 +172,8 @@ describe('Scenarios: user (E2E)', () => {
     );
   });
 
+  // user.badge_awarded is covered by badge-scenarios.e2e.spec.ts.
   describe('needs post-processor-user and ms-storage scan workers', () => {
-    it.todo(
-      "user.badge_awarded: a user who earns a badge receives 'user.badge_awarded' and the badge is listed on GET /users/me",
-    );
     it.todo(
       "user.impact_score_credited: participants of a finished event receive 'user.impact_score_credited' once",
     );

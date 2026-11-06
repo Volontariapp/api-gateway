@@ -7,6 +7,7 @@ export const WS_EVENTS = {
   USER_CREATED: 'user.created',
   USER_DELETED: 'user.deleted',
   USER_DELETION_FAILED: 'user.deletion_failed',
+  USER_BADGE_AWARDED: 'user.badge_awarded',
   POST_CREATED: 'post.created',
   POST_DELETED: 'post.deleted',
   COMMENT_CREATED: 'post.comment.created',
