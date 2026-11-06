@@ -62,8 +62,8 @@ const sorted = (slugs: readonly string[]): string[] => [...slugs].sort();
  *   Event or post -> ms-* (event_queue) -> outbox-* -> Redis streams -> post-processor-user
  *   (BadgeEvaluator: user_badges, badge_progress, badge points, outbox user.badge_awarded)
  *   -> ws-service -> 'user.badge_awarded' to the socket; GET /users/me/badges/progress reads
- *   ms-user. Needs post-processor-user and post-processor-event, with BADGE_POINTS_ENABLED=true
- *   in the stack for the points assertions.
+ *   ms-user. Needs post-processor-user with BADGE_POINTS_ENABLED=true in the stack for the points
+ *   assertions. EVENT_HOST_COUNT_1 is not covered: see the it.todo at the end of the journey.
  *
  * Counters are fed in stream order by a single consumer. The "fence" steps rely on that: once a
  * later action of another user is counted, every earlier action of the volunteer was processed,
@@ -465,17 +465,12 @@ describe('Scenarios: badges (E2E)', () => {
       STEP_TIMEOUT_MS,
     );
 
-    it(
-      'the organizer who created ten events earns the hosting badge once and nothing else',
-      async () => {
-        const entry = await waitForUnlocked(organizer.client, 'EVENT_HOST_COUNT_1');
-
-        expect(entry).toMatchObject({ unlocked: true, percent: 100, points: 200 });
-        expect(unlockedSlugs(await readBadgeProgress(organizer.client))).toEqual([
-          'EVENT_HOST_COUNT_1',
-        ]);
-      },
-      STEP_TIMEOUT_MS,
+    // EVENT_HOST_COUNT_1 needs event.creation_successfull, which closes the EVENT_CREATION gather.
+    // That gather waits for event.geocoded, and post-processor-event runs with GEOCODING_ENABLED=false
+    // in the E2E stack (README, Decisions), so it never completes here. The hosting badge is covered
+    // by the unit tests of post-processor-user until a stack can geocode without moving the events.
+    it.todo(
+      'the organizer who created an event earns EVENT_HOST_COUNT_1 once (needs event.geocoded, see README Decisions)',
     );
   });
 });
