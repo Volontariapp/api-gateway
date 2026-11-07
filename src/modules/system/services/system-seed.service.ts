@@ -107,6 +107,8 @@ export class SystemSeedService {
       postCount: options?.postCount ?? defaultPosts,
       seedMedia: options?.seedMedia ?? true,
       concurrency: options?.concurrency ?? 15,
+      liveEventCount: options?.liveEventCount ?? 0,
+      liveEventDurationMinutes: options?.liveEventDurationMinutes ?? 180,
     };
   }
 
@@ -173,6 +175,21 @@ export class SystemSeedService {
         baseMetadata,
         status.events,
       );
+
+      // 3 bis. Créer les événements en cours (écran "Rejoindre un direct"), hors interactions
+      if (options.liveEventCount > 0) {
+        await this.eventSeedService.seedLiveEvents(
+          userIds,
+          goldenUserIds,
+          tagMap,
+          options.liveEventCount,
+          options.liveEventDurationMinutes,
+          options.seedMedia,
+          getMetadata,
+          baseMetadata,
+          status.events,
+        );
+      }
 
       // 4. Créer les interactions (participations passées cruciales pour le ranking, inscriptions futures, wishes, follows)
       await this.interactionSeedService.seedInteractions(
