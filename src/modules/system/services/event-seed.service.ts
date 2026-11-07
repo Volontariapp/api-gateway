@@ -16,7 +16,12 @@ import {
 import { EVENT_PACKAGE, SOCIAL_PACKAGE } from '../../../grpc/grpc-packages.js';
 import type { WithMetadata } from '../../../common/types/grpc.types.js';
 import { ILE_DE_FRANCE_LOCATIONS } from '../constants/seed-locations.constant.js';
-import { generate500DistinctEvents } from '../constants/seed-templates.constant.js';
+import {
+  generate500DistinctEvents,
+  type SeedEventBlueprint,
+} from '../constants/seed-templates.constant.js';
+import { selectLiveLocations } from '../constants/seed-live-locations.constant.js';
+import type { SeedLocation } from '../constants/seed-locations.constant.js';
 import { MediaSeedService } from './media-seed.service.js';
 import type { SeedCountStatsDTO } from '../common/index.js';
 
@@ -28,6 +33,41 @@ export interface SeededEventsResult {
   eventOwnerMap: Map<string, string>; // eventId -> ownerId (organisateur)
   eventCapacityMap: Map<string, number>; // eventId -> maxParticipants (>= 1)
 }
+
+/** Profils d'evenements en cours. */
+export enum LiveEventProfile {
+  ENDING_SOON = 'ending-soon',
+  FULL = 'full',
+  NORMAL = 'normal',
+}
+
+export interface SeededLiveEventsResult {
+  liveEventIds: string[];
+  countByProfile: Record<LiveEventProfile, number>;
+}
+
+interface SeedEventDraft {
+  blueprint: SeedEventBlueprint;
+  location: SeedLocation;
+  startSec: number;
+  endSec: number;
+  ownerId: string;
+  /** Capacite imposee ; sinon celle du blueprint (>= 1). */
+  capacity?: number;
+}
+
+const MINUTE_SEC = 60;
+
+/** Profil de chaque evenement en cours selon son rang et le total demande. */
+export const resolveLiveProfile = (index: number, total: number): LiveEventProfile => {
+  if (index === 0 && total >= 2) {
+    return LiveEventProfile.ENDING_SOON;
+  }
+  if (index === 1 && total >= 3) {
+    return LiveEventProfile.FULL;
+  }
+  return LiveEventProfile.NORMAL;
+};
 
 @Injectable()
 export class EventSeedService implements OnModuleInit {
@@ -87,8 +127,6 @@ export class EventSeedService implements OnModuleInit {
       try {
         const blueprint = distinctEvents[index % distinctEvents.length];
         const location = ILE_DE_FRANCE_LOCATIONS[index % ILE_DE_FRANCE_LOCATIONS.length];
-        const title = blueprint.title;
-        const description = blueprint.description;
 
         // Calcul des dates passées ou futures
         const nowSec = Math.floor(Date.now() / 1000);
@@ -105,57 +143,17 @@ export class EventSeedService implements OnModuleInit {
         const durationSec = faker.number.int({ min: 7200, max: 18000 }); // 2h à 5h
         const endSec = startSec + durationSec;
 
-        const eventType =
-          blueprint.category === 'ecology' ||
-          blueprint.category === 'garden' ||
-          blueprint.category === 'cycling'
-            ? EventType.EVENT_TYPE_ECOLOGY
-            : EventType.EVENT_TYPE_SOCIAL;
-
-        // Tags associés
-        const tagIds = blueprint.tagSlugs
-          .map((slug) => tagMap.get(slug))
-          .filter((id): id is string => Boolean(id));
-
-        const ownerId = Math.random() < 0.4 ? organizerId : faker.helpers.arrayElement(userIds);
-        const ownerMd = await getMetadata(baseMetadata, ownerId);
-        // Le scoring exige une capacite >= 1 (bonus de remplissage)
-        const capacity = Math.max(1, blueprint.suggestedMaxParticipants);
-
-        // Upload d'image unique si activé
-        const tempEntityId = randomUUID();
-        let coverFileId: string | undefined;
-        if (seedMedia) {
-          coverFileId = await this.mediaSeedService.getOrUploadImage(
-            tempEntityId,
-            EntityType.ENTITY_TYPE_EVENT_COVER,
-            blueprint.imageTheme,
-            ownerMd,
-          );
-        }
-
-        const res = await lastValueFrom(
-          this.eventCommandService.createEvent(
-            {
-              title,
-              description,
-              localisationName: `${location.name}, ${location.postalCode} ${location.city}`,
-              startAt: { seconds: startSec, nanos: 0 },
-              endAt: { seconds: endSec, nanos: 0 },
-              type: eventType,
-              maxParticipants: capacity,
-              // Le score n'est plus saisi : ms-event applique scoringVersion et le calcul a FINISHED
-              awardedImpactScore: 0,
-              tagIds,
-              coverFileId,
-              idempotencyKey: randomUUID(),
-            },
-            ownerMd,
-          ),
+        const ownerId = this.pickOwnerId(organizerId, userIds);
+        const eventId = await this.createSeedEvent(
+          { blueprint, location, startSec, endSec, ownerId },
+          tagMap,
+          seedMedia,
+          getMetadata,
+          baseMetadata,
         );
 
-        if (res.event?.id) {
-          const eventId = res.event.id;
+        if (eventId) {
+          const capacity = this.resolveCapacity(blueprint);
           allEventIds.push(eventId);
           eventCategoryMap.set(eventId, blueprint.category);
           eventOwnerMap.set(eventId, ownerId);
@@ -167,40 +165,6 @@ export class EventSeedService implements OnModuleInit {
             futureEventIds.push(eventId);
           }
           status.success++;
-
-          // Synchronisation du nœud d'événement et du lien d'organisation dans ms-social
-          try {
-            await lastValueFrom(
-              this.participationCommandService.createEventNode({ eventId }, ownerMd),
-            );
-            await lastValueFrom(
-              this.participationCommandService.postUserEvent({ userId: ownerId, eventId }, ownerMd),
-            );
-          } catch (e) {
-            const msg = e instanceof Error ? e.message : String(e);
-            this.logger.debug(`Event node or organizer link not created for ${eventId}: ${msg}`);
-          }
-
-          // Ajout de tous les matériels requis avec leurs quantités contractuelles (ManageRequirementCommand)
-          for (const material of blueprint.materials) {
-            try {
-              await lastValueFrom(
-                this.eventCommandService.manageRequirements(
-                  {
-                    eventId,
-                    add: {
-                      name: material.name,
-                      description: material.description,
-                      neededQuantity: material.neededQuantity,
-                    },
-                  },
-                  ownerMd,
-                ),
-              );
-            } catch {
-              // Ignorer les erreurs d'ajout individuel de matériel
-            }
-          }
         } else {
           status.failed++;
         }
@@ -244,5 +208,202 @@ export class EventSeedService implements OnModuleInit {
       eventOwnerMap,
       eventCapacityMap,
     };
+  }
+
+  /**
+   * Crée des événements en cours (déjà commencés, pas finis) pour l'écran "Rejoindre un direct".
+   * Profils : "fin proche" (1 si total >= 2), "complet" (1 si total >= 3), "normal" (les autres).
+   * Tous les lieux sont dans la même ville, dans un petit rayon. Les événements restent PUBLISHED.
+   */
+  async seedLiveEvents(
+    userIds: string[],
+    goldenUserIds: Map<string, string>,
+    tagMap: Map<string, string>,
+    liveEventCount: number,
+    liveEventDurationMinutes: number,
+    seedMedia: boolean,
+    getMetadata: (base: Metadata, userId: string) => Promise<Metadata>,
+    baseMetadata: Metadata,
+    status: SeedCountStatsDTO,
+    now: Date = new Date(),
+  ): Promise<SeededLiveEventsResult> {
+    const liveEventIds: string[] = [];
+    const countByProfile: Record<LiveEventProfile, number> = {
+      [LiveEventProfile.ENDING_SOON]: 0,
+      [LiveEventProfile.FULL]: 0,
+      [LiveEventProfile.NORMAL]: 0,
+    };
+    if (liveEventCount <= 0) {
+      return { liveEventIds, countByProfile };
+    }
+
+    this.logger.log(`Seeding live events (Target: ${String(liveEventCount)})...`);
+
+    const organizerId = goldenUserIds.get('organizer') ?? userIds[0];
+    const distinctEvents = generate500DistinctEvents(ILE_DE_FRANCE_LOCATIONS);
+    const locations = selectLiveLocations();
+    const nowSec = Math.floor(now.getTime() / 1000);
+    const durationSec = liveEventDurationMinutes * MINUTE_SEC;
+
+    for (let index = 0; index < liveEventCount; index++) {
+      const profile = resolveLiveProfile(index, liveEventCount);
+      try {
+        let startSec = nowSec - 30 * MINUTE_SEC;
+        let endSec = nowSec + durationSec;
+        let capacity: number | undefined;
+        if (profile === LiveEventProfile.ENDING_SOON) {
+          endSec = nowSec + faker.number.int({ min: 15, max: 20 }) * MINUTE_SEC;
+        } else if (profile === LiveEventProfile.FULL) {
+          // Le créateur compte comme participant implicite : complet sans inscription
+          capacity = 1;
+        } else {
+          startSec = nowSec - faker.number.int({ min: 10, max: 60 }) * MINUTE_SEC;
+        }
+
+        const eventId = await this.createSeedEvent(
+          {
+            blueprint: distinctEvents[index % distinctEvents.length],
+            location: locations[index % locations.length],
+            startSec,
+            endSec,
+            ownerId: this.pickOwnerId(organizerId, userIds),
+            capacity,
+          },
+          tagMap,
+          seedMedia,
+          getMetadata,
+          baseMetadata,
+        );
+
+        if (eventId) {
+          liveEventIds.push(eventId);
+          countByProfile[profile]++;
+          status.success++;
+        } else {
+          status.failed++;
+        }
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        this.logger.debug(`Failed to seed live event ${String(index)}: ${msg}`);
+        status.failed++;
+      }
+    }
+
+    for (const profile of Object.values(LiveEventProfile)) {
+      this.logger.log(
+        `Live events profile ${profile}: ${String(countByProfile[profile])} created.`,
+      );
+    }
+
+    return { liveEventIds, countByProfile };
+  }
+
+  private pickOwnerId(organizerId: string, userIds: string[]): string {
+    return Math.random() < 0.4 ? organizerId : faker.helpers.arrayElement(userIds);
+  }
+
+  private resolveCapacity(blueprint: SeedEventBlueprint): number {
+    // Le scoring exige une capacite >= 1 (bonus de remplissage)
+    return Math.max(1, blueprint.suggestedMaxParticipants);
+  }
+
+  /**
+   * Crée un événement (ms-event), son nœud et son lien d'organisateur (ms-social) et ses matériels.
+   * Retourne l'identifiant créé, ou undefined si ms-event n'en renvoie pas.
+   */
+  private async createSeedEvent(
+    draft: SeedEventDraft,
+    tagMap: Map<string, string>,
+    seedMedia: boolean,
+    getMetadata: (base: Metadata, userId: string) => Promise<Metadata>,
+    baseMetadata: Metadata,
+  ): Promise<string | undefined> {
+    const { blueprint, location, startSec, endSec, ownerId } = draft;
+
+    const eventType =
+      blueprint.category === 'ecology' ||
+      blueprint.category === 'garden' ||
+      blueprint.category === 'cycling'
+        ? EventType.EVENT_TYPE_ECOLOGY
+        : EventType.EVENT_TYPE_SOCIAL;
+
+    // Tags associés
+    const tagIds = blueprint.tagSlugs
+      .map((slug) => tagMap.get(slug))
+      .filter((id): id is string => Boolean(id));
+
+    const ownerMd = await getMetadata(baseMetadata, ownerId);
+    const capacity = draft.capacity ?? this.resolveCapacity(blueprint);
+
+    // Upload d'image unique si activé
+    const tempEntityId = randomUUID();
+    let coverFileId: string | undefined;
+    if (seedMedia) {
+      coverFileId = await this.mediaSeedService.getOrUploadImage(
+        tempEntityId,
+        EntityType.ENTITY_TYPE_EVENT_COVER,
+        blueprint.imageTheme,
+        ownerMd,
+      );
+    }
+
+    const res = await lastValueFrom(
+      this.eventCommandService.createEvent(
+        {
+          title: blueprint.title,
+          description: blueprint.description,
+          localisationName: `${location.name}, ${location.postalCode} ${location.city}`,
+          startAt: { seconds: startSec, nanos: 0 },
+          endAt: { seconds: endSec, nanos: 0 },
+          type: eventType,
+          maxParticipants: capacity,
+          // Le score n'est plus saisi : ms-event applique scoringVersion et le calcul a FINISHED
+          awardedImpactScore: 0,
+          tagIds,
+          coverFileId,
+          idempotencyKey: randomUUID(),
+        },
+        ownerMd,
+      ),
+    );
+
+    if (!res.event?.id) {
+      return undefined;
+    }
+    const eventId = res.event.id;
+
+    // Synchronisation du nœud d'événement et du lien d'organisation dans ms-social
+    try {
+      await lastValueFrom(this.participationCommandService.createEventNode({ eventId }, ownerMd));
+      await lastValueFrom(
+        this.participationCommandService.postUserEvent({ userId: ownerId, eventId }, ownerMd),
+      );
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      this.logger.debug(`Event node or organizer link not created for ${eventId}: ${msg}`);
+    }
+
+    // Ajout de tous les matériels requis avec leurs quantités contractuelles (ManageRequirementCommand)
+    for (const material of blueprint.materials) {
+      try {
+        await lastValueFrom(
+          this.eventCommandService.manageRequirements(
+            {
+              eventId,
+              add: {
+                name: material.name,
+                description: material.description,
+                neededQuantity: material.neededQuantity,
+              },
+            },
+            ownerMd,
+          ),
+        );
+      } catch {
+        // Ignorer les erreurs d'ajout individuel de matériel
+      }
+    }
+
+    return eventId;
   }
 }

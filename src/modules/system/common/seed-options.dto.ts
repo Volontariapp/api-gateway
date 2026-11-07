@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsEnum, IsNumber, IsOptional, Max, Min } from 'class-validator';
+import { IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, Max, Min } from 'class-validator';
 
 export enum SeedPreset {
   QUICK = 'quick',
@@ -66,4 +66,26 @@ export class SeedOptionsDTO {
   @Min(1)
   @Max(50)
   concurrency?: number;
+
+  @ApiPropertyOptional({
+    description:
+      'Nombre d\'événements EN COURS à créer pour l\'écran "Rejoindre un direct" (profils fin proche, complet, normal)',
+    default: 0,
+    example: 5,
+  })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  liveEventCount?: number;
+
+  @ApiPropertyOptional({
+    description: 'Durée restante, en minutes, des événements en cours (30 à 600)',
+    default: 180,
+    example: 180,
+  })
+  @IsOptional()
+  @IsInt()
+  @Min(30)
+  @Max(600)
+  liveEventDurationMinutes?: number;
 }
