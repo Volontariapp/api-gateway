@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { SearchEventsQuery, EventType, EventState } from '@volontariapp/contracts-nest';
 import { SearchEventsRequest } from '@volontariapp/contracts';
 import { Transform } from 'class-transformer';
+import { IsISO8601, IsOptional } from 'class-validator';
 import {
   DEFAULT_LIMIT,
   DEFAULT_PAGE,
@@ -46,6 +47,11 @@ export class SearchEventsRequestDTO implements SearchEventsRequest {
 
   @ApiProperty({ example: '2023-12-31T23:59:59Z', required: false })
   startDateTo?: string;
+
+  @ApiProperty({ example: '2023-01-01T00:00:00Z', required: false })
+  @IsOptional()
+  @IsISO8601()
+  endAtFrom?: string;
 
   @ApiProperty({ enum: EventState, isArray: true, required: false })
   @Transform(({ value }: { value: unknown }) => {
@@ -99,6 +105,7 @@ export class SearchEventsRequestDTO implements SearchEventsRequest {
       organizerId: this.organizerId,
       startDateFrom: this.startDateFrom,
       startDateTo: this.startDateTo,
+      endAtFrom: this.endAtFrom,
       statuses: this.statuses ?? [],
       ids: [],
       excludedIds: [],
