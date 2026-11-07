@@ -55,6 +55,7 @@
     "@volontariapp/health-check": "^1.0.10",
     "@volontariapp/health-check-nest": "^0.1.42",
     "@volontariapp/logger": "^0.4.0",
+    "@volontariapp/messaging": "^2.33.0",
     "@volontariapp/monitoring": "^2.4.0",
     "@volontariapp/shared": "^0.19.0",
     "axios": "^1.20.0",

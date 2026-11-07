@@ -17,6 +17,7 @@ import { HealthModule } from './modules/health/health.module.js';
 import { WsProxyModule } from './modules/ws-proxy/ws-proxy.module.js';
 import { SystemModule } from './modules/system/system.module.js';
 import { RankingModule } from './modules/ranking/ranking.module.js';
+import { LiveModule } from './modules/live/live.module.js';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { RankingModule } from './modules/ranking/ranking.module.js';
     SocialModule,
     StorageModule,
     RankingModule,
+    LiveModule,
     WsProxyModule,
     SystemModule,
   ],
@@ -43,6 +45,7 @@ export class AppModule {
       SocialModule,
       StorageModule,
       RankingModule,
+      LiveModule,
       PublicFileUrlModule,
       HealthModule,
       WsProxyModule,
