@@ -8,11 +8,11 @@ import {
   PARTICIPATION_QUERY_SERVICE_NAME,
   ParticipationQueryServiceClient,
 } from '@volontariapp/contracts-nest';
+import type { GetSearchExclusionsResponse } from '@volontariapp/contracts';
 import { SOCIAL_PACKAGE } from '../../../grpc/grpc-packages.js';
 import { WithMetadata } from '../../../common/types/grpc.types.js';
 import { fetchAllPages } from '../../../common/pagination/index.js';
 import type { SearchEventsRequestDTO } from '../dto/request/index.js';
-import { HiddenUsersService } from './hidden-users.service.js';
 
 /** Cap of `ids`, `excludedIds` and `excludedOrganizerIds` in SearchEvents (ms-event MAX_SEARCH_IDS). */
 export const MAX_SEARCH_IDS = 1000;
@@ -41,10 +41,7 @@ export class EventSocialFilterService implements OnModuleInit {
   private readonly logger = new Logger({ context: EventSocialFilterService.name });
   private participationQueryService!: WithMetadata<ParticipationQueryServiceClient>;
 
-  constructor(
-    @Inject(SOCIAL_PACKAGE) private readonly socialClient: ClientGrpc,
-    private readonly hiddenUsers: HiddenUsersService,
-  ) {}
+  constructor(@Inject(SOCIAL_PACKAGE) private readonly socialClient: ClientGrpc) {}
 
   onModuleInit() {
     this.participationQueryService = this.socialClient.getService<ParticipationQueryServiceClient>(
@@ -62,14 +59,15 @@ export class EventSocialFilterService implements OnModuleInit {
       return ids.length === 0 ? { kind: 'empty' } : { kind: 'ids', ids };
     }
 
-    const [excludedIds, excludedOrganizerIds] = await Promise.all([
-      this.excludedIds(request, metadata).then((ids) => this.capped(ids, 'excludedIds')),
-      request.excludeBlockedUsers === true
-        ? this.hiddenUsers
-            .hiddenUserIds(metadata)
-            .then((ids) => this.capped([...ids], 'excludedOrganizerIds'))
-        : Promise.resolve<string[]>([]),
-    ]);
+    const exclusions = await this.exclusions(request, metadata);
+    const excludedIds = this.capped(exclusions.excludedEventIds, 'excludedIds');
+    const excludedOrganizerIds = this.capped(exclusions.hiddenUserIds, 'excludedOrganizerIds');
+    if (exclusions.excludedEventIdsTruncated) {
+      this.logger.warn('ms-social cut excludedIds to its cap');
+    }
+    if (exclusions.hiddenUserIdsTruncated) {
+      this.logger.warn('ms-social cut excludedOrganizerIds to its cap');
+    }
     return excludedIds.length === 0 && excludedOrganizerIds.length === 0
       ? { kind: 'none' }
       : { kind: 'excluded', excludedIds, excludedOrganizerIds };
@@ -95,29 +93,30 @@ export class EventSocialFilterService implements OnModuleInit {
     );
   }
 
-  private async excludedIds(request: SearchEventsRequestDTO, metadata: Metadata) {
-    const sets = await Promise.all([
-      request.excludeCreatedByMe === true
-        ? fetchAllPages((pagination) =>
-            firstValueFrom(this.participationQueryService.getUserEvent({ pagination }, metadata)),
-          )
-        : [],
-      request.excludeParticipatedByMe === true
-        ? fetchAllPages((pagination) =>
-            firstValueFrom(
-              this.participationQueryService.getUserParticipateEvent({ pagination }, metadata),
-            ),
-          )
-        : [],
-      request.excludeWishedByMe === true
-        ? fetchAllPages((pagination) =>
-            firstValueFrom(
-              this.participationQueryService.getUserWishEvent({ pagination }, metadata),
-            ),
-          )
-        : [],
-    ]);
-    return [...new Set(sets.flat())];
+  /**
+   * My created, participated and wished events and the users hidden from me, in one call. An error
+   * is not swallowed: serving a feed that may show a blocked author is worse than failing. No flag,
+   * no call.
+   */
+  private async exclusions(
+    request: SearchEventsRequestDTO,
+    metadata: Metadata,
+  ): Promise<GetSearchExclusionsResponse> {
+    const flags = {
+      excludeCreatedByMe: request.excludeCreatedByMe === true,
+      excludeParticipatedByMe: request.excludeParticipatedByMe === true,
+      excludeWishedByMe: request.excludeWishedByMe === true,
+      excludeBlockedUsers: request.excludeBlockedUsers === true,
+    };
+    if (!Object.values(flags).some(Boolean)) {
+      return {
+        excludedEventIds: [],
+        hiddenUserIds: [],
+        excludedEventIdsTruncated: false,
+        hiddenUserIdsTruncated: false,
+      };
+    }
+    return firstValueFrom(this.participationQueryService.getSearchExclusions(flags, metadata));
   }
 
   /**
