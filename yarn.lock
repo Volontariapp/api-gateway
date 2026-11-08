@@ -4506,9 +4506,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@volontariapp/contracts-nest@npm:^3.4.9":
-  version: 3.4.9
-  resolution: "@volontariapp/contracts-nest@npm:3.4.9"
+"@volontariapp/contracts-nest@npm:3.4.10":
+  version: 3.4.10
+  resolution: "@volontariapp/contracts-nest@npm:3.4.10"
   dependencies:
     "@volontariapp/logger": "npm:0.4.0"
     protobufjs: "npm:^7.5.8"
@@ -4517,7 +4517,7 @@ __metadata:
     "@nestjs/core": ^11.0.0
     "@nestjs/microservices": ^11.0.0
     rxjs: ^7.0.0
-  checksum: 10c0/b4137e342d9d21810f2312cb6352ee026aca2bb64ad895ec59554ed351f6b0fb814d30702effb1ed3a1b141b5abd1850c8e535cbf0c42b4cdbd83340ecfc2f15
+  checksum: 10c0/fbe3ccd9341934707f3266625a54c812f9edbe0e9c061642ce625f6bc6cf3bffe002383e3709365b36983e9f255d3083607c114b3e6c65ad61c1b74ceaa936bc
   languageName: node
   linkType: hard
 
@@ -4531,6 +4531,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@volontariapp/contracts@npm:4.13.1":
+  version: 4.13.1
+  resolution: "@volontariapp/contracts@npm:4.13.1"
+  dependencies:
+    "@volontariapp/logger": "npm:0.4.0"
+    protobufjs: "npm:^7.5.8"
+  checksum: 10c0/7798700e141af67c4a578f9e3e5856d7f968a95d8c4d75c53c0d332e9dd422d0f2cd5ac661d187fc4e0a55e95d20d7fd7dce5a4da352a256fc8ceea4436962d5
+  languageName: node
+  linkType: hard
+
 "@volontariapp/contracts@npm:4.9.0":
   version: 4.9.0
   resolution: "@volontariapp/contracts@npm:4.9.0"
@@ -4538,16 +4548,6 @@ __metadata:
     "@volontariapp/logger": "npm:0.4.0"
     protobufjs: "npm:^7.5.8"
   checksum: 10c0/6d6b9fd54ca9ab5fd4d9d435b8954b59bd0289554b2f7336951746ce10cc8163be0f4d80a1face8d75d8ef7d2afe05b0892a42be02321277b317b9d9b23d2bea
-  languageName: node
-  linkType: hard
-
-"@volontariapp/contracts@npm:^4.13.0":
-  version: 4.13.0
-  resolution: "@volontariapp/contracts@npm:4.13.0"
-  dependencies:
-    "@volontariapp/logger": "npm:0.4.0"
-    protobufjs: "npm:^7.5.8"
-  checksum: 10c0/2834812db8d9853e475c8a8564e5d670f34af0f898b2d4ca3a28936b46dd65c34c6cc859b6089d8435285f9e5f16fa23c89f16a31b15b6d006bf7d63b42c59af
   languageName: node
   linkType: hard
 
@@ -5213,8 +5213,8 @@ __metadata:
     "@volontariapp/auth": "npm:^3.3.27"
     "@volontariapp/bridge-nest": "npm:^0.3.21"
     "@volontariapp/config": "npm:^3.3.2"
-    "@volontariapp/contracts": "npm:^4.13.0"
-    "@volontariapp/contracts-nest": "npm:^3.4.9"
+    "@volontariapp/contracts": "npm:4.13.1"
+    "@volontariapp/contracts-nest": "npm:3.4.10"
     "@volontariapp/domain-storage": "npm:^0.14.6"
     "@volontariapp/errors": "npm:^0.6.5"
     "@volontariapp/errors-nest": "npm:^0.14.0"
