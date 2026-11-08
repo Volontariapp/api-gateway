@@ -8,4 +8,5 @@ export * from './badge.response.dto.js';
 export * from './list-badges.response.dto.js';
 export * from './get-my-badge-progress.response.dto.js';
 export * from './public-user.response.dto.js';
-export * from './leaderboard.response.dto.js';
+export * from './get-leaderboard.response.dto.js';
+export * from './get-my-rank.response.dto.js';

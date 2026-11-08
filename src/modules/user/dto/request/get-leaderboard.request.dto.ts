@@ -1,43 +1,26 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsEnum, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
+import { IsIn, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
+import type { GetLeaderboardRequest, LeaderboardScopeWeb } from '@volontariapp/contracts';
+import type { GetLeaderboardQuery } from '@volontariapp/contracts-nest';
 import {
-  LeaderboardScope,
-  type GetLeaderboardQuery,
-  type GetMyRankQuery,
-} from '@volontariapp/contracts-nest';
-
-/** Periode du classement exposee en REST. */
-export enum LeaderboardScopeParam {
-  GLOBAL = 'global',
-  WEEK = 'week',
-  MONTH = 'month',
-}
-
-export const LEADERBOARD_REST_MAX_LIMIT = 100;
-export const LEADERBOARD_REST_DEFAULT_LIMIT = 20;
-
-const SCOPE_BY_PARAM: Record<LeaderboardScopeParam, LeaderboardScope> = {
-  [LeaderboardScopeParam.GLOBAL]: LeaderboardScope.LEADERBOARD_SCOPE_GLOBAL,
-  [LeaderboardScopeParam.WEEK]: LeaderboardScope.LEADERBOARD_SCOPE_WEEK,
-  [LeaderboardScopeParam.MONTH]: LeaderboardScope.LEADERBOARD_SCOPE_MONTH,
-};
-
-export function toLeaderboardScope(param?: LeaderboardScopeParam): LeaderboardScope {
-  return SCOPE_BY_PARAM[param ?? LeaderboardScopeParam.GLOBAL];
-}
+  LEADERBOARD_REST_DEFAULT_LIMIT,
+  LEADERBOARD_REST_MAX_LIMIT,
+  LEADERBOARD_SCOPES,
+  toLeaderboardScope,
+} from '../common/leaderboard-scope.js';
 
 /** GET /users/leaderboard */
-export class GetLeaderboardRequestDTO {
+export class GetLeaderboardRequestDTO implements GetLeaderboardRequest {
   @ApiPropertyOptional({
-    enum: LeaderboardScopeParam,
-    default: LeaderboardScopeParam.GLOBAL,
+    enum: LEADERBOARD_SCOPES,
+    default: 'global',
     description:
       'global: total points of all time. week: points earned since Monday 00:00 (Europe/Paris). month: points earned since the 1st at 00:00 (Europe/Paris).',
   })
   @IsOptional()
-  @IsEnum(LeaderboardScopeParam)
-  scope?: LeaderboardScopeParam;
+  @IsIn(LEADERBOARD_SCOPES)
+  scope?: LeaderboardScopeWeb;
 
   @ApiPropertyOptional({
     description:
@@ -65,17 +48,5 @@ export class GetLeaderboardRequestDTO {
       cursor: this.cursor,
       limit: this.limit ?? LEADERBOARD_REST_DEFAULT_LIMIT,
     };
-  }
-}
-
-/** GET /users/me/rank */
-export class GetMyRankRequestDTO {
-  @ApiPropertyOptional({ enum: LeaderboardScopeParam, default: LeaderboardScopeParam.GLOBAL })
-  @IsOptional()
-  @IsEnum(LeaderboardScopeParam)
-  scope?: LeaderboardScopeParam;
-
-  toQuery(): GetMyRankQuery {
-    return { scope: toLeaderboardScope(this.scope) };
   }
 }

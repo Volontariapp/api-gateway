@@ -7,7 +7,6 @@ import { LeaderboardQueryController } from '../../../../modules/user/controllers
 import {
   GetLeaderboardRequestDTO,
   GetMyRankRequestDTO,
-  LeaderboardScopeParam,
 } from '../../../../modules/user/dto/request/index.js';
 import { MockUserClientGrpc } from '../../../helpers/mocks/user-client-grpc.mock.js';
 import { PublicFileUrlFactory } from '../../../helpers/factories/public-file-url.factory.js';
@@ -54,7 +53,7 @@ describe('LeaderboardQueryController (Unit)', () => {
         .spyOn(mockUserService, 'getLeaderboard')
         .mockReturnValue(of({ entries: [], nextCursor: undefined }));
       const query = Object.assign(new GetLeaderboardRequestDTO(), {
-        scope: LeaderboardScopeParam.WEEK,
+        scope: 'week',
         cursor: 'abc',
         limit: 50,
       });
@@ -117,7 +116,7 @@ describe('LeaderboardQueryController (Unit)', () => {
         .spyOn(mockUserService, 'getMyRank')
         .mockReturnValue(of({ me: undefined, neighbors: [] }));
       const query = Object.assign(new GetMyRankRequestDTO(), {
-        scope: LeaderboardScopeParam.MONTH,
+        scope: 'month',
       });
 
       await firstValueFrom(controller.getMyRank(query, { internalMetadata: metadata }));
