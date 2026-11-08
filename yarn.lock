@@ -4506,9 +4506,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@volontariapp/contracts-nest@npm:^3.4.7":
-  version: 3.4.7
-  resolution: "@volontariapp/contracts-nest@npm:3.4.7"
+"@volontariapp/contracts-nest@npm:^3.4.8":
+  version: 3.4.8
+  resolution: "@volontariapp/contracts-nest@npm:3.4.8"
   dependencies:
     "@volontariapp/logger": "npm:0.4.0"
     protobufjs: "npm:^7.5.8"
@@ -4517,11 +4517,11 @@ __metadata:
     "@nestjs/core": ^11.0.0
     "@nestjs/microservices": ^11.0.0
     rxjs: ^7.0.0
-  checksum: 10c0/f19164f0842a6283e9ffb8d0c7c8917fc8d61b46d44d4cf95b7463512e001e4d61acdd5118e2e1e78f627c982c3a78d7a96f9735d02710e16303b64d95af7f3d
+  checksum: 10c0/84d96c71cc0f056ff7723fb4a464fa5a84dd7d0e664f3f227ecee6665127b0481e56e99fbc44891ee4204ea5def78e3968b5572660c96901bb37626e48072b8a
   languageName: node
   linkType: hard
 
-"@volontariapp/contracts@npm:4.10.0, @volontariapp/contracts@npm:^4.10.0":
+"@volontariapp/contracts@npm:4.10.0":
   version: 4.10.0
   resolution: "@volontariapp/contracts@npm:4.10.0"
   dependencies:
@@ -4538,6 +4538,16 @@ __metadata:
     "@volontariapp/logger": "npm:0.4.0"
     protobufjs: "npm:^7.5.8"
   checksum: 10c0/6d6b9fd54ca9ab5fd4d9d435b8954b59bd0289554b2f7336951746ce10cc8163be0f4d80a1face8d75d8ef7d2afe05b0892a42be02321277b317b9d9b23d2bea
+  languageName: node
+  linkType: hard
+
+"@volontariapp/contracts@npm:^4.12.0":
+  version: 4.12.0
+  resolution: "@volontariapp/contracts@npm:4.12.0"
+  dependencies:
+    "@volontariapp/logger": "npm:0.4.0"
+    protobufjs: "npm:^7.5.8"
+  checksum: 10c0/b116e3d5c8892a4e5acb7ebfa1ac0f633a83c39a2204500788562cb492af170d5645efb0666fca0617f662a2b5e527b36bbad354aa49640bec86cafdf46678f1
   languageName: node
   linkType: hard
 
@@ -5203,8 +5213,8 @@ __metadata:
     "@volontariapp/auth": "npm:^3.3.27"
     "@volontariapp/bridge-nest": "npm:^0.3.21"
     "@volontariapp/config": "npm:^3.3.2"
-    "@volontariapp/contracts": "npm:^4.10.0"
-    "@volontariapp/contracts-nest": "npm:^3.4.7"
+    "@volontariapp/contracts": "npm:^4.12.0"
+    "@volontariapp/contracts-nest": "npm:^3.4.8"
     "@volontariapp/domain-storage": "npm:^0.14.6"
     "@volontariapp/errors": "npm:^0.6.5"
     "@volontariapp/errors-nest": "npm:^0.14.0"

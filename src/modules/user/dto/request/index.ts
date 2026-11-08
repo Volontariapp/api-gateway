@@ -13,3 +13,5 @@ export * from './remove-badge-from-user.request.dto.js';
 export * from './delete-badge.request.dto.js';
 export * from './get-badge.request.dto.js';
 export * from './get-badge-by-slug.request.dto.js';
+export * from './get-leaderboard.request.dto.js';
+export * from './get-my-rank.request.dto.js';
