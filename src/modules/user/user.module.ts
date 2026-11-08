@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { UserAuthController } from './controllers/public/user-auth.controller.js';
 import { UserQueryController } from './controllers/queries/user/user.query-controller.js';
+import { LeaderboardQueryController } from './controllers/queries/user/leaderboard.query-controller.js';
 import { UserAdminQueryController } from './controllers/queries/user/user-admin.query-controller.js';
 import { UserCommandController } from './controllers/commands/user/user.command-controller.js';
 import { UserAdminCommandController } from './controllers/commands/user/user-admin.command-controller.js';
@@ -12,6 +13,7 @@ import { BadgeAdminCommandController } from './controllers/commands/badge/badge-
   controllers: [
     UserAuthController,
     UserQueryController,
+    LeaderboardQueryController,
     UserAdminQueryController,
     UserCommandController,
     UserAdminCommandController,
