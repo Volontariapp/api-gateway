@@ -9,6 +9,7 @@ import { Inject } from '@nestjs/common';
 import type { Metadata } from '@grpc/grpc-js';
 import { EVENT_PACKAGE } from '../../../../../grpc/grpc-packages.js';
 import { GatewayController } from '../../../../../common/decorators/gateway-controller.decorator.js';
+import { withReadDeadline } from '../../../../../common/grpc/read-deadline.js';
 import { GetEventRequestDTO, SearchEventsRequestDTO } from '../../../dto/request/index.js';
 import {
   GetUserEventsRequestDTO,
@@ -74,7 +75,9 @@ export class EventQueryController extends BaseEventGrpcController {
       query.excludedOrganizerIds = scope.excludedOrganizerIds;
     }
 
-    const result = await firstValueFrom(this.queryService.searchEvents(query, metadata));
+    const result = await firstValueFrom(
+      withReadDeadline((options) => this.queryService.searchEvents(query, metadata, options)),
+    );
     const dto = SearchEventsResponseDTO.fromResponse(
       result,
       this.publicFileUrls,

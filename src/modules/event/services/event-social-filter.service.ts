@@ -12,6 +12,7 @@ import type { GetSearchExclusionsResponse } from '@volontariapp/contracts';
 import { SOCIAL_PACKAGE } from '../../../grpc/grpc-packages.js';
 import { WithMetadata } from '../../../common/types/grpc.types.js';
 import { fetchAllPages } from '../../../common/pagination/index.js';
+import { withReadDeadline } from '../../../common/grpc/read-deadline.js';
 import type { SearchEventsRequestDTO } from '../dto/request/index.js';
 import {
   SearchExclusionsCache,
@@ -100,7 +101,13 @@ export class EventSocialFilterService implements OnModuleInit {
     };
     return fetchAllPages((pagination) =>
       firstValueFrom(
-        this.participationQueryService.getRecommendedEventIds({ ...filters, pagination }, metadata),
+        withReadDeadline((options) =>
+          this.participationQueryService.getRecommendedEventIds(
+            { ...filters, pagination },
+            metadata,
+            options,
+          ),
+        ),
       ),
     );
   }
@@ -133,7 +140,9 @@ export class EventSocialFilterService implements OnModuleInit {
     const cached = this.exclusionsCache.get(userId, flags);
     if (cached !== undefined) return cached;
     const response = await firstValueFrom(
-      this.participationQueryService.getSearchExclusions(flags, metadata),
+      withReadDeadline((options) =>
+        this.participationQueryService.getSearchExclusions(flags, metadata, options),
+      ),
     );
     this.exclusionsCache.set(userId, flags, response);
     return response;

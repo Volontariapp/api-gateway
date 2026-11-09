@@ -16,6 +16,7 @@ import { EventDTO } from '../../../../modules/event/dto/common/event.dto.js';
 import { MockServicesClientGrpc } from '../../../helpers/mocks/services-client-grpc.mock.js';
 import { PublicFileUrlFactory } from '../../../helpers/factories/public-file-url.factory.js';
 import { EventFactory } from '../../../helpers/factories/event.factory.js';
+import { READ_DEADLINE_OPTIONS } from '../../../helpers/constants/grpc-read-deadline.constants.js';
 
 describe('EventParticipantsService (Unit)', () => {
   let participationQuery: jest.Mocked<WithMetadata<ParticipationQueryServiceClient>>;
@@ -54,7 +55,7 @@ describe('EventParticipantsService (Unit)', () => {
 
     expect(event.currentParticipants).toBe(5);
     expect(spy).toHaveBeenCalledTimes(1);
-    expect(spy).toHaveBeenCalledWith({ eventIds: ['event-0'] }, metadata);
+    expect(spy).toHaveBeenCalledWith({ eventIds: ['event-0'] }, metadata, READ_DEADLINE_OPTIONS);
   });
 
   it('should split 250 events into batches of 100, 100 and 50 ids', async () => {
@@ -82,7 +83,7 @@ describe('EventParticipantsService (Unit)', () => {
     await service.enrichAll(events, metadata);
 
     expect(spy).toHaveBeenCalledTimes(1);
-    expect(spy).toHaveBeenCalledWith({ eventIds: ['event-0'] }, metadata);
+    expect(spy).toHaveBeenCalledWith({ eventIds: ['event-0'] }, metadata, READ_DEADLINE_OPTIONS);
     expect(events.map((event) => event.currentParticipants)).toEqual([2, 2]);
   });
 
@@ -149,7 +150,11 @@ describe('EventParticipantsService (Unit)', () => {
       await service.enrichAll(events, metadata);
 
       expect(spy).toHaveBeenCalledTimes(2);
-      expect(spy).toHaveBeenLastCalledWith({ eventIds: ['event-2', 'event-3'] }, metadata);
+      expect(spy).toHaveBeenLastCalledWith(
+        { eventIds: ['event-2', 'event-3'] },
+        metadata,
+        READ_DEADLINE_OPTIONS,
+      );
       expect(events.every((event) => event.currentParticipants === 5)).toBe(true);
     });
 

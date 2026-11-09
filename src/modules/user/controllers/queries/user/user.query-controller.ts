@@ -13,6 +13,7 @@ import type { Metadata } from '@grpc/grpc-js';
 import { CurrentUser } from '@volontariapp/auth';
 import type { AuthUser } from '@volontariapp/auth';
 import { GatewayController } from '../../../../../common/decorators/gateway-controller.decorator.js';
+import { withReadDeadline } from '../../../../../common/grpc/read-deadline.js';
 import { BaseUserGrpcController } from '../../base-user-grpc.controller.js';
 import { GetUserRequestDTO } from '../../../dto/request/index.js';
 import {
@@ -39,9 +40,9 @@ export class UserQueryController extends BaseUserGrpcController {
     const dto = new GetUserRequestDTO();
     dto.userId = user.id;
     const metadata = req['internalMetadata'] as Metadata;
-    return this.userService
-      .getUser(dto.toQuery(), metadata)
-      .pipe(map((res) => UserResponseDTO.fromResponse(res, this.publicFileUrls)));
+    return withReadDeadline((options) =>
+      this.userService.getUser(dto.toQuery(), metadata, options),
+    ).pipe(map((res) => UserResponseDTO.fromResponse(res, this.publicFileUrls)));
   }
 
   @Get(':userId/public')

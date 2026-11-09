@@ -18,6 +18,7 @@ import { MockServicesClientGrpc } from '../../../helpers/mocks/services-client-g
 import { PublicFileUrlFactory } from '../../../helpers/factories/public-file-url.factory.js';
 import { IdsPageFactory } from '../../../helpers/factories/ids-page.factory.js';
 import { createAuthUserMock } from '../../../helpers/factories/auth-user.factory.js';
+import { READ_DEADLINE_OPTIONS } from '../../../helpers/constants/grpc-read-deadline.constants.js';
 
 describe('EventQueryController.listEvents (Unit)', () => {
   let eventQuery: jest.Mocked<WithMetadata<EventQueryServiceClient>>;
@@ -63,6 +64,7 @@ describe('EventQueryController.listEvents (Unit)', () => {
     expect(searchSpy).toHaveBeenCalledWith(
       expect.objectContaining({ ids, excludedIds: [] }),
       metadata,
+      READ_DEADLINE_OPTIONS,
     );
   });
 
@@ -79,6 +81,7 @@ describe('EventQueryController.listEvents (Unit)', () => {
     expect(searchSpy).toHaveBeenCalledWith(
       expect.objectContaining({ ids: [], excludedIds, excludedOrganizerIds }),
       metadata,
+      READ_DEADLINE_OPTIONS,
     );
   });
 
@@ -91,6 +94,7 @@ describe('EventQueryController.listEvents (Unit)', () => {
     expect(searchSpy).toHaveBeenCalledWith(
       expect.objectContaining({ ids: [], excludedIds: [], excludedOrganizerIds: [] }),
       metadata,
+      READ_DEADLINE_OPTIONS,
     );
   });
 
