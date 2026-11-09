@@ -33,13 +33,13 @@ import { EVENT_PACKAGE, POST_PACKAGE } from '../../../../../grpc/grpc-packages.j
 import {
   EventQueryServiceClient,
   EVENT_QUERY_SERVICE_NAME,
-  GetEventsByIdsResponse,
   GetEventResponse,
   ListPostsResponse,
   GetPostResponse,
 } from '@volontariapp/contracts-nest';
 import { WithMetadata } from '../../../../../common/types/grpc.types.js';
 import { PublicFileUrlService } from '../../../../storage/public-file-url.service.js';
+import { EventLookupService } from '../../../../event/services/event-lookup.service.js';
 
 @ApiTags('Posts')
 @ApiExtraModels(PostResponseDTO, ListPostsResponseDTO, GetPostResponseDTO)
@@ -58,6 +58,7 @@ export class PostQueryController extends BasePostGrpcController {
     @Inject(POST_PACKAGE) client: ClientGrpc,
     @Inject(EVENT_PACKAGE) private readonly eventClient: ClientGrpc,
     publicFileUrls: PublicFileUrlService,
+    private readonly eventLookup: EventLookupService,
   ) {
     super(client, publicFileUrls);
   }
@@ -84,23 +85,11 @@ export class PostQueryController extends BasePostGrpcController {
       this.postService.listPosts(request.toQuery(), metadata),
     );
 
-    const eventIds = [
-      ...new Set(res.posts.map((p) => p.eventId).filter((id): id is string => !!id)),
-    ];
-    const eventsMap = new Map<string, EventDTO>();
-
-    if (eventIds.length > 0) {
-      try {
-        const eventsRes = await firstValueFrom<GetEventsByIdsResponse>(
-          this.eventQueryService.getEventsByIds({ ids: eventIds }, metadata),
-        );
-        for (const ev of eventsRes.events) {
-          eventsMap.set(ev.id, EventDTO.fromResponse(ev, this.publicFileUrls));
-        }
-      } catch (err) {
-        this.logger.error('Failed to fetch events for posts', err as Error);
-      }
-    }
+    const eventIds = res.posts.map((p) => p.eventId).filter((id): id is string => !!id);
+    const eventsMap =
+      eventIds.length > 0
+        ? await this.eventLookup.getByIds(eventIds, metadata)
+        : new Map<string, EventDTO>();
 
     return ListPostsResponseDTO.fromResponse(res, this.publicFileUrls, eventsMap);
   }
