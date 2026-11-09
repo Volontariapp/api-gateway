@@ -24,6 +24,7 @@ import { UserQueryController } from '../../../modules/user/controllers/queries/u
 import { RelationshipQueryController } from '../../../modules/social/controllers/queries/relationship/relationship.query-controller.js';
 import { RelationshipCommandController } from '../../../modules/social/controllers/commands/relationship/relationship.command-controller.js';
 import type { EventLookupService } from '../../../modules/event/services/event-lookup.service.js';
+import { SearchExclusionsCache } from '../../../modules/event/services/search-exclusions-cache.service.js';
 import { MockServicesClientGrpc } from '../../helpers/mocks/services-client-grpc.mock.js';
 import { setupVolontariappLoggerMock } from '../../helpers/mocks/volontariapp-logger.mock.js';
 import { PublicFileUrlFactory } from '../../helpers/factories/public-file-url.factory.js';
@@ -120,7 +121,7 @@ describe('gRPC read deadlines on the hot routes (Unit)', () => {
   });
 
   it('a command (follow) gets no deadline: an interrupted write keeps running server side', async () => {
-    const controller = new RelationshipCommandController(clients);
+    const controller = new RelationshipCommandController(clients, new SearchExclusionsCache());
     controller.onModuleInit();
     const spy = jest.spyOn(relationshipCommand, 'postFollowUser').mockReturnValue(of({}));
 
