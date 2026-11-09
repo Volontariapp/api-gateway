@@ -35,7 +35,7 @@ export class UserQueryController extends BaseUserGrpcController {
   @CustomApiError(() => USER_NOT_FOUND(''))
   @Get('me')
   getMe(@CurrentUser() user: AuthUser, @Req() req: Record<string, unknown>) {
-    this.logger.log(`Fetching current user profile: ${user.id}`);
+    this.logger.debug(`Fetching current user profile: ${user.id}`);
     const dto = new GetUserRequestDTO();
     dto.userId = user.id;
     const metadata = req['internalMetadata'] as Metadata;
@@ -52,7 +52,7 @@ export class UserQueryController extends BaseUserGrpcController {
   @ApiBadRequestResponse({ description: 'Invalid user ID' })
   @CustomApiError(() => DATABASE_ERROR('fetching user', 'details'))
   getPublicUser(@Param('userId') userId: string, @Req() req: Record<string, unknown>) {
-    this.logger.log(`Fetching public user profile: ${userId}`);
+    this.logger.debug(`Fetching public user profile: ${userId}`);
     const metadata = req['internalMetadata'] as Metadata;
     return this.userService
       .getPublicUser({ userId }, metadata)

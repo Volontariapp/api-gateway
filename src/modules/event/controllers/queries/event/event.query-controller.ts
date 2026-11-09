@@ -54,7 +54,7 @@ export class EventQueryController extends BaseEventGrpcController {
   @CustomApiError(() => DATABASE_ERROR('listing events', 'details'))
   @Get()
   async listEvents(@Query() request: SearchEventsRequestDTO, @Req() req: Record<string, unknown>) {
-    this.logger.log('Listing events');
+    this.logger.debug('Listing events');
     const metadata = req['internalMetadata'] as Metadata;
     const scope = await this.socialFilter.resolve(request, metadata);
     if (scope.kind === 'empty') {
@@ -93,7 +93,7 @@ export class EventQueryController extends BaseEventGrpcController {
   @CustomApiError(() => DATABASE_ERROR('fetching event', 'details'))
   @Get(':id')
   async getEvent(@Param('id') id: string, @Req() req: Record<string, unknown>) {
-    this.logger.log(`Fetching event with id: ${id}`);
+    this.logger.debug(`Fetching event with id: ${id}`);
     const request = new GetEventRequestDTO();
     request.id = id;
     const metadata = req['internalMetadata'] as Metadata;
@@ -113,7 +113,7 @@ export class EventQueryController extends BaseEventGrpcController {
   @CustomApiError(() => DATABASE_ERROR('listing requirements', 'details'))
   @Get(':id/requirements')
   listRequirements(@Param('id') id: string, @Req() req: Record<string, unknown>) {
-    this.logger.log(`Listing requirements for event: ${id}`);
+    this.logger.debug(`Listing requirements for event: ${id}`);
     const metadata = req['internalMetadata'] as Metadata;
     return this.queryService.listRequirements({ eventId: id }, metadata);
   }
