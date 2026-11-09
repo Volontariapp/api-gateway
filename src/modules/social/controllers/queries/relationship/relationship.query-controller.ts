@@ -9,6 +9,7 @@ import { BaseRelationshipGrpcController } from '../../base-grpc.controller.js';
 import { SOCIAL_PACKAGE, USER_PACKAGE } from '../../../../../grpc/grpc-packages.js';
 import { USER_SERVICE_NAME, UserServiceClient } from '@volontariapp/contracts-nest';
 import type { WithMetadata } from '../../../../../common/types/grpc.types.js';
+import { withReadDeadline } from '../../../../../common/grpc/read-deadline.js';
 import { ListUsersResponseDTO } from '../../../../user/dto/response/index.js';
 import { PublicFileUrlService } from '../../../../storage/public-file-url.service.js';
 import {
@@ -91,9 +92,9 @@ export class RelationshipQueryController extends BaseRelationshipGrpcController 
   @CustomApiError(() => DATABASE_ERROR('fetching is following status', 'details'))
   getIsFollowing(@Param('userId') userId: string, @Req() req: Record<string, unknown>) {
     const metadata = req['internalMetadata'] as Metadata;
-    return this.queryService
-      .getIsFollowing({ userId }, metadata)
-      .pipe(map((res) => IsFollowingResponseDTO.fromResponse(res)));
+    return withReadDeadline((options) =>
+      this.queryService.getIsFollowing({ userId }, metadata, options),
+    ).pipe(map((res) => IsFollowingResponseDTO.fromResponse(res)));
   }
 
   @Get('users/:userId/follows')

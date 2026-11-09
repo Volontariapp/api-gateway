@@ -9,6 +9,7 @@ import {
 } from '@volontariapp/contracts-nest';
 import { SOCIAL_PACKAGE } from '../../../grpc/grpc-packages.js';
 import { WithMetadata } from '../../../common/types/grpc.types.js';
+import { withReadDeadline } from '../../../common/grpc/read-deadline.js';
 import { TtlLruCache } from '../../../common/cache/ttl-lru-cache.js';
 import { CacheStatsReporter } from '../../../common/cache/cache-stats.reporter.js';
 import type { EventDTO } from '../dto/common/event.dto.js';
@@ -108,7 +109,13 @@ export class EventParticipantsService implements OnModuleInit {
       chunks.map(async (eventIds) => {
         try {
           const response = await firstValueFrom(
-            this.participationQueryService.countEventParticipants({ eventIds }, metadata),
+            withReadDeadline((options) =>
+              this.participationQueryService.countEventParticipants(
+                { eventIds },
+                metadata,
+                options,
+              ),
+            ),
           );
           for (const { eventId, participantCount } of response.counts) {
             counts.set(eventId, participantCount);

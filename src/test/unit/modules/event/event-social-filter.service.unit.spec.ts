@@ -20,6 +20,7 @@ import {
 import { MockServicesClientGrpc } from '../../../helpers/mocks/services-client-grpc.mock.js';
 import { SearchExclusionsFactory } from '../../../helpers/factories/search-exclusions.factory.js';
 import { IdsPageFactory } from '../../../helpers/factories/ids-page.factory.js';
+import { READ_DEADLINE_OPTIONS } from '../../../helpers/constants/grpc-read-deadline.constants.js';
 
 describe('EventSocialFilterService (Unit)', () => {
   let participationQuery: jest.Mocked<WithMetadata<ParticipationQueryServiceClient>>;
@@ -80,6 +81,7 @@ describe('EventSocialFilterService (Unit)', () => {
         pagination: { page: 3, limit: 100 },
       }),
       metadata,
+      READ_DEADLINE_OPTIONS,
     );
     expect(scope).toEqual({ kind: 'ids', ids: IdsPageFactory.createIds(250) });
   });
@@ -154,6 +156,7 @@ describe('EventSocialFilterService (Unit)', () => {
           excludeBlockedUsers: true,
         },
         metadata,
+        READ_DEADLINE_OPTIONS,
       );
       expect(recommendedSpy).not.toHaveBeenCalled();
       expect(createdSpy).not.toHaveBeenCalled();
@@ -181,6 +184,7 @@ describe('EventSocialFilterService (Unit)', () => {
           excludeBlockedUsers: false,
         },
         metadata,
+        READ_DEADLINE_OPTIONS,
       );
     });
 

@@ -38,6 +38,7 @@ import {
   GetPostResponse,
 } from '@volontariapp/contracts-nest';
 import { WithMetadata } from '../../../../../common/types/grpc.types.js';
+import { withReadDeadline } from '../../../../../common/grpc/read-deadline.js';
 import { PublicFileUrlService } from '../../../../storage/public-file-url.service.js';
 import { EventLookupService } from '../../../../event/services/event-lookup.service.js';
 
@@ -82,7 +83,9 @@ export class PostQueryController extends BasePostGrpcController {
     const metadata = req['internalMetadata'] as Metadata;
 
     const res = await firstValueFrom<ListPostsResponse>(
-      this.postService.listPosts(request.toQuery(), metadata),
+      withReadDeadline((options) =>
+        this.postService.listPosts(request.toQuery(), metadata, options),
+      ),
     );
 
     const eventIds = res.posts.map((p) => p.eventId).filter((id): id is string => !!id);
