@@ -77,7 +77,7 @@ export class PostQueryController extends BasePostGrpcController {
     @Query() request: ListPostsRequestDTO,
     @Req() req: Record<string, unknown>,
   ): Promise<ListPostsResponseDTO> {
-    this.logger.log(`Listing posts with request: ${JSON.stringify(request)}`);
+    this.logger.debug(`Listing posts with request: ${JSON.stringify(request)}`);
 
     const metadata = req['internalMetadata'] as Metadata;
 
@@ -103,7 +103,7 @@ export class PostQueryController extends BasePostGrpcController {
     @Param('id') id: string,
     @Req() req: Record<string, unknown>,
   ): Promise<GetPostResponseDTO> {
-    this.logger.log(`Fetching post with id: ${id}`);
+    this.logger.debug(`Fetching post with id: ${id}`);
     const request = new GetPostRequestDTO();
     request.id = id;
     const metadata = req['internalMetadata'] as Metadata;
