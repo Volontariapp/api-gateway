@@ -1,5 +1,5 @@
 import { map } from 'rxjs';
-import { Controller, Delete, Param, Post, Req } from '@nestjs/common';
+import { Controller, Inject, Delete, Param, Post, Req } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import {
   CustomApiError,
@@ -12,15 +12,25 @@ import {
   DATABASE_ERROR,
 } from '@volontariapp/errors-nest';
 import type { Metadata } from '@grpc/grpc-js';
+import type { ClientGrpc } from '@nestjs/microservices';
 import { Roles } from '@volontariapp/auth';
 import { UserRoles } from '@volontariapp/shared';
 import { GatewayController } from '../../../../../common/decorators/gateway-controller.decorator.js';
+import { SOCIAL_PACKAGE } from '../../../../../grpc/grpc-packages.js';
+import { SearchExclusionsCache } from '../../../../event/services/search-exclusions-cache.service.js';
 import { BaseParticipationGrpcController } from '../../base-grpc.controller.js';
 import { ActionSuccessResponseDTO } from '../../../dto/response/index.js';
 
 @GatewayController('Social - Participation - Admin', { admin: true })
 @Controller('social')
 export class ParticipationAdminCommandController extends BaseParticipationGrpcController {
+  constructor(
+    @Inject(SOCIAL_PACKAGE) client: ClientGrpc,
+    private readonly exclusionsCache: SearchExclusionsCache,
+  ) {
+    super(client);
+  }
+
   @Post('events/:eventId')
   @Roles(UserRoles.ADMIN)
   @ApiOperation({ summary: 'Create a social event node (Admin)' })
@@ -63,9 +73,10 @@ export class ParticipationAdminCommandController extends BaseParticipationGrpcCo
     @Req() req: Record<string, unknown>,
   ) {
     const metadata = req['internalMetadata'] as Metadata;
-    return this.commandService
-      .postUserEvent({ userId, eventId }, metadata)
-      .pipe(map(() => ({ success: true, message: 'Event ownership linked' })));
+    return this.commandService.postUserEvent({ userId, eventId }, metadata).pipe(
+      this.exclusionsCache.invalidateAfter(userId),
+      map(() => ({ success: true, message: 'Event ownership linked' })),
+    );
   }
 
   @Delete('users/:userId/events/:eventId/own')
@@ -82,9 +93,10 @@ export class ParticipationAdminCommandController extends BaseParticipationGrpcCo
     @Req() req: Record<string, unknown>,
   ) {
     const metadata = req['internalMetadata'] as Metadata;
-    return this.commandService
-      .deleteUserEvent({ userId, eventId }, metadata)
-      .pipe(map(() => ({ success: true, message: 'Event ownership unlinked' })));
+    return this.commandService.deleteUserEvent({ userId, eventId }, metadata).pipe(
+      this.exclusionsCache.invalidateAfter(userId),
+      map(() => ({ success: true, message: 'Event ownership unlinked' })),
+    );
   }
 
   @Post('users/:userId/events/:eventId/participate')
@@ -102,9 +114,10 @@ export class ParticipationAdminCommandController extends BaseParticipationGrpcCo
     @Req() req: Record<string, unknown>,
   ) {
     const metadata = req['internalMetadata'] as Metadata;
-    return this.commandService
-      .adminPostUserParticipateEvent({ userId, eventId }, metadata)
-      .pipe(map(() => ({ success: true, message: 'Participation linked' })));
+    return this.commandService.adminPostUserParticipateEvent({ userId, eventId }, metadata).pipe(
+      this.exclusionsCache.invalidateAfter(userId),
+      map(() => ({ success: true, message: 'Participation linked' })),
+    );
   }
 
   @Delete('users/:userId/events/:eventId/participate')
@@ -122,9 +135,10 @@ export class ParticipationAdminCommandController extends BaseParticipationGrpcCo
     @Req() req: Record<string, unknown>,
   ) {
     const metadata = req['internalMetadata'] as Metadata;
-    return this.commandService
-      .adminDeleteUserParticipateEvent({ userId, eventId }, metadata)
-      .pipe(map(() => ({ success: true, message: 'Participation unlinked' })));
+    return this.commandService.adminDeleteUserParticipateEvent({ userId, eventId }, metadata).pipe(
+      this.exclusionsCache.invalidateAfter(userId),
+      map(() => ({ success: true, message: 'Participation unlinked' })),
+    );
   }
 
   @Post('users/:userId/events/:eventId/wish')
@@ -142,9 +156,10 @@ export class ParticipationAdminCommandController extends BaseParticipationGrpcCo
     @Req() req: Record<string, unknown>,
   ) {
     const metadata = req['internalMetadata'] as Metadata;
-    return this.commandService
-      .adminPostUserWishEvent({ userId, eventId }, metadata)
-      .pipe(map(() => ({ success: true, message: 'Event added to wishes' })));
+    return this.commandService.adminPostUserWishEvent({ userId, eventId }, metadata).pipe(
+      this.exclusionsCache.invalidateAfter(userId),
+      map(() => ({ success: true, message: 'Event added to wishes' })),
+    );
   }
 
   @Delete('users/:userId/events/:eventId/wish')
@@ -162,8 +177,9 @@ export class ParticipationAdminCommandController extends BaseParticipationGrpcCo
     @Req() req: Record<string, unknown>,
   ) {
     const metadata = req['internalMetadata'] as Metadata;
-    return this.commandService
-      .adminDeleteUserWishEvent({ userId, eventId }, metadata)
-      .pipe(map(() => ({ success: true, message: 'Event removed from wishes' })));
+    return this.commandService.adminDeleteUserWishEvent({ userId, eventId }, metadata).pipe(
+      this.exclusionsCache.invalidateAfter(userId),
+      map(() => ({ success: true, message: 'Event removed from wishes' })),
+    );
   }
 }

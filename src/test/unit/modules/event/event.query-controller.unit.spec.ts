@@ -17,6 +17,7 @@ import { SearchEventsRequestDTO } from '../../../../modules/event/dto/request/in
 import { MockServicesClientGrpc } from '../../../helpers/mocks/services-client-grpc.mock.js';
 import { PublicFileUrlFactory } from '../../../helpers/factories/public-file-url.factory.js';
 import { IdsPageFactory } from '../../../helpers/factories/ids-page.factory.js';
+import { createAuthUserMock } from '../../../helpers/factories/auth-user.factory.js';
 
 describe('EventQueryController.listEvents (Unit)', () => {
   let eventQuery: jest.Mocked<WithMetadata<EventQueryServiceClient>>;
@@ -24,6 +25,7 @@ describe('EventQueryController.listEvents (Unit)', () => {
   let controller: EventQueryController;
   const metadata = new Metadata();
   const req = { internalMetadata: metadata };
+  const user = createAuthUserMock({ id: 'user-reader' });
   const emptySearch = { events: [], totalCount: 0, pagination: undefined };
 
   beforeEach(() => {
@@ -52,11 +54,12 @@ describe('EventQueryController.listEvents (Unit)', () => {
 
   it('should restrict the search to the resolved ids', async () => {
     const ids = IdsPageFactory.createIds(3);
-    jest.spyOn(socialFilter, 'resolve').mockResolvedValue({ kind: 'ids', ids });
+    const resolveSpy = jest.spyOn(socialFilter, 'resolve').mockResolvedValue({ kind: 'ids', ids });
     const searchSpy = jest.spyOn(eventQuery, 'searchEvents').mockReturnValue(of(emptySearch));
 
-    await controller.listEvents(new SearchEventsRequestDTO(), req);
+    await controller.listEvents(new SearchEventsRequestDTO(), user, req);
 
+    expect(resolveSpy).toHaveBeenCalledWith(expect.any(SearchEventsRequestDTO), user.id, metadata);
     expect(searchSpy).toHaveBeenCalledWith(
       expect.objectContaining({ ids, excludedIds: [] }),
       metadata,
@@ -71,7 +74,7 @@ describe('EventQueryController.listEvents (Unit)', () => {
       .mockResolvedValue({ kind: 'excluded', excludedIds, excludedOrganizerIds });
     const searchSpy = jest.spyOn(eventQuery, 'searchEvents').mockReturnValue(of(emptySearch));
 
-    await controller.listEvents(new SearchEventsRequestDTO(), req);
+    await controller.listEvents(new SearchEventsRequestDTO(), user, req);
 
     expect(searchSpy).toHaveBeenCalledWith(
       expect.objectContaining({ ids: [], excludedIds, excludedOrganizerIds }),
@@ -83,7 +86,7 @@ describe('EventQueryController.listEvents (Unit)', () => {
     jest.spyOn(socialFilter, 'resolve').mockResolvedValue({ kind: 'none' });
     const searchSpy = jest.spyOn(eventQuery, 'searchEvents').mockReturnValue(of(emptySearch));
 
-    await controller.listEvents(new SearchEventsRequestDTO(), req);
+    await controller.listEvents(new SearchEventsRequestDTO(), user, req);
 
     expect(searchSpy).toHaveBeenCalledWith(
       expect.objectContaining({ ids: [], excludedIds: [], excludedOrganizerIds: [] }),
@@ -95,7 +98,7 @@ describe('EventQueryController.listEvents (Unit)', () => {
     jest.spyOn(socialFilter, 'resolve').mockResolvedValue({ kind: 'empty' });
     const searchSpy = jest.spyOn(eventQuery, 'searchEvents');
 
-    const result = await controller.listEvents(new SearchEventsRequestDTO(), req);
+    const result = await controller.listEvents(new SearchEventsRequestDTO(), user, req);
 
     expect(result.events).toEqual([]);
     expect(searchSpy).not.toHaveBeenCalled();

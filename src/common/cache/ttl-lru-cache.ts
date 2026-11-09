@@ -62,6 +62,11 @@ export class TtlLruCache<V> implements CacheStatsSource {
     }
   }
 
+  /** Forgets a key, for a value known to be stale. Not counted as a read nor as an eviction. */
+  delete(key: string): void {
+    this.entries.delete(key);
+  }
+
   stats(): CacheStats {
     return {
       name: this.name,

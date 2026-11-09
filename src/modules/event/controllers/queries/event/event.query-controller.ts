@@ -1,6 +1,7 @@
 import { Controller, Get, Param, Query, Req } from '@nestjs/common';
 import { firstValueFrom } from 'rxjs';
 import { Logger } from '@volontariapp/logger';
+import { CurrentUser, type AuthUser } from '@volontariapp/auth';
 import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { CustomApiError, DATABASE_ERROR, EVENT_NOT_FOUND } from '@volontariapp/errors-nest';
 import type { ClientGrpc } from '@nestjs/microservices';
@@ -53,10 +54,14 @@ export class EventQueryController extends BaseEventGrpcController {
   })
   @CustomApiError(() => DATABASE_ERROR('listing events', 'details'))
   @Get()
-  async listEvents(@Query() request: SearchEventsRequestDTO, @Req() req: Record<string, unknown>) {
+  async listEvents(
+    @Query() request: SearchEventsRequestDTO,
+    @CurrentUser() user: AuthUser,
+    @Req() req: Record<string, unknown>,
+  ) {
     this.logger.debug('Listing events');
     const metadata = req['internalMetadata'] as Metadata;
-    const scope = await this.socialFilter.resolve(request, metadata);
+    const scope = await this.socialFilter.resolve(request, user.id, metadata);
     if (scope.kind === 'empty') {
       return SearchEventsResponseDTO.empty(request.page, request.limit);
     }

@@ -7,6 +7,7 @@ import { EventParticipantsService } from './services/event-participants.service.
 import { EventSocialFilterService } from './services/event-social-filter.service.js';
 import { HiddenUsersService } from './services/hidden-users.service.js';
 import { EventLookupService } from './services/event-lookup.service.js';
+import { SearchExclusionsCache } from './services/search-exclusions-cache.service.js';
 
 import { CacheStatsModule } from '../../common/cache/cache-stats.module.js';
 
@@ -23,7 +24,13 @@ import { CacheStatsModule } from '../../common/cache/cache-stats.module.js';
     EventSocialFilterService,
     HiddenUsersService,
     EventLookupService,
+    SearchExclusionsCache,
   ],
-  exports: [EventParticipantsService, HiddenUsersService, EventLookupService],
+  exports: [
+    EventParticipantsService,
+    HiddenUsersService,
+    EventLookupService,
+    SearchExclusionsCache,
+  ],
 })
 export class EventModule {}

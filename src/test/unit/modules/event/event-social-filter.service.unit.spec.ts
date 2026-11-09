@@ -13,12 +13,19 @@ import {
   MAX_SEARCH_IDS,
 } from '../../../../modules/event/services/event-social-filter.service.js';
 import { SearchEventsRequestDTO } from '../../../../modules/event/dto/request/index.js';
+import {
+  SEARCH_EXCLUSIONS_TTL_MS,
+  SearchExclusionsCache,
+} from '../../../../modules/event/services/search-exclusions-cache.service.js';
 import { MockServicesClientGrpc } from '../../../helpers/mocks/services-client-grpc.mock.js';
+import { SearchExclusionsFactory } from '../../../helpers/factories/search-exclusions.factory.js';
 import { IdsPageFactory } from '../../../helpers/factories/ids-page.factory.js';
 
 describe('EventSocialFilterService (Unit)', () => {
   let participationQuery: jest.Mocked<WithMetadata<ParticipationQueryServiceClient>>;
   let service: EventSocialFilterService;
+  let exclusionsCache: SearchExclusionsCache;
+  const userId = 'user-1';
   const metadata = new Metadata();
   const searchWith = (filters: Partial<SearchEventsRequestDTO>) =>
     Object.assign(new SearchEventsRequestDTO(), filters);
@@ -29,8 +36,10 @@ describe('EventSocialFilterService (Unit)', () => {
 
   beforeEach(() => {
     participationQuery = createMock<WithMetadata<ParticipationQueryServiceClient>>();
+    exclusionsCache = new SearchExclusionsCache();
     service = new EventSocialFilterService(
       new MockServicesClientGrpc({ [PARTICIPATION_QUERY_SERVICE_NAME]: participationQuery }),
+      exclusionsCache,
     );
     service.onModuleInit();
   });
@@ -44,7 +53,9 @@ describe('EventSocialFilterService (Unit)', () => {
     const recommendedSpy = jest.spyOn(participationQuery, 'getRecommendedEventIds');
     const exclusionsSpy = jest.spyOn(participationQuery, 'getSearchExclusions');
 
-    await expect(service.resolve(searchWith({}), metadata)).resolves.toEqual({ kind: 'none' });
+    await expect(service.resolve(searchWith({}), userId, metadata)).resolves.toEqual({
+      kind: 'none',
+    });
     expect(recommendedSpy).not.toHaveBeenCalled();
     expect(exclusionsSpy).not.toHaveBeenCalled();
   });
@@ -56,6 +67,7 @@ describe('EventSocialFilterService (Unit)', () => {
 
     const scope = await service.resolve(
       searchWith({ excludeCreatedByMe: false, onlyParticipatedByFriends: true }),
+      userId,
       metadata,
     );
 
@@ -77,7 +89,11 @@ describe('EventSocialFilterService (Unit)', () => {
       .spyOn(participationQuery, 'getRecommendedEventIds')
       .mockImplementation(pageOf(MAX_SEARCH_IDS + 5));
 
-    const scope = await service.resolve(searchWith({ onlyWishedByFriends: true }), metadata);
+    const scope = await service.resolve(
+      searchWith({ onlyWishedByFriends: true }),
+      userId,
+      metadata,
+    );
 
     expect(scope).toEqual({ kind: 'ids', ids: IdsPageFactory.createIds(MAX_SEARCH_IDS) });
   });
@@ -88,7 +104,7 @@ describe('EventSocialFilterService (Unit)', () => {
       .mockReturnValue(of({ ids: ['', 'not-a-uuid'], pagination: undefined }));
 
     await expect(
-      service.resolve(searchWith({ onlyCreatedByFriends: true }), metadata),
+      service.resolve(searchWith({ onlyCreatedByFriends: true }), userId, metadata),
     ).resolves.toEqual({ kind: 'empty' });
   });
 
@@ -125,6 +141,7 @@ describe('EventSocialFilterService (Unit)', () => {
           excludeWishedByMe: true,
           excludeBlockedUsers: true,
         }),
+        userId,
         metadata,
       );
 
@@ -154,7 +171,7 @@ describe('EventSocialFilterService (Unit)', () => {
         .spyOn(participationQuery, 'getSearchExclusions')
         .mockReturnValue(exclusionsOf({}));
 
-      await service.resolve(searchWith({ excludeWishedByMe: true }), metadata);
+      await service.resolve(searchWith({ excludeWishedByMe: true }), userId, metadata);
 
       expect(exclusionsSpy).toHaveBeenCalledWith(
         {
@@ -173,7 +190,11 @@ describe('EventSocialFilterService (Unit)', () => {
         .spyOn(participationQuery, 'getSearchExclusions')
         .mockReturnValue(exclusionsOf({ hiddenUserIds: hidden }));
 
-      const scope = await service.resolve(searchWith({ excludeBlockedUsers: true }), metadata);
+      const scope = await service.resolve(
+        searchWith({ excludeBlockedUsers: true }),
+        userId,
+        metadata,
+      );
 
       expect(scope).toEqual({ kind: 'excluded', excludedIds: [], excludedOrganizerIds: hidden });
     });
@@ -182,7 +203,7 @@ describe('EventSocialFilterService (Unit)', () => {
       jest.spyOn(participationQuery, 'getSearchExclusions').mockReturnValue(exclusionsOf({}));
 
       await expect(
-        service.resolve(searchWith({ excludeWishedByMe: true }), metadata),
+        service.resolve(searchWith({ excludeWishedByMe: true }), userId, metadata),
       ).resolves.toEqual({ kind: 'none' });
     });
 
@@ -196,6 +217,7 @@ describe('EventSocialFilterService (Unit)', () => {
 
       const scope = await service.resolve(
         searchWith({ excludeCreatedByMe: true, excludeBlockedUsers: true }),
+        userId,
         metadata,
       );
 
@@ -209,7 +231,11 @@ describe('EventSocialFilterService (Unit)', () => {
           exclusionsOf({ excludedEventIds: IdsPageFactory.createIds(MAX_SEARCH_IDS + 5) }),
         );
 
-      const scope = await service.resolve(searchWith({ excludeParticipatedByMe: true }), metadata);
+      const scope = await service.resolve(
+        searchWith({ excludeParticipatedByMe: true }),
+        userId,
+        metadata,
+      );
 
       expect(scope).toEqual({
         kind: 'excluded',
@@ -226,7 +252,11 @@ describe('EventSocialFilterService (Unit)', () => {
           exclusionsOf({ excludedEventIds: events, excludedEventIdsTruncated: true }),
         );
 
-      const scope = await service.resolve(searchWith({ excludeCreatedByMe: true }), metadata);
+      const scope = await service.resolve(
+        searchWith({ excludeCreatedByMe: true }),
+        userId,
+        metadata,
+      );
 
       expect(scope).toEqual({ kind: 'excluded', excludedIds: events, excludedOrganizerIds: [] });
     });
@@ -237,8 +267,84 @@ describe('EventSocialFilterService (Unit)', () => {
         .mockReturnValue(throwError(() => new Error('ms-social down')));
 
       await expect(
-        service.resolve(searchWith({ excludeBlockedUsers: true }), metadata),
+        service.resolve(searchWith({ excludeBlockedUsers: true }), userId, metadata),
       ).rejects.toThrow('ms-social down');
+    });
+  });
+
+  describe('exclusions cache', () => {
+    const appFilters = SearchExclusionsFactory.createFlags();
+    const hidden = IdsPageFactory.createIds(1, 7);
+    const exclusions = SearchExclusionsFactory.createResponse({ hiddenUserIds: hidden });
+    const expectedScope = { kind: 'excluded', excludedIds: [], excludedOrganizerIds: hidden };
+    let clock: jest.SpiedFunction<typeof Date.now>;
+
+    beforeEach(() => {
+      clock = jest.spyOn(Date, 'now').mockReturnValue(50_000);
+    });
+
+    it('should answer the same user and filters from the cache for 5 s', async () => {
+      const exclusionsSpy = jest
+        .spyOn(participationQuery, 'getSearchExclusions')
+        .mockReturnValue(of(exclusions));
+
+      await service.resolve(searchWith(appFilters), userId, metadata);
+      clock.mockReturnValue(50_000 + SEARCH_EXCLUSIONS_TTL_MS - 1);
+      const scope = await service.resolve(searchWith(appFilters), userId, metadata);
+
+      expect(exclusionsSpy).toHaveBeenCalledTimes(1);
+      expect(scope).toEqual(expectedScope);
+    });
+
+    it('should ask ms-social again once the entry has expired', async () => {
+      const exclusionsSpy = jest
+        .spyOn(participationQuery, 'getSearchExclusions')
+        .mockReturnValue(of(exclusions));
+
+      await service.resolve(searchWith(appFilters), userId, metadata);
+      clock.mockReturnValue(50_000 + SEARCH_EXCLUSIONS_TTL_MS);
+      await service.resolve(searchWith(appFilters), userId, metadata);
+
+      expect(exclusionsSpy).toHaveBeenCalledTimes(2);
+    });
+
+    it('should not share an entry between users or between filter sets', async () => {
+      const exclusionsSpy = jest
+        .spyOn(participationQuery, 'getSearchExclusions')
+        .mockReturnValue(of(exclusions));
+
+      await service.resolve(searchWith(appFilters), userId, metadata);
+      await service.resolve(searchWith(appFilters), 'user-2', metadata);
+      await service.resolve(searchWith({ excludeBlockedUsers: true }), userId, metadata);
+
+      expect(exclusionsSpy).toHaveBeenCalledTimes(3);
+    });
+
+    it('should ask ms-social again after the user was invalidated', async () => {
+      const exclusionsSpy = jest
+        .spyOn(participationQuery, 'getSearchExclusions')
+        .mockReturnValue(of(exclusions));
+
+      await service.resolve(searchWith(appFilters), userId, metadata);
+      exclusionsCache.invalidate(userId);
+      await service.resolve(searchWith(appFilters), userId, metadata);
+
+      expect(exclusionsSpy).toHaveBeenCalledTimes(2);
+    });
+
+    it('should not cache a failure', async () => {
+      const exclusionsSpy = jest
+        .spyOn(participationQuery, 'getSearchExclusions')
+        .mockReturnValueOnce(throwError(() => new Error('ms-social down')))
+        .mockReturnValueOnce(of(exclusions));
+
+      await expect(service.resolve(searchWith(appFilters), userId, metadata)).rejects.toThrow(
+        'ms-social down',
+      );
+      const scope = await service.resolve(searchWith(appFilters), userId, metadata);
+
+      expect(exclusionsSpy).toHaveBeenCalledTimes(2);
+      expect(scope).toEqual(expectedScope);
     });
   });
 });

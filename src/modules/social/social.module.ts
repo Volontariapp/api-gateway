@@ -17,8 +17,11 @@ import { RelationshipAdminCommandController } from './controllers/commands/relat
 import { SocialUserAdminQueryController } from './controllers/queries/user/social-user-admin.query-controller.js';
 import { SocialUserAdminCommandController } from './controllers/commands/user/social-user-admin.command-controller.js';
 import { EventPostLinkController } from './controllers/event-post-link.controller.js';
+import { EventModule } from '../event/event.module.js';
 
 @Module({
+  // SearchExclusionsCache: the social command routes forget the exclusions they change.
+  imports: [EventModule],
   controllers: [
     InteractionQueryController,
     InteractionAdminQueryController,
