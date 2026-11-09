@@ -93,4 +93,45 @@ describe('TtlLruCache (Unit)', () => {
     expect(() => new TtlLruCache<string>(0, 100)).toThrow(/maxEntries/);
     expect(() => new TtlLruCache<string>(1, 0)).toThrow(/ttlMs/);
   });
+
+  describe('stats', () => {
+    it('should count hits, misses (unknown and expired keys) and evictions', () => {
+      const cache = build(2, 100);
+      cache.get('a');
+      cache.set('a', '1');
+      cache.get('a');
+      cache.get('a');
+      cache.set('b', '2');
+      cache.set('c', '3');
+      now += 101;
+      cache.get('b');
+
+      expect(cache.stats()).toEqual({
+        name: 'ttl-lru-cache',
+        hits: 2,
+        misses: 2,
+        evictions: 1,
+        size: 1,
+        capacity: 2,
+      });
+    });
+
+    it('should expose the configured name and restart the counters on reset', () => {
+      const cache = new TtlLruCache<string>(2, 100, clock, 'named');
+      cache.set('a', '1');
+      cache.get('a');
+      cache.get('x');
+
+      cache.resetStats();
+
+      expect(cache.stats()).toEqual({
+        name: 'named',
+        hits: 0,
+        misses: 0,
+        evictions: 0,
+        size: 1,
+        capacity: 2,
+      });
+    });
+  });
 });
