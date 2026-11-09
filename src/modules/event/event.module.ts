@@ -6,6 +6,7 @@ import { TagAdminCommandController } from './controllers/commands/tag/tag-admin.
 import { EventParticipantsService } from './services/event-participants.service.js';
 import { EventSocialFilterService } from './services/event-social-filter.service.js';
 import { HiddenUsersService } from './services/hidden-users.service.js';
+import { EventLookupService } from './services/event-lookup.service.js';
 
 @Module({
   controllers: [
@@ -14,7 +15,12 @@ import { HiddenUsersService } from './services/hidden-users.service.js';
     TagQueryController,
     TagAdminCommandController,
   ],
-  providers: [EventParticipantsService, EventSocialFilterService, HiddenUsersService],
-  exports: [EventParticipantsService, HiddenUsersService],
+  providers: [
+    EventParticipantsService,
+    EventSocialFilterService,
+    HiddenUsersService,
+    EventLookupService,
+  ],
+  exports: [EventParticipantsService, HiddenUsersService, EventLookupService],
 })
 export class EventModule {}

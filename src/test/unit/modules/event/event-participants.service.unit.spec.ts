@@ -8,7 +8,10 @@ import {
 import { GrpcStatus } from '@volontariapp/errors';
 import { createMock } from '@volontariapp/testing';
 import type { WithMetadata } from '../../../../common/types/grpc.types.js';
-import { EventParticipantsService } from '../../../../modules/event/services/event-participants.service.js';
+import {
+  EventParticipantsService,
+  PARTICIPANT_COUNT_TTL_MS,
+} from '../../../../modules/event/services/event-participants.service.js';
 import { EventDTO } from '../../../../modules/event/dto/common/event.dto.js';
 import { MockServicesClientGrpc } from '../../../helpers/mocks/services-client-grpc.mock.js';
 import { PublicFileUrlFactory } from '../../../helpers/factories/public-file-url.factory.js';
@@ -117,5 +120,94 @@ describe('EventParticipantsService (Unit)', () => {
     expect(events).toHaveLength(150);
     expect(events.slice(0, 100).every((event) => event.currentParticipants === 9)).toBe(true);
     expect(events.slice(100).every((event) => event.currentParticipants === 8)).toBe(true);
+  });
+
+  describe('count cache', () => {
+    const countsOf = ({ eventIds }: { eventIds: string[] }) =>
+      of({ counts: eventIds.map((eventId) => ({ eventId, participantCount: 4 })) });
+
+    it('should not ask ms-social again for ids counted a moment ago', async () => {
+      const spy = jest
+        .spyOn(participationQuery, 'countEventParticipants')
+        .mockImplementation(countsOf);
+      await service.enrichAll(buildEvents(3), metadata);
+      const second = buildEvents(3);
+
+      await service.enrichAll(second, metadata);
+
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(second.every((event) => event.currentParticipants === 5)).toBe(true);
+    });
+
+    it('should only ask ms-social for the ids that are not cached', async () => {
+      const spy = jest
+        .spyOn(participationQuery, 'countEventParticipants')
+        .mockImplementation(countsOf);
+      await service.enrichAll(buildEvents(2), metadata);
+
+      const events = buildEvents(4);
+      await service.enrichAll(events, metadata);
+
+      expect(spy).toHaveBeenCalledTimes(2);
+      expect(spy).toHaveBeenLastCalledWith({ eventIds: ['event-2', 'event-3'] }, metadata);
+      expect(events.every((event) => event.currentParticipants === 5)).toBe(true);
+    });
+
+    it('should ask ms-social again once the cached counts have expired', async () => {
+      const clock = jest.spyOn(Date, 'now').mockReturnValue(10_000);
+      const spy = jest
+        .spyOn(participationQuery, 'countEventParticipants')
+        .mockImplementation(countsOf);
+      await service.enrichAll(buildEvents(1), metadata);
+
+      clock.mockReturnValue(10_000 + PARTICIPANT_COUNT_TTL_MS + 1);
+      await service.enrichAll(buildEvents(1), metadata);
+
+      expect(spy).toHaveBeenCalledTimes(2);
+    });
+
+    it('should not cache a batch that failed', async () => {
+      const spy = jest
+        .spyOn(participationQuery, 'countEventParticipants')
+        .mockReturnValueOnce(throwError(() => ({ code: GrpcStatus.UNAVAILABLE })))
+        .mockImplementation(countsOf);
+      await service.enrichAll(buildEvents(1, 2), metadata);
+
+      const events = buildEvents(1, 2);
+      await service.enrichAll(events, metadata);
+
+      expect(spy).toHaveBeenCalledTimes(2);
+      expect(events[0].currentParticipants).toBe(5);
+    });
+
+    it('should always ask ms-social for the detail of one event and refresh the list cache', async () => {
+      const spy = jest
+        .spyOn(participationQuery, 'countEventParticipants')
+        .mockImplementationOnce(countsOf)
+        .mockReturnValueOnce(of({ counts: [{ eventId: 'event-0', participantCount: 6 }] }));
+      await service.enrichAll(buildEvents(1), metadata);
+
+      const [detail] = buildEvents(1);
+      await service.enrich(detail, metadata);
+      const list = buildEvents(1);
+      await service.enrichAll(list, metadata);
+
+      expect(spy).toHaveBeenCalledTimes(2);
+      expect(detail.currentParticipants).toBe(7);
+      expect(list[0].currentParticipants).toBe(7);
+    });
+
+    it('should not cache an id that ms-social did not return', async () => {
+      const spy = jest
+        .spyOn(participationQuery, 'countEventParticipants')
+        .mockReturnValue(of({ counts: [] }));
+      await service.enrichAll(buildEvents(1, 2), metadata);
+
+      const events = buildEvents(1, 2);
+      await service.enrichAll(events, metadata);
+
+      expect(spy).toHaveBeenCalledTimes(2);
+      expect(events[0].currentParticipants).toBe(2);
+    });
   });
 });
