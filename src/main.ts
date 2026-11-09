@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url';
 import { GlobalExceptionFilter } from '@volontariapp/errors-nest';
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { loadConfig } from '@volontariapp/config';
+import { configureLogger, loadConfig } from '@volontariapp/config';
 import { AppModule } from './app.module.js';
 import { setupSwagger } from './common/swagger-setup.js';
 import { AppConfigService } from './config/app-config.service.js';
@@ -41,7 +41,7 @@ function resolveConfigDirectory(): string {
 
 async function bootstrap() {
   const appConfig = loadConfig(resolveConfigDirectory(), CustomConfig);
-  Logger.setDefaultConfig({ format: appConfig.logger.format });
+  configureLogger(appConfig.logger);
   const logger = new Logger({
     context: 'API-GATEWAY',
     format: appConfig.logger.format,
