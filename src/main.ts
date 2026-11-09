@@ -21,6 +21,8 @@ import {
   RolesGuard,
 } from '@volontariapp/auth';
 import { Reflector } from '@nestjs/core';
+import type { Server } from 'http';
+import { REFRESH_TOKEN_ROUTE, applyHttpTuning, applyServerTimeouts } from './common/http-tuning.js';
 
 function resolveConfigDirectory(): string {
   const currentFileDir = dirname(fileURLToPath(import.meta.url));
@@ -58,6 +60,8 @@ async function bootstrap() {
     'extended',
   );
 
+  applyHttpTuning(app.getHttpAdapter().getInstance() as Parameters<typeof applyHttpTuning>[0]);
+
   app.enableCors({
     origin: true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
@@ -75,12 +79,13 @@ async function bootstrap() {
   const jwtService = app.get(JwtService);
   app.useGlobalGuards(new AccessTokenGuard(jwtService, reflector), new RolesGuard(reflector));
   app.use(new AccessTokenMiddleware().use);
-  app.use(new RefreshTokenMiddleware().use);
+  app.use(REFRESH_TOKEN_ROUTE, new RefreshTokenMiddleware().use);
 
   app.enableShutdownHooks();
 
   const port = configService.config.port;
   await app.listen(port);
+  applyServerTimeouts(app.getHttpServer() as Server);
   logger.log('=================================== API Gateway ===================================');
   logger.log(`DOCUMENTATION (Global): http://localhost:${port.toString()}/docs`);
   logger.log(`DOCUMENTATION (Events): http://localhost:${port.toString()}/docs/event`);
