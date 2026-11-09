@@ -1,5 +1,5 @@
 import { map } from 'rxjs';
-import { Controller, Delete, Param, Post, Req } from '@nestjs/common';
+import { Controller, Inject, Delete, Param, Post, Req } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import {
   CustomApiError,
@@ -8,15 +8,25 @@ import {
   DATABASE_ERROR,
 } from '@volontariapp/errors-nest';
 import type { Metadata } from '@grpc/grpc-js';
+import type { ClientGrpc } from '@nestjs/microservices';
 import { Roles } from '@volontariapp/auth';
 import { UserRoles } from '@volontariapp/shared';
 import { GatewayController } from '../../../../../common/decorators/gateway-controller.decorator.js';
+import { SOCIAL_PACKAGE } from '../../../../../grpc/grpc-packages.js';
+import { SearchExclusionsCache } from '../../../../event/services/search-exclusions-cache.service.js';
 import { BaseRelationshipGrpcController } from '../../base-grpc.controller.js';
 import { ActionSuccessResponseDTO } from '../../../dto/response/index.js';
 
 @GatewayController('Social - Relationships - Admin', { admin: true })
 @Controller('social')
 export class RelationshipAdminCommandController extends BaseRelationshipGrpcController {
+  constructor(
+    @Inject(SOCIAL_PACKAGE) client: ClientGrpc,
+    private readonly exclusionsCache: SearchExclusionsCache,
+  ) {
+    super(client);
+  }
+
   @Post('users/:userId/follow/:followedId')
   @Roles(UserRoles.ADMIN)
   @ApiOperation({ summary: 'Follow a user (Admin)' })
@@ -69,9 +79,10 @@ export class RelationshipAdminCommandController extends BaseRelationshipGrpcCont
     @Req() req: Record<string, unknown>,
   ) {
     const metadata = req['internalMetadata'] as Metadata;
-    return this.commandService
-      .adminPostBlockUser({ blockerId: userId, blockedId }, metadata)
-      .pipe(map(() => ({ success: true, message: 'Blocked successfully' })));
+    return this.commandService.adminPostBlockUser({ blockerId: userId, blockedId }, metadata).pipe(
+      this.exclusionsCache.invalidateAfter(userId, blockedId),
+      map(() => ({ success: true, message: 'Blocked successfully' })),
+    );
   }
 
   @Delete('users/:userId/block/:blockedId')
@@ -90,6 +101,9 @@ export class RelationshipAdminCommandController extends BaseRelationshipGrpcCont
     const metadata = req['internalMetadata'] as Metadata;
     return this.commandService
       .adminDeleteBlockUser({ blockerId: userId, blockedId }, metadata)
-      .pipe(map(() => ({ success: true, message: 'Unblocked successfully' })));
+      .pipe(
+        this.exclusionsCache.invalidateAfter(userId, blockedId),
+        map(() => ({ success: true, message: 'Unblocked successfully' })),
+      );
   }
 }

@@ -13,6 +13,10 @@ import { SOCIAL_PACKAGE } from '../../../grpc/grpc-packages.js';
 import { WithMetadata } from '../../../common/types/grpc.types.js';
 import { fetchAllPages } from '../../../common/pagination/index.js';
 import type { SearchEventsRequestDTO } from '../dto/request/index.js';
+import {
+  SearchExclusionsCache,
+  type SearchExclusionFlags,
+} from './search-exclusions-cache.service.js';
 
 /** Cap of `ids`, `excludedIds` and `excludedOrganizerIds` in SearchEvents (ms-event MAX_SEARCH_IDS). */
 export const MAX_SEARCH_IDS = 1000;
@@ -41,7 +45,10 @@ export class EventSocialFilterService implements OnModuleInit {
   private readonly logger = new Logger({ context: EventSocialFilterService.name });
   private participationQueryService!: WithMetadata<ParticipationQueryServiceClient>;
 
-  constructor(@Inject(SOCIAL_PACKAGE) private readonly socialClient: ClientGrpc) {}
+  constructor(
+    @Inject(SOCIAL_PACKAGE) private readonly socialClient: ClientGrpc,
+    private readonly exclusionsCache: SearchExclusionsCache,
+  ) {}
 
   onModuleInit() {
     this.participationQueryService = this.socialClient.getService<ParticipationQueryServiceClient>(
@@ -49,7 +56,12 @@ export class EventSocialFilterService implements OnModuleInit {
     );
   }
 
-  async resolve(request: SearchEventsRequestDTO, metadata: Metadata): Promise<SocialSearchScope> {
+  /** `userId` is the caller, the user ms-social reads from the internal token of `metadata`. */
+  async resolve(
+    request: SearchEventsRequestDTO,
+    userId: string,
+    metadata: Metadata,
+  ): Promise<SocialSearchScope> {
     const onlyFriends =
       request.onlyParticipatedByFriends === true ||
       request.onlyWishedByFriends === true ||
@@ -59,7 +71,7 @@ export class EventSocialFilterService implements OnModuleInit {
       return ids.length === 0 ? { kind: 'empty' } : { kind: 'ids', ids };
     }
 
-    const exclusions = await this.exclusions(request, metadata);
+    const exclusions = await this.exclusions(request, userId, metadata);
     const excludedIds = this.capped(exclusions.excludedEventIds, 'excludedIds');
     const excludedOrganizerIds = this.capped(exclusions.hiddenUserIds, 'excludedOrganizerIds');
     if (exclusions.excludedEventIdsTruncated) {
@@ -96,13 +108,15 @@ export class EventSocialFilterService implements OnModuleInit {
   /**
    * My created, participated and wished events and the users hidden from me, in one call. An error
    * is not swallowed: serving a feed that may show a blocked author is worse than failing. No flag,
-   * no call.
+   * no call. A response is kept 5 s per user and flags (SearchExclusionsCache); an error is thrown
+   * before it could be stored.
    */
   private async exclusions(
     request: SearchEventsRequestDTO,
+    userId: string,
     metadata: Metadata,
   ): Promise<GetSearchExclusionsResponse> {
-    const flags = {
+    const flags: SearchExclusionFlags = {
       excludeCreatedByMe: request.excludeCreatedByMe === true,
       excludeParticipatedByMe: request.excludeParticipatedByMe === true,
       excludeWishedByMe: request.excludeWishedByMe === true,
@@ -116,7 +130,13 @@ export class EventSocialFilterService implements OnModuleInit {
         hiddenUserIdsTruncated: false,
       };
     }
-    return firstValueFrom(this.participationQueryService.getSearchExclusions(flags, metadata));
+    const cached = this.exclusionsCache.get(userId, flags);
+    if (cached !== undefined) return cached;
+    const response = await firstValueFrom(
+      this.participationQueryService.getSearchExclusions(flags, metadata),
+    );
+    this.exclusionsCache.set(userId, flags, response);
+    return response;
   }
 
   /**

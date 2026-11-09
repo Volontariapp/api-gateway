@@ -67,6 +67,20 @@ describe('TtlLruCache (Unit)', () => {
     expect(cache.get('b')).toBeUndefined();
   });
 
+  it('should forget a deleted key without counting a read or an eviction', () => {
+    const cache = build();
+    cache.set('a', 'value-a');
+    cache.set('b', 'value-b');
+
+    cache.delete('a');
+    cache.delete('unknown');
+
+    expect(cache.size).toBe(1);
+    expect(cache.stats()).toEqual(expect.objectContaining({ hits: 0, misses: 0, evictions: 0 }));
+    expect(cache.get('a')).toBeUndefined();
+    expect(cache.get('b')).toBe('value-b');
+  });
+
   it('should never hold more entries than its capacity', () => {
     const cache = build(5);
 

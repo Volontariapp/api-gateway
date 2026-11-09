@@ -1,5 +1,5 @@
 import { map } from 'rxjs';
-import { Controller, Delete, Param, Post, Req } from '@nestjs/common';
+import { Controller, Inject, Delete, Param, Post, Req } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import {
   CustomApiError,
@@ -8,13 +8,24 @@ import {
   DATABASE_ERROR,
 } from '@volontariapp/errors-nest';
 import type { Metadata } from '@grpc/grpc-js';
+import { CurrentUser, type AuthUser } from '@volontariapp/auth';
+import type { ClientGrpc } from '@nestjs/microservices';
 import { GatewayController } from '../../../../../common/decorators/gateway-controller.decorator.js';
+import { SOCIAL_PACKAGE } from '../../../../../grpc/grpc-packages.js';
+import { SearchExclusionsCache } from '../../../../event/services/search-exclusions-cache.service.js';
 import { BaseRelationshipGrpcController } from '../../base-grpc.controller.js';
 import { ActionSuccessResponseDTO } from '../../../dto/response/index.js';
 
 @GatewayController('Social - Relationships - Commands')
 @Controller('social')
 export class RelationshipCommandController extends BaseRelationshipGrpcController {
+  constructor(
+    @Inject(SOCIAL_PACKAGE) client: ClientGrpc,
+    private readonly exclusionsCache: SearchExclusionsCache,
+  ) {
+    super(client);
+  }
+
   @Post('follow/:followedId')
   @ApiOperation({ summary: 'Follow a user (self)' })
   @ApiParam({ name: 'followedId', example: 'uuid-followed' })
@@ -47,11 +58,16 @@ export class RelationshipCommandController extends BaseRelationshipGrpcControlle
   @ApiResponse({ status: 201, type: ActionSuccessResponseDTO })
   @CustomApiError(() => SOCIAL_RELATIONSHIP_ALREADY_EXISTS('userId', 'blockedId', 'BLOCK'))
   @CustomApiError(() => DATABASE_ERROR('creating block relationship', 'details'))
-  blockSelf(@Param('blockedId') blockedId: string, @Req() req: Record<string, unknown>) {
+  blockSelf(
+    @Param('blockedId') blockedId: string,
+    @CurrentUser() user: AuthUser,
+    @Req() req: Record<string, unknown>,
+  ) {
     const metadata = req['internalMetadata'] as Metadata;
-    return this.commandService
-      .postBlockUser({ blockedId }, metadata)
-      .pipe(map(() => ({ success: true, message: 'Blocked successfully' })));
+    return this.commandService.postBlockUser({ blockedId }, metadata).pipe(
+      this.exclusionsCache.invalidateAfter(user.id, blockedId),
+      map(() => ({ success: true, message: 'Blocked successfully' })),
+    );
   }
 
   @Delete('block/:blockedId')
@@ -60,10 +76,15 @@ export class RelationshipCommandController extends BaseRelationshipGrpcControlle
   @ApiResponse({ status: 200, type: ActionSuccessResponseDTO })
   @CustomApiError(() => SOCIAL_RELATIONSHIP_NOT_FOUND('userId', 'blockedId', 'BLOCK'))
   @CustomApiError(() => DATABASE_ERROR('deleting block relationship', 'details'))
-  unblockSelf(@Param('blockedId') blockedId: string, @Req() req: Record<string, unknown>) {
+  unblockSelf(
+    @Param('blockedId') blockedId: string,
+    @CurrentUser() user: AuthUser,
+    @Req() req: Record<string, unknown>,
+  ) {
     const metadata = req['internalMetadata'] as Metadata;
-    return this.commandService
-      .deleteBlockUser({ blockedId }, metadata)
-      .pipe(map(() => ({ success: true, message: 'Unblocked successfully' })));
+    return this.commandService.deleteBlockUser({ blockedId }, metadata).pipe(
+      this.exclusionsCache.invalidateAfter(user.id, blockedId),
+      map(() => ({ success: true, message: 'Unblocked successfully' })),
+    );
   }
 }

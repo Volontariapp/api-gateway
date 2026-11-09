@@ -12,6 +12,7 @@ import { ParticipationCommandController } from '../../../../modules/social/contr
 import { ParticipationQueryController } from '../../../../modules/social/controllers/queries/participation/participation.query-controller.js';
 import { SetEventAttendanceRequestDTO } from '../../../../modules/social/dto/request/set-event-attendance.request.dto.js';
 import { GetEventAttendeesRequestDTO } from '../../../../modules/social/dto/request/get-event-attendees.request.dto.js';
+import { SearchExclusionsCache } from '../../../../modules/event/services/search-exclusions-cache.service.js';
 import { MockServicesClientGrpc } from '../../../helpers/mocks/services-client-grpc.mock.js';
 import {
   PARTICIPATION_EVENT_ID as eventId,
@@ -40,7 +41,7 @@ describe('Participation Controllers (Unit)', () => {
         [PARTICIPATION_QUERY_SERVICE_NAME]: createMock<ParticipationQueryServiceClient>(),
       });
 
-      controller = new ParticipationCommandController(mockClient);
+      controller = new ParticipationCommandController(mockClient, new SearchExclusionsCache());
       controller.onModuleInit();
     });
 

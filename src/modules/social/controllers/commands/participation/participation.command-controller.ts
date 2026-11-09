@@ -1,5 +1,5 @@
 import { map } from 'rxjs';
-import { Controller, Delete, Param, Post, Req, Body } from '@nestjs/common';
+import { Controller, Inject, Delete, Param, Post, Req, Body } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import {
   CustomApiError,
@@ -11,7 +11,11 @@ import {
   DATABASE_ERROR,
 } from '@volontariapp/errors-nest';
 import type { Metadata } from '@grpc/grpc-js';
+import { CurrentUser, type AuthUser } from '@volontariapp/auth';
+import type { ClientGrpc } from '@nestjs/microservices';
 import { GatewayController } from '../../../../../common/decorators/gateway-controller.decorator.js';
+import { SOCIAL_PACKAGE } from '../../../../../grpc/grpc-packages.js';
+import { SearchExclusionsCache } from '../../../../event/services/search-exclusions-cache.service.js';
 import { BaseParticipationGrpcController } from '../../base-grpc.controller.js';
 import { ActionSuccessResponseDTO } from '../../../dto/response/index.js';
 import { SetEventAttendanceRequestDTO } from '../../../dto/request/index.js';
@@ -19,6 +23,13 @@ import { SetEventAttendanceRequestDTO } from '../../../dto/request/index.js';
 @GatewayController('Social - Participation - Commands')
 @Controller('social')
 export class ParticipationCommandController extends BaseParticipationGrpcController {
+  constructor(
+    @Inject(SOCIAL_PACKAGE) client: ClientGrpc,
+    private readonly exclusionsCache: SearchExclusionsCache,
+  ) {
+    super(client);
+  }
+
   @Post('events/:eventId/participate')
   @ApiOperation({ summary: 'User participates in an event (self)' })
   @ApiParam({ name: 'eventId', example: 'uuid-event-123' })
@@ -26,11 +37,16 @@ export class ParticipationCommandController extends BaseParticipationGrpcControl
   @CustomApiError(() => SOCIAL_EVENT_NOT_FOUND('eventId'))
   @CustomApiError(() => SOCIAL_PARTICIPATION_ALREADY_EXISTS('userId', 'eventId'))
   @CustomApiError(() => DATABASE_ERROR('creating event participation', 'details'))
-  participateSelf(@Param('eventId') eventId: string, @Req() req: Record<string, unknown>) {
+  participateSelf(
+    @Param('eventId') eventId: string,
+    @CurrentUser() user: AuthUser,
+    @Req() req: Record<string, unknown>,
+  ) {
     const metadata = req['internalMetadata'] as Metadata;
-    return this.commandService
-      .postUserParticipateEvent({ eventId }, metadata)
-      .pipe(map(() => ({ success: true, message: 'Participation linked' })));
+    return this.commandService.postUserParticipateEvent({ eventId }, metadata).pipe(
+      this.exclusionsCache.invalidateAfter(user.id),
+      map(() => ({ success: true, message: 'Participation linked' })),
+    );
   }
 
   @Delete('events/:eventId/participate')
@@ -40,11 +56,16 @@ export class ParticipationCommandController extends BaseParticipationGrpcControl
   @CustomApiError(() => SOCIAL_EVENT_NOT_FOUND('eventId'))
   @CustomApiError(() => SOCIAL_PARTICIPATION_NOT_FOUND('userId', 'eventId'))
   @CustomApiError(() => DATABASE_ERROR('deleting event participation', 'details'))
-  unparticipateSelf(@Param('eventId') eventId: string, @Req() req: Record<string, unknown>) {
+  unparticipateSelf(
+    @Param('eventId') eventId: string,
+    @CurrentUser() user: AuthUser,
+    @Req() req: Record<string, unknown>,
+  ) {
     const metadata = req['internalMetadata'] as Metadata;
-    return this.commandService
-      .deleteUserParticipateEvent({ eventId }, metadata)
-      .pipe(map(() => ({ success: true, message: 'Participation unlinked' })));
+    return this.commandService.deleteUserParticipateEvent({ eventId }, metadata).pipe(
+      this.exclusionsCache.invalidateAfter(user.id),
+      map(() => ({ success: true, message: 'Participation unlinked' })),
+    );
   }
 
   @Post('events/:eventId/wish')
@@ -54,11 +75,16 @@ export class ParticipationCommandController extends BaseParticipationGrpcControl
   @CustomApiError(() => SOCIAL_EVENT_NOT_FOUND('eventId'))
   @CustomApiError(() => SOCIAL_WISH_ALREADY_EXISTS('userId', 'eventId'))
   @CustomApiError(() => DATABASE_ERROR('creating event wish', 'details'))
-  wishEventSelf(@Param('eventId') eventId: string, @Req() req: Record<string, unknown>) {
+  wishEventSelf(
+    @Param('eventId') eventId: string,
+    @CurrentUser() user: AuthUser,
+    @Req() req: Record<string, unknown>,
+  ) {
     const metadata = req['internalMetadata'] as Metadata;
-    return this.commandService
-      .postUserWishEvent({ eventId }, metadata)
-      .pipe(map(() => ({ success: true, message: 'Event added to wishes' })));
+    return this.commandService.postUserWishEvent({ eventId }, metadata).pipe(
+      this.exclusionsCache.invalidateAfter(user.id),
+      map(() => ({ success: true, message: 'Event added to wishes' })),
+    );
   }
 
   @Delete('events/:eventId/wish')
@@ -68,11 +94,16 @@ export class ParticipationCommandController extends BaseParticipationGrpcControl
   @CustomApiError(() => SOCIAL_EVENT_NOT_FOUND('eventId'))
   @CustomApiError(() => SOCIAL_WISH_NOT_FOUND('userId', 'eventId'))
   @CustomApiError(() => DATABASE_ERROR('deleting event wish', 'details'))
-  unwishEventSelf(@Param('eventId') eventId: string, @Req() req: Record<string, unknown>) {
+  unwishEventSelf(
+    @Param('eventId') eventId: string,
+    @CurrentUser() user: AuthUser,
+    @Req() req: Record<string, unknown>,
+  ) {
     const metadata = req['internalMetadata'] as Metadata;
-    return this.commandService
-      .deleteUserWishEvent({ eventId }, metadata)
-      .pipe(map(() => ({ success: true, message: 'Event removed from wishes' })));
+    return this.commandService.deleteUserWishEvent({ eventId }, metadata).pipe(
+      this.exclusionsCache.invalidateAfter(user.id),
+      map(() => ({ success: true, message: 'Event removed from wishes' })),
+    );
   }
 
   @Post('events/:eventId/attendance')
