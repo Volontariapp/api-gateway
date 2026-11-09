@@ -8,7 +8,10 @@ import { EventSocialFilterService } from './services/event-social-filter.service
 import { HiddenUsersService } from './services/hidden-users.service.js';
 import { EventLookupService } from './services/event-lookup.service.js';
 
+import { CacheStatsModule } from '../../common/cache/cache-stats.module.js';
+
 @Module({
+  imports: [CacheStatsModule],
   controllers: [
     EventQueryController,
     EventCommandController,

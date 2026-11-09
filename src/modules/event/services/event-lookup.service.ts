@@ -1,4 +1,4 @@
-import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, OnModuleInit, Optional } from '@nestjs/common';
 import type { ClientGrpc } from '@nestjs/microservices';
 import type { Metadata } from '@grpc/grpc-js';
 import { firstValueFrom } from 'rxjs';
@@ -12,6 +12,7 @@ import {
 import { EVENT_PACKAGE } from '../../../grpc/grpc-packages.js';
 import { WithMetadata } from '../../../common/types/grpc.types.js';
 import { TtlLruCache } from '../../../common/cache/ttl-lru-cache.js';
+import { CacheStatsReporter } from '../../../common/cache/cache-stats.reporter.js';
 import { PublicFileUrlService } from '../../storage/public-file-url.service.js';
 import { EventDTO } from '../dto/common/event.dto.js';
 
@@ -31,13 +32,21 @@ export const EVENT_LOOKUP_TTL_MS = 30_000;
 @Injectable()
 export class EventLookupService implements OnModuleInit {
   private readonly logger = new Logger({ context: EventLookupService.name });
-  private readonly events = new TtlLruCache<Event>(EVENT_LOOKUP_CACHE_SIZE, EVENT_LOOKUP_TTL_MS);
+  private readonly events = new TtlLruCache<Event>(
+    EVENT_LOOKUP_CACHE_SIZE,
+    EVENT_LOOKUP_TTL_MS,
+    undefined,
+    'event-lookup',
+  );
   private eventQueryService!: WithMetadata<EventQueryServiceClient>;
 
   constructor(
     @Inject(EVENT_PACKAGE) private readonly eventClient: ClientGrpc,
     private readonly publicFileUrls: PublicFileUrlService,
-  ) {}
+    @Optional() cacheStats?: CacheStatsReporter,
+  ) {
+    cacheStats?.register(this.events);
+  }
 
   onModuleInit() {
     this.eventQueryService =

@@ -1,4 +1,4 @@
-import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, OnModuleInit, Optional } from '@nestjs/common';
 import type { ClientGrpc } from '@nestjs/microservices';
 import type { Metadata } from '@grpc/grpc-js';
 import { firstValueFrom } from 'rxjs';
@@ -10,6 +10,7 @@ import {
 import { SOCIAL_PACKAGE } from '../../../grpc/grpc-packages.js';
 import { WithMetadata } from '../../../common/types/grpc.types.js';
 import { TtlLruCache } from '../../../common/cache/ttl-lru-cache.js';
+import { CacheStatsReporter } from '../../../common/cache/cache-stats.reporter.js';
 import type { EventDTO } from '../dto/common/event.dto.js';
 
 /** Plafond de ids par appel countEventParticipants (aligne sur ms-social). */
@@ -36,10 +37,17 @@ export class EventParticipantsService implements OnModuleInit {
   private readonly counts = new TtlLruCache<number>(
     PARTICIPANT_COUNT_CACHE_SIZE,
     PARTICIPANT_COUNT_TTL_MS,
+    undefined,
+    'event-participant-counts',
   );
   private participationQueryService!: WithMetadata<ParticipationQueryServiceClient>;
 
-  constructor(@Inject(SOCIAL_PACKAGE) private readonly socialClient: ClientGrpc) {}
+  constructor(
+    @Inject(SOCIAL_PACKAGE) private readonly socialClient: ClientGrpc,
+    @Optional() cacheStats?: CacheStatsReporter,
+  ) {
+    cacheStats?.register(this.counts);
+  }
 
   onModuleInit() {
     this.participationQueryService = this.socialClient.getService<ParticipationQueryServiceClient>(
