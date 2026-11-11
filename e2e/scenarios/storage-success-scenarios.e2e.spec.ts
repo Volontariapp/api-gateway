@@ -118,11 +118,10 @@ describe('Scenarios: storage success paths (E2E)', () => {
       TEST_TIMEOUT_MS,
     );
 
-    // Gap found by this scenario: worker-storage cannot write the scan result (EventQueueModel is
-    // missing from its data source, workers-runners#67), so the file stays SCANNING and the post
-    // stays PENDING. `it.failing` until that fix is merged and the worker-storage image published;
-    // then turn it into `it`.
-    it.failing(
+    // This scenario found that worker-storage could not write the scan result (EventQueueModel was
+    // missing from its data source): the file stayed SCANNING and the post stayed PENDING.
+    // Fixed by workers-runners#67.
+    it(
       'a post with an image above 1 MB is PENDING and hidden, then READY once worker-storage scanned it',
       async () => {
         const image = largePngFactory();
