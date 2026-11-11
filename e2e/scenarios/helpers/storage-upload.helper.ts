@@ -95,19 +95,29 @@ export async function waitForFileStatus(
   );
 }
 
+export const SCAN_STATUS_CLEAN = scanStatusName(ScanStatus.SCAN_STATUS_CLEAN);
+export const SCAN_STATUS_SCANNING = scanStatusName(ScanStatus.SCAN_STATUS_SCANNING);
+
+/** A file declared, uploaded and confirmed, with the scan status that `confirm` answered. */
+export interface ConfirmedUpload {
+  readonly fileId: string;
+  /** Name of the `ScanStatus` answered by `confirm`: CLEAN when synchronous, SCANNING otherwise. */
+  readonly scanStatus: string;
+}
+
 /**
- * Declares, uploads and confirms one tiny PNG as `owner` and returns its id once the scan is CLEAN.
- * The file is 70 bytes, far below the synchronous threshold (1 MB) of every entity type: confirm
- * answers CLEAN at once; the poll only covers an ASYNC fallback (SCANNING).
+ * Declares, uploads and confirms `image` as `owner`, and returns as soon as `confirm` answers,
+ * without waiting for the scan. A file above the synchronous threshold (1 MB for a post) answers
+ * SCANNING: the scan then runs in `worker-storage`.
  */
-export async function uploadConfirmedImage(
+export async function confirmImageUpload(
   owner: TestClient,
   entityType: EntityType,
-): Promise<string> {
-  const image = tinyPngFactory();
+  image: Buffer = tinyPngFactory(),
+): Promise<ConfirmedUpload> {
   const declared = await owner
     .post('/api/v1/storage/upload-url')
-    .send(uploadUrlRequestFactory(entityType))
+    .send(uploadUrlRequestFactory(entityType, undefined, image))
     .expect(201);
   const upload = declared.body as GenerateUploadUrlWebResponse;
 
@@ -115,14 +125,27 @@ export async function uploadConfirmedImage(
 
   const confirmed = await owner.post(`/api/v1/storage/files/${upload.fileId}/confirm`).expect(200);
   const confirmedFile = (confirmed.body as ConfirmUploadWebResponse).file;
-  if (scanStatusName(confirmedFile.scanStatus) !== scanStatusName(ScanStatus.SCAN_STATUS_CLEAN)) {
+  return { fileId: upload.fileId, scanStatus: scanStatusName(confirmedFile.scanStatus) };
+}
+
+/**
+ * Declares, uploads and confirms one image as `owner` (the tiny PNG by default) and returns its id
+ * once the scan is CLEAN. The tiny PNG is 70 bytes, far below the synchronous threshold (1 MB) of
+ * every entity type: confirm answers CLEAN at once; the poll only covers an ASYNC fallback.
+ */
+export async function uploadConfirmedImage(
+  owner: TestClient,
+  entityType: EntityType,
+  image: Buffer = tinyPngFactory(),
+): Promise<string> {
+  const { fileId, scanStatus } = await confirmImageUpload(owner, entityType, image);
+  if (scanStatus !== SCAN_STATUS_CLEAN) {
     await eventually(
-      () => readFile(owner, upload.fileId),
+      () => readFile(owner, fileId),
       (read) =>
-        read.file !== undefined &&
-        scanStatusName(read.file.scanStatus) === scanStatusName(ScanStatus.SCAN_STATUS_CLEAN),
-      { timeoutMs: FILE_READY_TIMEOUT_MS, description: `scan of file ${upload.fileId} CLEAN` },
+        read.file !== undefined && scanStatusName(read.file.scanStatus) === SCAN_STATUS_CLEAN,
+      { timeoutMs: FILE_READY_TIMEOUT_MS, description: `scan of file ${fileId} CLEAN` },
     );
   }
-  return upload.fileId;
+  return fileId;
 }
