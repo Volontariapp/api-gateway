@@ -189,3 +189,10 @@ dns:ms-storage:5006`). Proved by the channel log of storage-client 0.3.10 (npm-p
   first one were processed (a stream is read in order within a consumer group).
 - A scenario that needs a runner missing from the stack is an `it.todo` under a `describe` named
   after the runners, never a silent skip. A system bug is an `it.failing` with its gap id.
+- **Fault injection** (`e2e/faults/`, helper `e2e/helpers/network-fault.helper.ts`): a link between
+  two services (`ms-post` or `ms-event` towards `ms-storage`) goes through a Toxiproxy relay of the
+  ci-tools compose and is cut with `withCut(from, to, fn)`, which always restores it. A cut link is
+  cut for every running test, so `yarn test:e2e` runs the parallel pass without `e2e/faults/`, then
+  these suites alone in band (`scripts/run-e2e.sh`). `TOXIPROXY_URL` is required
+  (set by the ci-tools compose): without it the suites fail loudly. After a restore, the caller
+  reconnects after about 1 s: wait with `eventually`.
