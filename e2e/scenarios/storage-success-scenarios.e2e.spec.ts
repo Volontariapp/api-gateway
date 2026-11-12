@@ -118,16 +118,13 @@ describe('Scenarios: storage success paths (E2E)', () => {
       TEST_TIMEOUT_MS,
     );
 
-    // This scenario found two gaps in the ASYNC path.
-    //  1. Fixed: worker-storage could not write the scan result (EventQueueModel missing from its
-    //     data source, workers-runners#67).
-    //  2. Open: domain-storage writes storage.file_scanned with no target stream
-    //     (FILE_SCAN_RESULT_TARGET_SERVICES = [] in file-outbox.builders.ts), so the outbox pusher
-    //     skips it ("has no target services, skipping push") and post-processor-post never marks
-    //     the post READY.
-    // `it.failing` until domain-storage names the streams and worker-storage runs that version;
-    // then turn it into `it`.
-    it.failing(
+    // This scenario found two gaps in the ASYNC path, both fixed.
+    //  1. worker-storage could not write the scan result (EventQueueModel missing from its data
+    //     source, workers-runners#67).
+    //  2. domain-storage wrote storage.file_scanned, file_rejected and attachment_rejected with an
+    //     empty targetServices, so the outbox pusher skipped them and the post stayed PENDING
+    //     (npm-packages#324).
+    it(
       'a post with an image above 1 MB is PENDING and hidden, then READY once worker-storage scanned it',
       async () => {
         const image = largePngFactory();
