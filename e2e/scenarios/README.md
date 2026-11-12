@@ -193,6 +193,6 @@ dns:ms-storage:5006`). Proved by the channel log of storage-client 0.3.10 (npm-p
   two services (`ms-post` or `ms-event` towards `ms-storage`) goes through a Toxiproxy relay of the
   ci-tools compose and is cut with `withCut(from, to, fn)`, which always restores it. A cut link is
   cut for every running test, so `yarn test:e2e` runs the parallel pass without `e2e/faults/`, then
-  these suites alone in band (`scripts/run-e2e.sh`). Without `TOXIPROXY_URL` the scenarios are
-  `it.todo` under "fault injection (needs toxiproxy in the stack)". After a restore, the caller
+  these suites alone in band (`scripts/run-e2e.sh`). `TOXIPROXY_URL` is required
+  (set by the ci-tools compose): without it the suites fail loudly. After a restore, the caller
   reconnects after about 1 s: wait with `eventually`.

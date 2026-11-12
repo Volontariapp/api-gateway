@@ -15,11 +15,6 @@ const JSON_HEADERS = { 'Content-Type': 'application/json' };
 
 type HttpMethod = 'GET' | 'POST' | 'DELETE';
 
-/** True when the stack provides Toxiproxy (`TOXIPROXY_URL` is set by the ci-tools compose). */
-export function isFaultInjectionAvailable(): boolean {
-  return (process.env.TOXIPROXY_URL ?? '') !== '';
-}
-
 /** Name of the relay between `from` (the caller) and `to` (the callee). */
 export function proxyName(from: string, to: string): string {
   return `${from}__${to}`;

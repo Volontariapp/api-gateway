@@ -1,6 +1,5 @@
 import {
   cut,
-  isFaultInjectionAvailable,
   proxyName,
   restore,
   restoreAll,
@@ -104,7 +103,6 @@ describe('network-fault helper', () => {
   it('fails clearly when TOXIPROXY_URL is absent', async () => {
     delete process.env.TOXIPROXY_URL;
 
-    expect(isFaultInjectionAvailable()).toBe(false);
     await expect(cut('ms-post', 'ms-storage')).rejects.toThrow(/TOXIPROXY_URL is not set/);
   });
 });

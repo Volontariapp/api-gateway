@@ -2,7 +2,7 @@ import type { EventWebResponse, PostWebResponse } from '@volontariapp/contracts'
 import { EntityType } from '@volontariapp/contracts-nest';
 import { createEventRequestFactory } from '../event/event-test.factory.js';
 import { eventually } from '../helpers/eventually.helper.js';
-import { isFaultInjectionAvailable, restoreAll, withCut } from '../helpers/network-fault.helper.js';
+import { restoreAll, withCut } from '../helpers/network-fault.helper.js';
 import type { TestClient } from '../helpers/test-client.helper.js';
 import { createPost } from '../post/post-test.helpers.js';
 import type { ScenarioActor } from '../scenarios/helpers/scenario-world.helper.js';
@@ -60,139 +60,130 @@ async function readPost(client: TestClient, postId: string): Promise<PostRead> {
  * Cutting a link cuts it for every test running at that time: these suites run alone, after the
  * parallel pass (scripts/run-e2e.sh).
  */
-if (!isFaultInjectionAvailable()) {
-  // The compose of this checkout of ci-tools has no toxiproxy: registered, never silently skipped.
-  describe('fault injection (needs toxiproxy in the stack)', () => {
-    it.todo('an event created with a cover while ms-storage is down is PENDING, then READY');
-    it.todo('a post created with an image while ms-storage is down is PENDING, then READY');
-    it.todo('an event created with the file of another user while ms-storage is down is REJECTED');
+describe('Scenarios: ms-storage unavailable at creation (E2E)', () => {
+  let world: ScenarioWorld;
+  let organizer: ScenarioActor;
+  let stranger: ScenarioActor;
+
+  beforeAll(async () => {
+    // A previous run that crashed may have left a link cut.
+    await restoreAll();
+    world = await ScenarioWorld.open();
+    [organizer, stranger] = await world.signUpMany(2);
+  }, SETUP_TIMEOUT_MS);
+
+  afterAll(async () => {
+    await restoreAll();
+    await world.close();
   });
-} else {
-  describe('Scenarios: ms-storage unavailable at creation (E2E)', () => {
-    let world: ScenarioWorld;
-    let organizer: ScenarioActor;
-    let stranger: ScenarioActor;
 
-    beforeAll(async () => {
-      // A previous run that crashed may have left a link cut.
-      await restoreAll();
-      world = await ScenarioWorld.open();
-      [organizer, stranger] = await world.signUpMany(2);
-    }, SETUP_TIMEOUT_MS);
+  it(
+    'an event created with a cover while ms-storage is down is PENDING, then READY',
+    async () => {
+      const coverFileId = await uploadConfirmedImage(
+        organizer.client,
+        EntityType.ENTITY_TYPE_EVENT_COVER,
+      );
 
-    afterAll(async () => {
-      await restoreAll();
-      await world.close();
-    });
+      await withCut(...EVENT_TO_STORAGE, async () => {
+        const created = await createEventWithCover(organizer.client, coverFileId);
+        expect(created.coverStatus).toBe('PENDING');
+        expect(created.coverUrl).toBeUndefined();
 
-    it(
-      'an event created with a cover while ms-storage is down is PENDING, then READY',
-      async () => {
-        const coverFileId = await uploadConfirmedImage(
-          organizer.client,
-          EntityType.ENTITY_TYPE_EVENT_COVER,
+        // The event is visible: PENDING, or READY if the pipeline already went through.
+        const seen = await readEvent(organizer.client, created.id);
+        expect(['PENDING', 'READY']).toContain(seen.coverStatus);
+
+        const ready = await eventually(
+          () => readEvent(organizer.client, created.id),
+          (read) => read.coverStatus === 'READY',
+          {
+            timeoutMs: ASYNC_ATTACHMENT_TIMEOUT_MS,
+            description: `event ${created.id} cover READY while ms-storage is cut`,
+          },
         );
+        expect(ready.coverUrl).toEqual(expect.any(String));
+      });
 
-        await withCut(...EVENT_TO_STORAGE, async () => {
-          const created = await createEventWithCover(organizer.client, coverFileId);
-          expect(created.coverStatus).toBe('PENDING');
-          expect(created.coverUrl).toBeUndefined();
+      await waitForFileStatus(
+        organizer.client,
+        coverFileId,
+        [FILE_STATUS_ATTACHED],
+        ASYNC_ATTACHMENT_TIMEOUT_MS,
+      );
+    },
+    TEST_TIMEOUT_MS,
+  );
 
-          // The event is visible: PENDING, or READY if the pipeline already went through.
-          const seen = await readEvent(organizer.client, created.id);
-          expect(['PENDING', 'READY']).toContain(seen.coverStatus);
+  it(
+    'a post created with an image while ms-storage is down is PENDING, then READY',
+    async () => {
+      const fileId = await uploadConfirmedImage(organizer.client, EntityType.ENTITY_TYPE_POST);
 
-          const ready = await eventually(
-            () => readEvent(organizer.client, created.id),
-            (read) => read.coverStatus === 'READY',
-            {
-              timeoutMs: ASYNC_ATTACHMENT_TIMEOUT_MS,
-              description: `event ${created.id} cover READY while ms-storage is cut`,
-            },
-          );
-          expect(ready.coverUrl).toEqual(expect.any(String));
-        });
+      await withCut(...POST_TO_STORAGE, async () => {
+        const { postId, post } = await createPost(organizer.client, { fileIds: [fileId] });
+        expect(post.mediaStatus).toBe('PENDING');
 
-        await waitForFileStatus(
-          organizer.client,
-          coverFileId,
-          [FILE_STATUS_ATTACHED],
-          ASYNC_ATTACHMENT_TIMEOUT_MS,
+        const ready = await eventually(
+          () => readPost(organizer.client, postId),
+          (read) => read.mediaStatus === 'READY',
+          {
+            timeoutMs: ASYNC_ATTACHMENT_TIMEOUT_MS,
+            description: `post ${postId} media READY while ms-storage is cut`,
+          },
         );
-      },
-      TEST_TIMEOUT_MS,
-    );
+        expect(ready.media).toHaveLength(1);
+        expect(ready.media?.[0]?.fileId).toBe(fileId);
+      });
 
-    it(
-      'a post created with an image while ms-storage is down is PENDING, then READY',
-      async () => {
-        const fileId = await uploadConfirmedImage(organizer.client, EntityType.ENTITY_TYPE_POST);
+      await waitForFileStatus(
+        organizer.client,
+        fileId,
+        [FILE_STATUS_ATTACHED],
+        ASYNC_ATTACHMENT_TIMEOUT_MS,
+      );
+    },
+    TEST_TIMEOUT_MS,
+  );
 
-        await withCut(...POST_TO_STORAGE, async () => {
-          const { postId, post } = await createPost(organizer.client, { fileIds: [fileId] });
-          expect(post.mediaStatus).toBe('PENDING');
+  it(
+    'an event created with the file of another user while ms-storage is down ends REJECTED and never shows it',
+    async () => {
+      const foreignFileId = await uploadConfirmedImage(
+        stranger.client,
+        EntityType.ENTITY_TYPE_EVENT_COVER,
+      );
 
-          const ready = await eventually(
-            () => readPost(organizer.client, postId),
-            (read) => read.mediaStatus === 'READY',
-            {
-              timeoutMs: ASYNC_ATTACHMENT_TIMEOUT_MS,
-              description: `post ${postId} media READY while ms-storage is cut`,
-            },
-          );
-          expect(ready.media).toHaveLength(1);
-          expect(ready.media?.[0]?.fileId).toBe(fileId);
-        });
+      await withCut(...EVENT_TO_STORAGE, async () => {
+        const created = await createEventWithCover(organizer.client, foreignFileId);
+        expect(created.coverStatus).toBe('PENDING');
 
-        await waitForFileStatus(
-          organizer.client,
-          fileId,
-          [FILE_STATUS_ATTACHED],
-          ASYNC_ATTACHMENT_TIMEOUT_MS,
+        // The cover is never displayed: no read, before or after the verdict, carries a URL.
+        const observed: EventRead[] = [];
+        const rejected = await eventually(
+          async () => {
+            const read = await readEvent(organizer.client, created.id);
+            observed.push(read);
+            return read;
+          },
+          (read) => read.coverStatus === 'REJECTED',
+          {
+            timeoutMs: ASYNC_ATTACHMENT_TIMEOUT_MS,
+            description: `event ${created.id} cover REJECTED (file of another user)`,
+          },
         );
-      },
-      TEST_TIMEOUT_MS,
-    );
+        expect(rejected.coverUrl).toBeUndefined();
+        expect(observed.filter((read) => read.coverUrl !== undefined)).toEqual([]);
+        expect(observed.filter((read) => read.coverStatus === 'READY')).toEqual([]);
+      });
 
-    it(
-      'an event created with the file of another user while ms-storage is down ends REJECTED and never shows it',
-      async () => {
-        const foreignFileId = await uploadConfirmedImage(
-          stranger.client,
-          EntityType.ENTITY_TYPE_EVENT_COVER,
-        );
-
-        await withCut(...EVENT_TO_STORAGE, async () => {
-          const created = await createEventWithCover(organizer.client, foreignFileId);
-          expect(created.coverStatus).toBe('PENDING');
-
-          // The cover is never displayed: no read, before or after the verdict, carries a URL.
-          const observed: EventRead[] = [];
-          const rejected = await eventually(
-            async () => {
-              const read = await readEvent(organizer.client, created.id);
-              observed.push(read);
-              return read;
-            },
-            (read) => read.coverStatus === 'REJECTED',
-            {
-              timeoutMs: ASYNC_ATTACHMENT_TIMEOUT_MS,
-              description: `event ${created.id} cover REJECTED (file of another user)`,
-            },
-          );
-          expect(rejected.coverUrl).toBeUndefined();
-          expect(observed.filter((read) => read.coverUrl !== undefined)).toEqual([]);
-          expect(observed.filter((read) => read.coverStatus === 'READY')).toEqual([]);
-        });
-
-        // The file was not taken by the organizer's event: it is not attached to anything.
-        const { file } = await readFile(stranger.client, foreignFileId);
-        if (!file) {
-          throw new Error(`file ${foreignFileId} of the other user cannot be read by its owner`);
-        }
-        expect(fileStatusName(file.status)).not.toBe(FILE_STATUS_ATTACHED);
-      },
-      TEST_TIMEOUT_MS,
-    );
-  });
-}
+      // The file was not taken by the organizer's event: it is not attached to anything.
+      const { file } = await readFile(stranger.client, foreignFileId);
+      if (!file) {
+        throw new Error(`file ${foreignFileId} of the other user cannot be read by its owner`);
+      }
+      expect(fileStatusName(file.status)).not.toBe(FILE_STATUS_ATTACHED);
+    },
+    TEST_TIMEOUT_MS,
+  );
+});
